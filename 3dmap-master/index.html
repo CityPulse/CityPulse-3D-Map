@@ -55,6 +55,8 @@
 			var raycaster = null;
             var mouse =  null;
 			var plane = null;
+
+			var selectedObject = null;
 			
 			
 			var SHADOW_MAP_WIDTH = 1024, SHADOW_MAP_HEIGHT = 1024;
@@ -205,8 +207,11 @@
 
 	            for ( var i = 0; i < intersects.length; i++ ) 
 				{
-				if(intersects[ i ].object.name != "sky" &&  intersects[ i ].object.name != "ground" )
-		         intersects[ i ].object.material.color.set( 0x00ff00 );
+					if(intersects[ i ].object.name != "sky" &&  intersects[ i ].object.name != "ground" ) {
+		         		intersects[ i ].object.material.color.set( 0x00ff00 );
+		         		selectedObject = intersects[i].object;
+		         		break;
+					}
 	            }
 				
 				//if(plane != null)
