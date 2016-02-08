@@ -1,0 +1,20 @@
+{
+  "name": "utm-converter",
+  "version": "0.1.1",
+  "description": "A converter between geographic coordinates in WGS84 and Universal Transverse Mercator (UTM) coordinates.",
+  "homepage": "https://github.com/urbanetic/utm-converter",
+  "authors": [
+    "Aram Kocharyan <akarmenia@gmail.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "Requirejs": "requirejs#2.1.x"
+  }
+}
