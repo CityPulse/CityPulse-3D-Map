@@ -5,7 +5,7 @@
 			body { margin: 0; }
 			canvas { width: 100%; height: 100% }
 		</style>
-		
+
 		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 		<script src="js/three.min.js"></script>
 		<script src="js/controls/OrbitControls.js"></script>
@@ -13,6 +13,10 @@
 	</head>
 	<body>
 	
+		<div id="infoBox" style="visibility: hidden; position: absolute; z-index: 1; right: 1%; top: 10%; width:200px; height:80%; background-color: grey; border-style: groove; border-color: 00CCFF; border-width: 15px;">
+        1234
+    	</div>
+
 	<script type="x-shader/x-vertex" id="vertexShader">
 
 			varying vec3 vWorldPosition;
@@ -121,7 +125,14 @@
 						selectedObject = null;
 		            }
 		            
-					console.log(selectedObject);
+		            if(selectedObject !== null) {
+		            	console.log(selectedObject.id);
+						$('#infoBox').html("Now showing data for building: " + selectedObject.id);
+		            	$("#infoBox").css('visibility', 'visible');
+		            }
+		            else
+		            	$("#infoBox").css('visibility', 'hidden');
+						
 				});
 				
                 //var geometry = new THREE.BoxGeometry( 1, 1, 1 );
@@ -327,7 +338,8 @@
 			
                        // var material = new THREE.MeshPhongMaterial( { color: "rgb (128,128,250)", specular: "rgb (32,32,32)", shininess: 30, shading: THREE.FlatShading } );
                         var material = new THREE.MeshLambertMaterial( {color: "rgb(128,128,250)" });
-                        var rectMesh = new THREE.Mesh(geometry, material) ;		
+                        var rectMesh = new THREE.Mesh(geometry, material) ;	
+                        rectMesh.id = i;	
 				
                         threeObjects.push(rectMesh);
                     });

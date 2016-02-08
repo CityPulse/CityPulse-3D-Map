@@ -3,6 +3,11 @@ var WebSocketServer = require('websocket').server;
 
 var webSocketsServerPort = 8001;
 
+// DUMMY SETUP
+var numberOfBuildings = 300;
+var maxValue = 100;
+var minValue = 1;
+
 var server = http.createServer(function(request, response) {
     // process HTTP request. Since we're writing just WebSockets server
     // we don't have to implement anything.
@@ -23,8 +28,8 @@ wsServer.on('request', function(request) {
 
     // Start interval of sending data every 5 seconds
     var refreshId = setInterval(function() {
-        buildingId = Math.floor(Math.random() * 50) + 1;    // 1-50
-        value = Math.floor(Math.random() * 100) + 1;        // 1-100
+        buildingId = Math.floor(Math.random() * numberOfBuildings) + 1;    
+        value = Math.floor(Math.random() * maxValue) + minValue;        
         unit = "kWh";
 
         connection.sendUTF('{"id":'+buildingId+', "value":'+value+',"unit":"'+unit+'"}');
