@@ -5,7 +5,7 @@
 			body { margin: 0; }
 			canvas { width: 100%; height: 100% }
 		</style>
-		
+
 		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 		<script src="js/three.min.js"></script>
 		<script src="js/controls/OrbitControls.js"></script>
@@ -13,6 +13,10 @@
 	</head>
 	<body>
 	
+		<div id="infoBox" style="visibility: hidden; position: absolute; z-index: 1; right: 1%; top: 10%; width:200px; height:80%; background-color: grey; border-style: groove; border-color: 00CCFF; border-width: 15px;">
+        1234
+    	</div>
+
 	<script type="x-shader/x-vertex" id="vertexShader">
 
 			varying vec3 vWorldPosition;
@@ -55,6 +59,9 @@
 			var raycaster = null;
             var mouse =  null;
 			var plane = null;
+
+			var selectedObject = null;
+			var mousedown = false;
 			
 			
 			var SHADOW_MAP_WIDTH = 1024, SHADOW_MAP_HEIGHT = 1024;
@@ -83,8 +90,51 @@
 				renderer.shadowMapEnabled = true;
 				renderer.shadowMapType = THREE.PCFSoftShadowMap;
                 document.body.appendChild( renderer.domElement );
-				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
-            
+				//document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				$(document).mousemove(onDocumentMouseMove);
+				$(document).mousedown(function(event) {
+					if(event.which == 3)
+						mousedown = true;
+				}).mouseup(function(event) {
+					if(event.which == 3)
+						mousedown = false;
+				});
+
+				$(document).dblclick(function(event) {
+					raycaster.setFromCamera( mouse, camera );
+
+					// calculate objects intersecting the picking ray
+	            	var intersects = raycaster.intersectObjects( scene.children );
+
+		            for ( var i = 0; i < intersects.length; i++ ) 
+					{
+						if(intersects[ i ].object.name != "sky" &&  intersects[ i ].object.name != "ground" ) {
+							if (intersects[i].object !== selectedObject) {
+								if(selectedObject !== null)
+									selectedObject.scale.z = 1; //Reduce height of old selected object
+								selectedObject = intersects[i].object; // Assign new selected object
+								selectedObject.scale.z = 2;
+							};
+							
+			         		break;
+						}
+
+						//Doubleclicked on the ground, deselects building.
+						if(selectedObject !== null)
+							selectedObject.scale.z = 1;
+						selectedObject = null;
+		            }
+		            
+		            if(selectedObject !== null) {
+		            	console.log(selectedObject.id);
+						$('#infoBox').html("Now showing data for building: " + selectedObject.id);
+		            	$("#infoBox").css('visibility', 'visible');
+		            }
+		            else
+		            	$("#infoBox").css('visibility', 'hidden');
+						
+				});
+				
                 //var geometry = new THREE.BoxGeometry( 1, 1, 1 );
                 //var material = new THREE.MeshLambertMaterial( {color: 0x00ff00} );
                 //var cube = new THREE.Mesh( geometry, material );
@@ -102,8 +152,8 @@
 				controls = new THREE.OrbitControls( camera, renderer.domElement );
 				//controls.addEventListener( 'change', render ); // add this only if there is no animation loop (requestAnimationFrame)
 				controls.enableDamping = true;
-				controls.dampingFactor = 0.25;
-				controls.enableZoom = false;
+				controls.dampingFactor = 0.85;
+				controls.enableZoom = true;
             
             
                 // add spotlight for the shadows
@@ -174,26 +224,18 @@
 				scene.add( sky );
 		    }
 			
-			function onDocumentMouseDown( event ) 
+			function onDocumentMouseMove( event ) 
 			{
-
-	// calculate mouse position in normalized device coordinates
-	// (-1 to +1) for both components
-
-	             mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-	             mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;		
-
+	            mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+	            mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;							
             }
             
 
 			function render()
 			{
 				requestAnimationFrame( render );
-				
-				raycaster.setFromCamera( mouse, camera );	
 
-	            // calculate objects intersecting the picking ray
-	            var intersects = raycaster.intersectObjects( scene.children );
+	            
 				
 				//var groundObject = scene.getObjectByName( "ground");
 				//	groundObject.material.color.set( "rgb(128, 128, 128)");
@@ -201,13 +243,10 @@
 				$.each(threeObjects,function(i, item)
 				{
 					item.material.color.set( 0x00ffff );
+					if(selectedObject !== null)
+						selectedObject.material.color.set(0x00ff00);
                 });
 
-	            for ( var i = 0; i < intersects.length; i++ ) 
-				{
-				if(intersects[ i ].object.name != "sky" &&  intersects[ i ].object.name != "ground" )
-		         intersects[ i ].object.material.color.set( 0x00ff00 );
-	            }
 				
 				//if(plane != null)
 			//	plane.material.color.set( "rgb(128, 128, 128)");
@@ -299,7 +338,8 @@
 			
                        // var material = new THREE.MeshPhongMaterial( { color: "rgb (128,128,250)", specular: "rgb (32,32,32)", shininess: 30, shading: THREE.FlatShading } );
                         var material = new THREE.MeshLambertMaterial( {color: "rgb(128,128,250)" });
-                        var rectMesh = new THREE.Mesh(geometry, material) ;		
+                        var rectMesh = new THREE.Mesh(geometry, material) ;	
+                        rectMesh.id = i;	
 				
                         threeObjects.push(rectMesh);
                     });
