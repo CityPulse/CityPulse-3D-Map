@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>My first Three.js app</title>
+		<title>KML c3ap</title>
 		<style>
 			body { margin: 0; }
 			canvas { width: 100%; height: 100% }
@@ -15,6 +15,11 @@
 
 	</head>
 	<body>
+
+	<div id="infoBox" style="visibility: hidden; position: absolute; z-index: 1; right: 1%; top: 10%; width:200px; height:80%; background-color: grey; border-style: groove; border-color: 00CCFF; border-width: 15px;">
+        1234
+    	</div>
+
 	<div id='holder'></div>
 	
 	<script type="x-shader/x-vertex" id="vertexShader">
@@ -51,7 +56,8 @@
 			</script>
 	
 		<script>
-		    var threeObjects=[];
+		    var threeObjects={};
+		    var combinedMesh = null;
 		    var renderer=null;
 		    var scene=null;
 		    var camera=null;
@@ -66,6 +72,8 @@
 		    populateMap();
 			
 		    var rendererStats  = new THREEx.RendererStats()
+		    
+
 		    rendererStats.domElement.style.position   = 'absolute'
 			rendererStats.domElement.style.left  = '0px'
 			rendererStats.domElement.style.bottom    = '0px'
@@ -75,7 +83,6 @@
 		
 		    function setup()
 			{	
-				console.log("setup");
 		        scene = new THREE.Scene();
                 camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 100000 );
 				raycaster = new THREE.Raycaster();
@@ -93,27 +100,21 @@
 				renderer.shadowMapEnabled = true;
 				renderer.shadowMapType = THREE.PCFSoftShadowMap;
                 document.body.appendChild( renderer.domElement );
-				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
-            
-                //var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-                //var material = new THREE.MeshLambertMaterial( {color: 0x00ff00} );
-                //var cube = new THREE.Mesh( geometry, material );
-                //cube.position.x= threeObjects[threeObjects.lenght/2].geometry.vertices[0].x;
-                //cube.position.y= threeObjects[threeObjects.lenght/2].geometry.vertices[0].y;
-                //cube.position.z=0;
-                //scene.add( cube );
+                addMouseHandling();
+
 
                 camera.position.z = 200;
                 camera.position.x = 200;//threeObjects[threeObjects.length/2].geometry.vertices[0].x;
                 camera.position.y = 100;//threeObjects[threeObjects.length/2].geometry.vertices[0].z;
                 //camera.lookAt(threeObjects[0].position);
-                camera.lookAt(threeObjects[threeObjects.length/2].position);
+                
+                //camera.lookAt(threeObjects[Math.ceil(threeObjects.length/2)].position);
 				
 				controls = new THREE.OrbitControls( camera, renderer.domElement );
 				//controls.addEventListener( 'change', render ); // add this only if there is no animation loop (requestAnimationFrame)
 				controls.enableDamping = true;
 				controls.dampingFactor = 0.25;
-				controls.enableZoom = false;
+				controls.enableZoom = true;
             
             
                 // add spotlight for the shadows
@@ -144,16 +145,17 @@
 				var planeGeo =  new THREE.PlaneBufferGeometry(2048, 2048,32, 32 );// new THREE.PlaneGeometry(2000,2000);
                 var planeMat = new THREE.MeshLambertMaterial("rgb(128, 128, 128)");
                 plane = new THREE.Mesh(planeGeo, planeMat);
-
+                
                 var singleGeometry = new THREE.Geometry();
                 
                 //singleGeometry.merge(plane.geometry, plane.matrix);
-
+                /*
                 $.each(threeObjects,function(i, item)
 				{
 					item.rotation.x += -3.1415*0.5;
 					item.castShadow = true;
 					item.receiveShadow = true;
+
                     //scene.add(item);
                     //THREE.GeometryUtils.merge(planeGeo, item.geometry);
                     item.updateMatrix();
@@ -162,8 +164,7 @@
 				);
                 
                 var geoMesh = new THREE.Mesh(singleGeometry, new THREE.MeshLambertMaterial( {color: "rgb(128,128,250)" }));
-            
-                
+                */
  
                 // rotate it to correct position
                 plane.rotation.x = -Math.PI/2;
@@ -171,7 +172,7 @@
 				plane.receiveShadow = true;
 				plane.name = "ground";
                 scene.add(plane);
-                scene.add(geoMesh);
+                scene.add(combinedMesh);
 				render();
 				
 				// SKYDOME
@@ -193,26 +194,102 @@
 				sky.name = "sky";
 				scene.add( sky );
 		    }
-			
-			function onDocumentMouseDown( event ) 
-			{
 
-	// calculate mouse position in normalized device coordinates
-	// (-1 to +1) for both components
 
-	             mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-	             mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;		
+		    selectedObject=null;
+            function addMouseHandling(){
+            	$(document).mousemove(function(){
+            		mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+	             	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;		
+            	});
+
+            	$(document).dblclick(function(event) {
+					raycaster.setFromCamera( mouse, camera );
+
+					// calculate objects intersecting the picking ray
+	            	var intersects = raycaster.intersectObjects( scene.children );
+	            	console.log("LELLE: "+intersects.length);
+	            	var targetedFaces = [];
+		            for ( var i = 0; i < intersects.length; i++ ) 
+					{
+
+						if(intersects[ i ].object.name != "sky" &&  intersects[ i ].object.name != "ground" ) {
+							console.log(intersects[i]);
+
+							var readingId = intersects[i].face.readingId;
+							var faces = intersects[i].object.geometry.faces;
+							console.log("count: "+faces.length);
+							var j = 0;
+							var r = Math.random()
+							var b = Math.random()
+							var g = Math.random();
+							for(var k=0; k<faces.length;k++){
+								if(faces[k].readingId===readingId){
+									targetedFaces.push(faces[k]);
+									//faces[k].color.setRGB(1,0,0);
+									
+									faces[k].color.setRGB(r,g,b);
+									j++;
+								}
+							}
+
+							mesh = threeObjects[readingId];
+							if(mesh !=undefined){
+								var meshFaces = mesh.geometry.faces;
+								for(var j = 0; j<meshFaces.length;j++){
+									for(var k=0; k<targetedFaces.length;k++){
+										if(meshFaces[j]===targetedFaces[k]){
+											console.log("same");
+										}
+									}
+								}
+							}
+							
+
+							console.log("tagted: "+j);
+				            
+				            intersects[i].object.geometry.colorsNeedUpdate = true;
+				            intersects[i].object.geometry.verticesNeedUpdate = true;
+				            intersects[i].object.geometry.elementsNeedUpdate = true;
+							/*
+							if (intersects[i].object !== selectedObject) {
+								if(selectedObject !== null)
+									selectedObject.scale.z = 1; //Reduce height of old selected object
+								selectedObject = intersects[i].object; // Assign new selected object
+								console.log(selectedObject);
+								console.log(selectedObject.geometry.energId);
+								//selectedObject.scale.z = 2;
+							};
+							*/
+							
+			         		break;
+						}
+
+						//Doubleclicked on the ground, deselects building.
+						if(selectedObject !== null)
+							//selectedObject.scale.z = 1;
+						selectedObject = null;
+		            }
+
+		            if(selectedObject !== null) {
+		            	console.log(selectedObject.id);
+						$('#infoBox').html("Now showing data for building: " + selectedObject.id);
+		            	$("#infoBox").css('visibility', 'visible');
+		            }
+		            else
+		            	$("#infoBox").css('visibility', 'hidden');
+						
+				});
 
             }
             
 
 			function render()
 			{
-				
 				requestAnimationFrame( render );
 				
-				raycaster.setFromCamera( mouse, camera );	
-
+				//raycaster.setFromCamera( mouse, camera );	
+				/*
 	            // calculate objects intersecting the picking ray
 	            var intersects = raycaster.intersectObjects( scene.children );
 				
@@ -226,16 +303,19 @@
 
 	            for ( var i = 0; i < intersects.length; i++ ) 
 				{
-					if(intersects[ i ].object.name != "sky" &&  intersects[ i ].object.name != "ground" )
-		         	intersects[ i ].object.material.color.set( 0x00ff00 );
+					if(intersects[ i ].object.name != "sky" &&  intersects[ i ].object.name != "ground" ){
+						//intersects[ i ].object.material.color.set( 0x00ff00 );	
+					}
+		         	
 	            }
 				
 				//if(plane != null)
 			//	plane.material.color.set( "rgb(128, 128, 128)");
 	
+				*/
 				
-				rendererStats.update(renderer);
 				renderer.render(scene, camera);
+				rendererStats.update(renderer);
 			};
 			
 			
@@ -247,39 +327,15 @@
 			
 
 			function populateMap(){
+				
 				$.get('data/kml/aarhusByMidte.kml', function(kml)
 				//$.get('data/kml/test.kml', function(kml)
 				{
-					console.log("got kml");
+					console.log("got building kml");
 					data = toGeoJSON.kml(kml);
-					var i =0;
-					var bit = Math.ceil(data.features.length/10);
 					renderMap(data.features)
-					/*
-					while(data.features.length){
-						if(i>5){
-							console.log("done");
-							return;
-						}
-						var splice = data.features.splice(0,10);
-						renderMap(splice);
-						i++;
-					}
-					*/
-					//renderMap(data);
-					/*
-					var json = JSON.stringify(data);
-					var blob = new Blob([json], {type: "application/json"});
-					var url  = URL.createObjectURL(blob);
-
-					var a = document.createElement('a');
-					a.download    = "backup.json";
-					a.href        = url;
-					a.textContent = "Download backup.json";
-					$("#holder").append(a);
-					return;
-					*/
 				});
+				
 			}
 				
 
@@ -296,6 +352,8 @@
 
 				var maxX = -100000.0;
 				var maxY = -100000.0;
+
+				var singleGeometry = new THREE.Geometry();
 
 				$.each(data,function(i, item)
 				{
@@ -343,30 +401,45 @@
 					var fCenterY = minY + (maxY-minY)*0.5;
 
                     //Converting the 2D mapping to 3D mapping (shifting z and y coordinates)         
-                    for( var i = 0; i < geometry.vertices.length; i++ ) 
+                    for( var k = 0; k < geometry.vertices.length; k++ ) 
                     {
-                    	var fZ =  geometry.vertices[i].z;
+                    	var fZ =  geometry.vertices[k].z;
 
-                    	geometry.vertices[i].x -= fCenterX; 
-                    	geometry.vertices[i].y = geometry.vertices[i].y-fCenterY;
-                    	geometry.vertices[i].z = fZ;
+                    	geometry.vertices[k].x -= fCenterX; 
+                    	geometry.vertices[k].y = geometry.vertices[k].y-fCenterY;
+                    	geometry.vertices[k].z = fZ;
+                    	//so far we use their index - another way maybe needed!!
+                    	geometry.vertices[k].readingId = i;
 
                        /* geometry.vertices[i].x -= minX; 
                         geometry.vertices[i].z = geometry.vertices[i].y-minY;
                         geometry.vertices[i].y = fZ;*/
                        // console.log(geometry.vertices[i]);
                    }
+                   for( var k = 0; k < geometry.faces.length; k++ ) 
+                    {
+                    	geometry.faces[k].readingId = i;
+                    }
 
 					geometry.computeFaceNormals();
 
 
-                   // var material = new THREE.MeshPhongMaterial( { color: "rgb (128,128,250)", specular: "rgb (32,32,32)", shininess: 30, shading: THREE.FlatShading } );
-                   var material = new THREE.MeshLambertMaterial( {color: "rgb(128,128,250)" });
-                   var rectMesh = new THREE.Mesh(geometry, material) ;		
+                   	// var material = new THREE.MeshPhongMaterial( { color: "rgb (128,128,250)", specular: "rgb (32,32,32)", shininess: 30, shading: THREE.FlatShading } );
+                   	var material = new THREE.MeshLambertMaterial( {color: "rgb(128,128,250)" });
+                   	var rectMesh = new THREE.Mesh(geometry, material) ;		
 
-                   threeObjects.push(rectMesh);
+                   	rectMesh.rotation.x += -3.1415*0.5;
+					rectMesh.castShadow = true;
+					rectMesh.receiveShadow = true;
+                	rectMesh.updateMatrix();
+
+                	singleGeometry.merge(rectMesh.geometry, rectMesh.matrix);
+                	
+                   threeObjects[i] = rectMesh;
 				});
-
+				var faceColorMaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, vertexColors: THREE.VertexColors } );
+				//combinedMesh = new THREE.Mesh(singleGeometry, new THREE.MeshLambertMaterial( {color: "rgb(128,128,250)" }));
+				combinedMesh = new THREE.Mesh(singleGeometry, faceColorMaterial);
 				setup();
                     
                 

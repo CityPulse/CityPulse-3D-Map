@@ -61,7 +61,6 @@
 			var plane = null;
 
 			var selectedObject = null;
-			var mousedown = false;
 			
 			
 			var SHADOW_MAP_WIDTH = 1024, SHADOW_MAP_HEIGHT = 1024;
@@ -90,15 +89,11 @@
 				renderer.shadowMapEnabled = true;
 				renderer.shadowMapType = THREE.PCFSoftShadowMap;
                 document.body.appendChild( renderer.domElement );
+
+                
 				//document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 				$(document).mousemove(onDocumentMouseMove);
-				$(document).mousedown(function(event) {
-					if(event.which == 3)
-						mousedown = true;
-				}).mouseup(function(event) {
-					if(event.which == 3)
-						mousedown = false;
-				});
+
 
 				$(document).dblclick(function(event) {
 					raycaster.setFromCamera( mouse, camera );

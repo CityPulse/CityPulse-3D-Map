@@ -1632,11 +1632,12 @@ THREE.Vector2.prototype = {
  * @author WestLangley / http://github.com/WestLangley
  */
 
-THREE.Vector3 = function ( x, y, z ) {
+THREE.Vector3 = function ( x, y, z, readingId ) {
 
 	this.x = x || 0;
 	this.y = y || 0;
 	this.z = z || 0;
+	this.readingId = readingId || null;
 
 };
 
@@ -2468,7 +2469,7 @@ THREE.Vector3.prototype = {
 
 	clone: function () {
 
-		return new THREE.Vector3( this.x, this.y, this.z );
+		return new THREE.Vector3( this.x, this.y, this.z, this.readingId );
 
 	}
 
@@ -8221,11 +8222,11 @@ THREE.Object3DIdCount = 0;
  * @author alteredq / http://alteredqualia.com/
  */
 
-THREE.Face3 = function ( a, b, c, normal, color, materialIndex ) {
-
+THREE.Face3 = function ( a, b, c, normal, color, materialIndex, readingId ) {
 	this.a = a;
 	this.b = b;
 	this.c = c;
+	this.readingId = readingId | null;
 
 	this.normal = normal instanceof THREE.Vector3 ? normal : new THREE.Vector3();
 	this.vertexNormals = normal instanceof Array ? normal : [];
@@ -10084,9 +10085,9 @@ THREE.Geometry.prototype = {
 		for ( var i = 0, il = vertices2.length; i < il; i ++ ) {
 
 			var vertex = vertices2[ i ];
-
-			var vertexCopy = vertex.clone();
-
+			//TEST
+			//var vertexCopy = vertex.clone();
+			vertexCopy = vertex;
 			if ( matrix !== undefined ) vertexCopy.applyMatrix4( matrix );
 
 			vertices1.push( vertexCopy );
@@ -10096,12 +10097,17 @@ THREE.Geometry.prototype = {
 		// faces
 
 		for ( i = 0, il = faces2.length; i < il; i ++ ) {
-
 			var face = faces2[ i ], faceCopy, normal, color,
 			faceVertexNormals = face.vertexNormals,
 			faceVertexColors = face.vertexColors;
+			//TEST
+			//faceCopy = new THREE.Face3( face.a + vertexOffset, face.b + vertexOffset, face.c + vertexOffset, null, null, null, face.readingId );
+			faceCopy = face;
+			faceCopy.a = face.a+vertexOffset;
+			faceCopy.b = face.b+vertexOffset;
+			faceCopy.c = face.c+vertexOffset;
 
-			faceCopy = new THREE.Face3( face.a + vertexOffset, face.b + vertexOffset, face.c + vertexOffset );
+			
 			faceCopy.normal.copy( face.normal );
 
 			if ( normalMatrix !== undefined ) {
