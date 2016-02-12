@@ -16,7 +16,9 @@ $(function () {
     // open connection
     var connection = new WebSocket('ws://127.0.0.1:8001');
 
-    connection.onopen = function () {};
+    connection.onopen = function () {
+        connection.send("YO YO YO");
+    };
 
     connection.onerror = function (error) {
         // just in there were some problems with conenction...
