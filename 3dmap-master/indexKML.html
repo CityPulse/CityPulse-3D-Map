@@ -103,9 +103,9 @@
                 addMouseHandling();
 
 
-                camera.position.z = 200;
-                camera.position.x = 200;//threeObjects[threeObjects.length/2].geometry.vertices[0].x;
-                camera.position.y = 100;//threeObjects[threeObjects.length/2].geometry.vertices[0].z;
+                camera.position.z = 50;
+                camera.position.x = 50;//threeObjects[threeObjects.length/2].geometry.vertices[0].x;
+                camera.position.y = 25;//threeObjects[threeObjects.length/2].geometry.vertices[0].z;
                 //camera.lookAt(threeObjects[0].position);
                 
                 //camera.lookAt(threeObjects[Math.ceil(threeObjects.length/2)].position);
@@ -146,25 +146,6 @@
                 var planeMat = new THREE.MeshLambertMaterial("rgb(128, 128, 128)");
                 plane = new THREE.Mesh(planeGeo, planeMat);
                 
-                var singleGeometry = new THREE.Geometry();
-                
-                //singleGeometry.merge(plane.geometry, plane.matrix);
-                /*
-                $.each(threeObjects,function(i, item)
-				{
-					item.rotation.x += -3.1415*0.5;
-					item.castShadow = true;
-					item.receiveShadow = true;
-
-                    //scene.add(item);
-                    //THREE.GeometryUtils.merge(planeGeo, item.geometry);
-                    item.updateMatrix();
-                    singleGeometry.merge(item.geometry, item.matrix);
-                }
-				);
-                
-                var geoMesh = new THREE.Mesh(singleGeometry, new THREE.MeshLambertMaterial( {color: "rgb(128,128,250)" }));
-                */
  
                 // rotate it to correct position
                 plane.rotation.x = -Math.PI/2;
@@ -172,7 +153,9 @@
 				plane.receiveShadow = true;
 				plane.name = "ground";
                 scene.add(plane);
+                
                 scene.add(combinedMesh);
+                
 				render();
 				
 				// SKYDOME
@@ -196,6 +179,16 @@
 		    }
 
 
+			function render()
+			{
+				requestAnimationFrame( render );
+
+				
+				renderer.render(scene, camera);
+				rendererStats.update(renderer);
+			};
+
+
 		    selectedObject=null;
             function addMouseHandling(){
             	$(document).mousemove(function(){
@@ -208,67 +201,76 @@
 
 					// calculate objects intersecting the picking ray
 	            	var intersects = raycaster.intersectObjects( scene.children );
-	            	console.log("LELLE: "+intersects.length);
-	            	var targetedFaces = [];
+	            	
+	            	
 		            for ( var i = 0; i < intersects.length; i++ ) 
 					{
-
+						console.log(intersects[i]);
 						if(intersects[ i ].object.name != "sky" &&  intersects[ i ].object.name != "ground" ) {
 							console.log(intersects[i]);
 
 							var readingId = intersects[i].face.readingId;
+							
 							var faces = intersects[i].object.geometry.faces;
-							console.log("count: "+faces.length);
+							var vertices = intersects[i].object.geometry.vertices;
+
+							var targetedFaces = [];
+
+							console.log("readingID: "+readingId+" / "+Object.keys(threeObjects).length);
 							var j = 0;
 							var r = Math.random()
 							var b = Math.random()
 							var g = Math.random();
+							
+							/*
 							for(var k=0; k<faces.length;k++){
 								if(faces[k].readingId===readingId){
 									targetedFaces.push(faces[k]);
 									//faces[k].color.setRGB(1,0,0);
 									
-									faces[k].color.setRGB(r,g,b);
+									//faces[k].color.setRGB(r,g,b);
 									j++;
 								}
 							}
+							*/
 
-							mesh = threeObjects[readingId];
+							var mesh = threeObjects[readingId];
+							mesh.material.color.setRGB(r,g,b);
+							//mesh.matrix.identity();
+							//mesh.scale.set(1,1,1);	
+							mesh.rotation.set(0,0,0);
+							mesh.updateMatrix();
+
+							mesh.scale.y =2;
+							mesh.updateMatrix();
+							mesh.geometry.applyMatrix(mesh.matrix);
+							mesh.matrix.identity();
+							//mesh.geometry.verticesNeedUpdate = true;
+							mesh.scale.set(1,1,1);	
+						
+							
+							var tagetedVertices = [];
+
 							if(mesh !=undefined){
 								var meshFaces = mesh.geometry.faces;
+								var meshVertices = mesh.geometry.vertices;
+
 								for(var j = 0; j<meshFaces.length;j++){
-									for(var k=0; k<targetedFaces.length;k++){
-										if(meshFaces[j]===targetedFaces[k]){
-											console.log("same");
-										}
-									}
+									meshFaces[j].color.setRGB(r,g,b);
+
 								}
+								
 							}
 							
-
-							console.log("tagted: "+j);
 				            
 				            intersects[i].object.geometry.colorsNeedUpdate = true;
 				            intersects[i].object.geometry.verticesNeedUpdate = true;
 				            intersects[i].object.geometry.elementsNeedUpdate = true;
-							/*
-							if (intersects[i].object !== selectedObject) {
-								if(selectedObject !== null)
-									selectedObject.scale.z = 1; //Reduce height of old selected object
-								selectedObject = intersects[i].object; // Assign new selected object
-								console.log(selectedObject);
-								console.log(selectedObject.geometry.energId);
-								//selectedObject.scale.z = 2;
-							};
-							*/
+							
 							
 			         		break;
 						}
 
-						//Doubleclicked on the ground, deselects building.
-						if(selectedObject !== null)
-							//selectedObject.scale.z = 1;
-						selectedObject = null;
 		            }
 
 		            if(selectedObject !== null) {
@@ -284,39 +286,6 @@
             }
             
 
-			function render()
-			{
-				requestAnimationFrame( render );
-				
-				//raycaster.setFromCamera( mouse, camera );	
-				/*
-	            // calculate objects intersecting the picking ray
-	            var intersects = raycaster.intersectObjects( scene.children );
-				
-				//var groundObject = scene.getObjectByName( "ground");
-				//	groundObject.material.color.set( "rgb(128, 128, 128)");
-				
-				$.each(threeObjects,function(i, item)
-				{
-					item.material.color.set( 0x00ffff );
-                });
-
-	            for ( var i = 0; i < intersects.length; i++ ) 
-				{
-					if(intersects[ i ].object.name != "sky" &&  intersects[ i ].object.name != "ground" ){
-						//intersects[ i ].object.material.color.set( 0x00ff00 );	
-					}
-		         	
-	            }
-				
-				//if(plane != null)
-			//	plane.material.color.set( "rgb(128, 128, 128)");
-	
-				*/
-				
-				renderer.render(scene, camera);
-				rendererStats.update(renderer);
-			};
 			
 			
 			/*****************************/
@@ -325,20 +294,28 @@
 			/*                           */
 			/*****************************/
 			
+		
 
+            
 			function populateMap(){
 				
-				$.get('data/kml/aarhusByMidte.kml', function(kml)
-				//$.get('data/kml/test.kml', function(kml)
+				//$.get('data/kml/aarhusByMidte.kml', function(kml)
+				$.get('data/kml/test.kml', function(kml)
 				{
 					console.log("got building kml");
 					data = toGeoJSON.kml(kml);
 					renderMap(data.features)
 				});
+				/*
+				jQuery.getJSON('data/testdata.json', function(data)
+				{
+					renderMap(data.features);
+				});
+				*/
 				
 			}
+			
 				
-
 
 			// get the data
 			function renderMap(data)
@@ -361,6 +338,7 @@
 					var height=0;
 
 					$.each(item.geometry.coordinates[0], function(j, itemTwo)
+					//$.each(item.geometry.coordinates, function(j, itemTwo)
 					{
 
 						var utmResult= converter.toUtm({coord: [itemTwo[0], itemTwo[1]]});
@@ -437,6 +415,7 @@
                 	
                    threeObjects[i] = rectMesh;
 				});
+				
 				var faceColorMaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, vertexColors: THREE.VertexColors } );
 				//combinedMesh = new THREE.Mesh(singleGeometry, new THREE.MeshLambertMaterial( {color: "rgb(128,128,250)" }));
 				combinedMesh = new THREE.Mesh(singleGeometry, faceColorMaterial);

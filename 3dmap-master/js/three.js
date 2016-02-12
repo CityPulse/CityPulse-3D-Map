@@ -10087,7 +10087,7 @@ THREE.Geometry.prototype = {
 			var vertex = vertices2[ i ];
 			//TEST
 			//var vertexCopy = vertex.clone();
-			vertexCopy = vertex;
+			var vertexCopy = vertex;
 			if ( matrix !== undefined ) vertexCopy.applyMatrix4( matrix );
 
 			vertices1.push( vertexCopy );
@@ -10102,12 +10102,13 @@ THREE.Geometry.prototype = {
 			faceVertexColors = face.vertexColors;
 			//TEST
 			//faceCopy = new THREE.Face3( face.a + vertexOffset, face.b + vertexOffset, face.c + vertexOffset, null, null, null, face.readingId );
+			
 			faceCopy = face;
 			faceCopy.a = face.a+vertexOffset;
 			faceCopy.b = face.b+vertexOffset;
 			faceCopy.c = face.c+vertexOffset;
-
 			
+
 			faceCopy.normal.copy( face.normal );
 
 			if ( normalMatrix !== undefined ) {
