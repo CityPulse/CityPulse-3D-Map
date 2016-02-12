@@ -11,7 +11,8 @@
 		<script src="js/three.js"></script>
 		<script src="js/controls/OrbitControls.js"></script>
 		<script src="js/utm-converter/src/converter.js"></script>
-		<script src='js/renderstats/threex.rendererstats.js'></script>
+		
+		<script src='js/renderstats/stats.min.js'></script>
 
 	</head>
 	<body>
@@ -57,7 +58,7 @@
 	
 		<script>
 		    var threeObjects={};
-		    var combinedMesh = null;
+		    var combinedMesh = [];
 		    var renderer=null;
 		    var scene=null;
 		    var camera=null;
@@ -65,14 +66,19 @@
 			var raycaster = null;
             var mouse =  null;
 			var plane = null;
+
+			var planeX = 10000;
+			var planeY = 10000;
 			
 			
 			var SHADOW_MAP_WIDTH = 1024, SHADOW_MAP_HEIGHT = 1024;
 		    
 		    populateMap();
 			
-		    var rendererStats  = new THREEx.RendererStats()
-		    
+		    //var rendererStats  = new THREEx.RendererStats()
+		    var rendererStats = new Stats();
+			rendererStats.setMode( 0 ); // 0: fps, 1: ms, 2: mb
+
 
 		    rendererStats.domElement.style.position   = 'absolute'
 			rendererStats.domElement.style.left  = '0px'
@@ -103,9 +109,9 @@
                 addMouseHandling();
 
 
-                camera.position.z = 400;
-                camera.position.x = 400;//threeObjects[threeObjects.length/2].geometry.vertices[0].x;
-                camera.position.y = 500;//threeObjects[threeObjects.length/2].geometry.vertices[0].z;
+                camera.position.z = 50;
+                camera.position.x = 50;//threeObjects[threeObjects.length/2].geometry.vertices[0].x;
+                camera.position.y = 25;//threeObjects[threeObjects.length/2].geometry.vertices[0].z;
                 //camera.lookAt(threeObjects[0].position);
                 
                 //camera.lookAt(threeObjects[Math.ceil(threeObjects.length/2)].position);
@@ -141,8 +147,8 @@
 				hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
 				hemiLight.position.set( 0, 500, 0 );
 				scene.add( hemiLight );
-
-				var planeGeo =  new THREE.PlaneBufferGeometry(2048, 2048,32, 32 );// new THREE.PlaneGeometry(2000,2000);
+				
+				var planeGeo =  new THREE.PlaneBufferGeometry(planeX, planeY,32, 32 );// new THREE.PlaneGeometry(2000,2000);
                 var planeMat = new THREE.MeshLambertMaterial("rgb(128, 128, 128)");
                 plane = new THREE.Mesh(planeGeo, planeMat);
                 
@@ -152,9 +158,19 @@
 				plane.castShadow = false;
 				plane.receiveShadow = true;
 				plane.name = "ground";
+
+				plane.matrixAutoUpdate = false;
+				plane.updateMatrix();
+
                 scene.add(plane);
-                combinedMesh.name = "buildings";
-                scene.add(combinedMesh);
+
+                for(var k=0; k<combinedMesh.length;k++){
+                	mesh = combinedMesh[k];
+                	mesh.name = "buildings-"+k;
+                	scene.add(mesh);
+                }
+                //combinedMesh.name = "buildings";
+                //scene.add(combinedMesh);
                 
 				render();
 				
@@ -175,17 +191,27 @@
 				var skyMat = new THREE.ShaderMaterial( { vertexShader: vertexShader, fragmentShader: fragmentShader, uniforms: uniforms, side: THREE.BackSide } );
 				var sky = new THREE.Mesh( skyGeo, skyMat );
 				sky.name = "sky";
+
+				sky.matrixAutoUpdate = false;
+				sky.updateMatrix();
+
 				scene.add( sky );
 
 
 				//test for showing building height change;
-				var t=setInterval(setLevels,1);
+				var t=setInterval(setLevels,1000/30);
 		    }
-		    var index = 0;
+		    var count = 0;
 		    function setLevels(){
-		    	level = Math.round(Math.random()*10);
-		    	index = Math.round(Math.random()*noOfBuildings-1);
-		    	changeBuilding(level, index);
+		    	
+		    	var level = Math.round(Math.random()*10);
+		    	var index = Math.round(Math.random()*Object.keys(threeObjects).length-1);
+		    	var name =  index<Math.round(Object.keys(threeObjects).length/4)?"buildings-0":"buildings-1";
+		    	changeBuilding(level, index, name, false);	
+		    	
+		    	count++;
+
+
 		    	/*
 		    	index++;
 		    	if(index>=noOfBuildings){
@@ -211,11 +237,17 @@
             		mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 	             	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;		
             	});
-
+            	
             	$(document).dblclick(function(event) {
+            		var level = Math.round(Math.random()*10);	
 
 					raycaster.setFromCamera( mouse, camera );
-					changeBuilding(1,0);
+					for(var i =0; i<Object.keys(threeObjects).length;i++){
+						var name =  i<Math.round(Object.keys(threeObjects).length/4)?"buildings-0":"buildings-1";
+						changeBuilding(level,i, name, true);	
+					}
+					
+					level = 1/level;
 
 		            if(selectedObject !== null) {
 		            	console.log(selectedObject.id);
@@ -233,9 +265,11 @@
             /*
             Take energy data and change height of buildings accordingly
             */
-            function changeBuilding(energyLevel, buildingId){
+            function changeBuilding(energyLevel, buildingId, name, clicked){
+
             	for(var i=0; i<scene.children.length;i++){
-            		if(scene.children[i].name === "buildings"){
+            		if(scene.children[i].name === name){
+
             			var child = scene.children[i];
             			//console.log(child);
 
@@ -249,19 +283,30 @@
 						var mesh = threeObjects[buildingId];
 						
 						if(mesh !=undefined){
+							//to be able to reset to original height
+							if(clicked && mesh.oldLevel!==undefined)
+            					energyLevel = mesh.oldLevel;
 							mesh.material.color.setRGB(r,g,b);
 							//mesh.matrix.identity();
 							//mesh.scale.set(1,1,1);	
 							mesh.rotation.set(0,0,0);
 							mesh.updateMatrix();
-
 							mesh.scale.y =energyLevel;
+							if(mesh.oldLevel == undefined){
+								
+								mesh.oldLevel = 1/energyLevel;
+							}else{
+								if(clicked)
+									mesh.oldLevel = undefined;
+								else
+									mesh.oldLevel *=energyLevel;
+							}
 							mesh.updateMatrix();
 							mesh.geometry.applyMatrix(mesh.matrix);
 							mesh.matrix.identity();
 							mesh.geometry.verticesNeedUpdate = true;
 							mesh.geometry.elementsNeedUpdate = true;
-							mesh.scale.set(1,1,1);
+							//mesh.scale.set(1,1,1);
 
 							var meshFaces = mesh.geometry.faces;
 							var meshVertices = mesh.geometry.vertices;
@@ -272,7 +317,7 @@
 							}
 							child.geometry.colorsNeedUpdate = true;
 				            child.geometry.verticesNeedUpdate = true;
-				            child.geometry.elementsNeedUpdate = true;
+				            //child.geometry.elementsNeedUpdate = true;
 						}	
             			break;
             		}
@@ -326,7 +371,8 @@
 				var maxY = -100000.0;
 
 				var singleGeometry = new THREE.Geometry();
-
+				var secGeometry =    new THREE.Geometry();
+				var maxLen = Math.round(data.length/2);
 				$.each(data,function(i, item)
 				{
 					var rectShape = new THREE.Shape();
@@ -373,6 +419,9 @@
 					var fCenterX = minX + (maxX-minX)*0.5;
 					var fCenterY = minY + (maxY-minY)*0.5;
 
+					planeX = maxX-minX;
+					planeY = maxY-minY;
+
                     //Converting the 2D mapping to 3D mapping (shifting z and y coordinates)         
                     for( var k = 0; k < geometry.vertices.length; k++ ) 
                     {
@@ -406,14 +455,24 @@
 					rectMesh.receiveShadow = true;
                 	rectMesh.updateMatrix();
 
-                	singleGeometry.merge(rectMesh.geometry, rectMesh.matrix);
                 	
-                   threeObjects[i] = rectMesh;
+                	threeObjects[i] = rectMesh;
+                   	if(i>maxLen){
+                   	
+                   		secGeometry.merge(rectMesh.geometry, rectMesh.matrix);
+                   	}else{
+                   		singleGeometry.merge(rectMesh.geometry, rectMesh.matrix);
+                   		
+                   	}
+                   	
 				});
-				
+				console.log(Object.keys(threeObjects).length+"   /   "+noOfBuildings);
+
 				var faceColorMaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, vertexColors: THREE.VertexColors } );
 				//combinedMesh = new THREE.Mesh(singleGeometry, new THREE.MeshLambertMaterial( {color: "rgb(128,128,250)" }));
-				combinedMesh = new THREE.Mesh(singleGeometry, faceColorMaterial);
+				combinedMesh[0] = new THREE.Mesh(singleGeometry, faceColorMaterial);
+				combinedMesh[1] = new THREE.Mesh(secGeometry, faceColorMaterial);
+				
 				setup();
                     
                 
