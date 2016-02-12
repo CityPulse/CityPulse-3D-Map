@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document><Folder><name>AarhusByMidte</name>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.222516676098646,56.169108025358128,5.19 10.222599583687403,56.169203170228904,5.2 10.222622738418718,56.169196920944486,5.14 10.222699543216587,56.169176033797001,4.94 10.222728459293071,56.169209173732135,4.96 10.222790577055129,56.169192385414974,4.96 10.222721710235838,56.169113365491022,4.96 10.222713087257956,56.169115697154517,4.74 10.222670291083009,56.169066430801003,4.74 10.222605298192782,56.169083966333815,4.93 10.222516676098646,56.169108025358128,5.19</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.224858533987714,56.166859498806204,5.16 10.224871732245319,56.166879495494094,5.16 10.225033803991682,56.16684590105271,5.16 10.225020605661873,56.166825904382343,5.16 10.224858533987714,56.166859498806204,5.16</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.224902845961401,56.166288571591586,4.46 10.224865821222762,56.166299181937426,4.5 10.22492438623471,56.166363207181256,4.5 10.224961411018299,56.166352596817781,4.5 10.224902845961401,56.166288571591586,4.46</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.221413862421066,56.168461909523657,4.83 10.221371909403448,56.168418834373327,4.82 10.221340005235708,56.168428494500148,5.02 10.221381958228449,56.168471569661349,4.9 10.221413862421066,56.168461909523657,4.83</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.221104054483808,56.168154252757702,4.7 10.221062429857716,56.168111353969344,4.68 10.221029887556922,56.16812120003069,4.68 10.221071512157698,56.168164098830061,4.68 10.221104054483808,56.168154252757702,4.7</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.219951578671751,56.168835499181149,22.27 10.219926300207694,56.168790012614835,22.31 10.219873441903964,56.168799160317313,22.14 10.219840764865127,56.168804784218423,21.97 10.21986604323827,56.168850270802515,21.97 10.219898720311848,56.168844646894634,22.12 10.219951578671751,56.168835499181149,22.27</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.218649678659865,56.169076841586538,23.7 10.218688813435861,56.169071693464112,23.7 10.218671386943237,56.169029992988449,23.7 10.218632252207165,56.169035141105205,23.7 10.218649678659865,56.169076841586538,23.7</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.218950088797044,56.164523007638216,5.71 10.218761877810412,56.164575182248747,5.52 10.218736974262002,56.164582077052678,5.32 10.218846841746629,56.164705352675675,5.32 10.218831195781798,56.164709640276591,5.61 10.218938391376675,56.164829887104872,5.57 10.219095516207974,56.165006249894667,5.51 10.219140694863187,56.164993763758439,6.38 10.219217180069707,56.165079898881586,7.65 10.219262358770935,56.165067412700829,7.65 10.21936085539196,56.165040113627128,7.66 10.219282539295378,56.164952109701979,7.66 10.219322286890039,56.164941024893928,5.64 10.219225938256811,56.164832801790091,5.65 10.218950088797044,56.164523007638216,5.71</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.220539473117988,56.16673994435687,6.33 10.22067499370219,56.166701855518873,6.38 10.22052227129989,56.16653272947044,6.38 10.220386751155385,56.166570818140045,6.38 10.220539473117988,56.16673994435687,6.33</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.220705800383469,56.167749077784471,5.25 10.220659549009657,56.167763372160472,5.15 10.220685997362709,56.167789887684748,5.15 10.220732245908437,56.167775503472221,5.15 10.220705800383469,56.167749077784471,5.25</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.220105817586251,56.166995279773559,5.07 10.220076953870638,56.166963666248321,4.88 10.220051416424422,56.166970926983296,4.88 10.220021891054234,56.166979395185706,4.88 10.220050751888603,56.167010918897255,5.16 10.220081237566038,56.167002261499839,5.12 10.220105817586251,56.166995279773559,5.07</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.218839959470088,56.167162408257006,14.68 10.21894486258854,56.167149063718256,14.51 10.218943121707255,56.167144947568879,14.49 10.21893299557842,56.16712015767007,14.38 10.218921768384611,56.167121616204675,14.38 10.218894018124612,56.167125124621542,14.38 10.218896120833142,56.167130495169609,14.47 10.218830356232516,56.167138871160191,14.47 10.218839959470088,56.167162408257006,14.68</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.218712599968075,56.167331153199342,15.61 10.218696748437388,56.167293390798982,15.64 10.218649432967775,56.167299518135557,15.64 10.218665448298863,56.167337368781503,15.64 10.218712599968075,56.167331153199342,15.61</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.218971022279497,56.167324112289712,16.1 10.218984629071649,56.16735201277487,16.1 10.219042648965809,56.167343173955523,16 10.219029042134895,56.167315273476873,16 10.219022791629854,56.16731623366644,16.01 10.218971022279497,56.167324112289712,16.1</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.218999615370683,56.167372621422537,16.62 10.219016731249805,56.167404530760294,16.62 10.219058863502163,56.167397466000054,16.62 10.219041911436529,56.1673656449071,16.62 10.218999615370683,56.167372621422537,16.62</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.218955955736964,56.167743253373217,17.63 10.218942868818957,56.167716515870524,17.67 10.218895748017921,56.167723719635163,17.67 10.218877476449808,56.167726505594054,17.67 10.21889056048043,56.167753153277182,17.67 10.218906267428418,56.167750752024901,17.66 10.218955955736964,56.167743253373217,17.63</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.220483683999499,56.16758575869639,5.17 10.220504252031347,56.167614758397278,5.17 10.220546318696961,56.167605627118832,5.17 10.220537039131001,56.167592330392921,5.17 10.220599740847414,56.167578772167793,5.17 10.220588771483955,56.167562976199456,5.17 10.220483683999499,56.16758575869639,5.17</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.217886443841335,56.167713630547325,18.5 10.217867221531915,56.167681292539214,18.5 10.217814386989668,56.167691157971696,19.23 10.217833606416773,56.16772340616145,19.27 10.217886443841335,56.167713630547325,18.5</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.217661837685608,56.16842290983621,23.73 10.217787646403147,56.168393186521804,23.74 10.217756058584209,56.168351805143132,23.74 10.217630413822928,56.168381616665783,23.73 10.217661837685608,56.16842290983621,23.73</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.220566496218332,56.169150479737112,17.78 10.220451746842814,56.169173447435369,17.54 10.220469874969069,56.169201662536793,17.54 10.220541892072502,56.169187203691401,17.54 10.22055222071149,56.169203095843585,17.54 10.220594953071689,56.169194586970036,17.54 10.220566496218332,56.169150479737112,17.78</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.218831117292341,56.16938469194212,23.92 10.218750091542802,56.169363925716297,23.92 10.218740165487297,56.169375974253981,23.81 10.21873240817354,56.169385305768131,23.72 10.218813436804432,56.169406161831937,23.72 10.218831117292341,56.16938469194212,23.92</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.219218827258654,56.16518779818292,5.77 10.219120022407253,56.165215549454011,5.94 10.219108876269297,56.165234798448651,6 10.219228564054823,56.165368040609977,6.3 10.21921419440797,56.165371956249253,9.65 10.21936926560473,56.165544385342955,9.65 10.219379003546862,56.165541683490019,6.13 10.219481996210151,56.165656220611872,6.13 10.21952347493559,56.165664167869998,6.12 10.219622122493734,56.16563650768974,6.11 10.219504774631687,56.165506028314269,5.34 10.219510041801762,56.165504538671669,7.5 10.219517542924271,56.165502398004982,9.65 10.219363132278865,56.16533050170564,9.65 10.219356749577068,56.165332361765756,7.46 10.219350361181935,56.165334042172212,5.27 10.219218827258654,56.16518779818292,5.77</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.218902557210399,56.165879653969753,5.83 10.218776812793413,56.165916206805271,5.83 10.218890324532984,56.166037469648359,5.83 10.219016224537373,56.166000735455725,5.83 10.218902557210399,56.165879653969753,5.83</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.220207824107282,56.166387843234411,4.93 10.22024638128544,56.166430592879195,4.92 10.220282136573493,56.1664205355859,4.92 10.220243582214563,56.166377875778949,4.92 10.220207824107282,56.166387843234411,4.93</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.220388070960423,56.166272217801691,4.84 10.220364024543214,56.16624522922622,4.84 10.220355085768961,56.166247743556291,4.84 10.220251316691348,56.166276443275542,4.84 10.220275202054891,56.166303433462453,4.84 10.220388070960423,56.166272217801691,4.84</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.220342420242073,56.166391726044516,4.68 10.220441215809847,56.166363614485533,4.71 10.220375987680283,56.166292374709215,4.71 10.220277350392465,56.166320394799776,4.71 10.220342420242073,56.166391726044516,4.68</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <Polygon><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>absolute</altitudeMode><coordinates>10.218719228385424,56.166004832217176,5.38 10.218767882963569,56.166056288520238,5.38 10.218839046018527,56.166035369512144,5.38 10.218790230378971,56.165983914824672,5.38 10.218719228385424,56.166004832217176,5.38</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+</Folder>
+</Document></kml>
