@@ -6,7 +6,7 @@
 			canvas { width: 100%; height: 100% }
 		</style>
 		
-		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+		<script src="js/jquery.js"></script>
 		<script src="js/kmlToJson/togeojson.js"></script>
 		<script src="js/three.js"></script>
 		<script src="js/controls/OrbitControls.js"></script>
@@ -68,21 +68,21 @@
 			var plane = null;
 			var planeX = 10000;
 			var planeY = 10000;
+			var originalBuildingColor = 0x00ffff;
 			
 			
 			var SHADOW_MAP_WIDTH = 1024, SHADOW_MAP_HEIGHT = 1024;
 		    
 		    
 			
-		    //var rendererStats  = new THREEx.RendererStats()
+		    //set renderbox for development information - remove all this for production
 		    var rendererStats = new Stats();
 			rendererStats.setMode( 0 ); // 0: fps, 1: ms, 2: mb
-
-
 		    rendererStats.domElement.style.position   = 'absolute'
 			rendererStats.domElement.style.left  = '0px'
 			rendererStats.domElement.style.bottom    = '0px'
-			document.body.appendChild( rendererStats.domElement )
+			document.body.appendChild( rendererStats.domElement );
+			//end stats
 
 			//mapping used to make sure that building height do not reach infinity
 			//TODO: needs to be fitted with correct numbers
@@ -178,6 +178,8 @@
                 for(var k=0; k<combinedMesh.length;k++){
                 	mesh = combinedMesh[k];
                 	mesh.name = "buildings-"+k;
+                	mesh.castShadow = true;
+					mesh.receiveShadow = true;
                 	scene.add(mesh);
                 }
                 
@@ -208,7 +210,7 @@
 				scene.add( sky );
 
 				//test for showing building height change;
-				var t=setInterval(setLevels,2000);
+				var t=setInterval(setLevels,1000);
 		    }
 		    
 
@@ -256,6 +258,8 @@
 			};
 
 
+
+
 		    selectedObject=null;
             function addMouseHandling(){
             	$(document).mousemove(function(){
@@ -287,6 +291,9 @@
             }
 
 
+
+
+
             /*
             Take energy data and change height of buildings accordingly
             */
@@ -295,33 +302,49 @@
 				if(maxEnergyLevel<energyLevel)
 					maxEnergyLevel = energyLevel;
 
+				var verticeColor = function(random, mesh){
+
+							console.log(mesh.id);
+							console.log(new Date());
+
+							var r = Math.random();
+							var b = Math.random();
+							var g = Math.random();
+
+							var meshFaces = mesh.geometry.faces;
+
+							//TODO: create timer to change color back to original
+							for(var j = 0; j<meshFaces.length;j++){
+								if(random){
+									meshFaces[j].color.setRGB(r,g,b);	
+								}else{
+									meshFaces[j].color.setHex(0xffffff);
+								}
+								
+
+							}
+
+							child.geometry.colorsNeedUpdate = true;
+            			};
+
+
             	energyLevel = energyLevel.map(minEnergyLevel, maxEnergyLevel, minScale, maxScale);
             	console.log("level: "+energyLevel);	
             	for(var i=0; i<scene.children.length;i++){
             		if(scene.children[i].name === name){
 
             			var child = scene.children[i];
-            			//console.log(child);
-
-						
-						//console.log("readingID: "+buildingId+" / "+Object.keys(threeObjects).length);
-						var r = Math.random()
-						var b = Math.random()
-						var g = Math.random();
-						
+            			
 
 						var mesh = threeObjects[buildingId];
 						
 						if(mesh !=undefined){
 							console.log(mesh);
-
-							//mesh.matrix.identity();
-							//mesh.scale.set(1,1,1);	
+								
 							mesh.rotation.set(0,0,0);
 							mesh.updateMatrix();
 							
 							//to be able to reset to original height
-							
 							if(clicked && mesh.oldLevel!==undefined)
             					energyLevel = 1;
 							
@@ -341,18 +364,10 @@
 							mesh.geometry.verticesNeedUpdate = true;
 							mesh.geometry.elementsNeedUpdate = true;
 
+							verticeColor(true, mesh);
+							setTimeout(verticeColor,1000, false, mesh);
 
-							var meshFaces = mesh.geometry.faces;
-
-							//TODO: create timer to change color back to original
-							for(var j = 0; j<meshFaces.length;j++){
-								meshFaces[j].color.setRGB(r,g,b);
-
-							}
-
-							child.geometry.colorsNeedUpdate = true;
 				            child.geometry.verticesNeedUpdate = true;
-				            //child.geometry.elementsNeedUpdate = true;
 						}	
             			break;
             		}
@@ -455,8 +470,8 @@
 					var fCenterX = minX + (maxX-minX)*0.5;
 					var fCenterY = minY + (maxY-minY)*0.5;
 
-					planeX = maxX-minX;
-					planeY = maxY-minY;
+					planeX = maxX-minX+500;
+					planeY = maxY-minY+500;
 
                     //Converting the 2D mapping to 3D mapping (shifting z and y coordinates)         
                     for( var k = 0; k < geometry.vertices.length; k++ ) 
@@ -491,8 +506,6 @@
                    	var rectMesh = new THREE.Mesh(geometry, material) ;		
 
                    	rectMesh.rotation.x += -3.1415*0.5;
-					rectMesh.castShadow = true;
-					rectMesh.receiveShadow = true;
                 	rectMesh.updateMatrix();
 
                 	
@@ -509,8 +522,8 @@
 				
 				console.log(Object.keys(threeObjects).length+"   /   "+noOfBuildings);
 
-				var faceColorMaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, vertexColors: THREE.VertexColors } );
-				//combinedMesh = new THREE.Mesh(singleGeometry, new THREE.MeshLambertMaterial( {color: "rgb(128,128,250)" }));
+				var faceColorMaterial = new THREE.MeshLambertMaterial( { color: originalBuildingColor, vertexColors: THREE.VertexColors } );
+
 				combinedMesh[0] = new THREE.Mesh(singleGeometry, faceColorMaterial);
 				combinedMesh[1] = new THREE.Mesh(secGeometry, faceColorMaterial);
 				
