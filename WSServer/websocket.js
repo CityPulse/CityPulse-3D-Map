@@ -10,9 +10,9 @@ var maxHistory = 5;
 
 // DUMMY SETUP
 var numberOfBuildings = 5;
-var maxValue = 100;
+var maxValue = 10;
 var minValue = 1;
-var dummyDataInterval = 1000; // mili seconds..
+var dummyDataInterval = 30; // mili seconds..
 
 var server = http.createServer(function(request, response) {
     // process HTTP request. Since we're writing just WebSockets server

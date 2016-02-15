@@ -85,6 +85,30 @@
 			rendererStats.domElement.style.bottom    = '0px'
 			document.body.appendChild( rendererStats.domElement )
 
+			
+
+			// --------------------------------------------------
+			// Websocket connection
+			// --------------------------------------------------
+
+			var usingServer = true;
+
+			// if user is running mozilla then use it's built-in WebSocket
+		    window.WebSocket = window.WebSocket || window.MozWebSocket;
+
+		    // open connection
+		    var connection = new WebSocket('ws://127.0.0.1:8001');
+
+		    connection.onopen = function () {
+		        connection.send("YO YO YO");
+		    };
+
+		    // most important part - incoming messages
+		    connection.onmessage = function (message) {
+		        console.log(message);
+		        changeBuilding(message.value, message.id, message.id<Math.round(Object.keys(threeObjects).length/4)?"buildings-0":"buildings-1", false);
+		        
+		    };
 
 		
 		    function setup()
@@ -199,10 +223,12 @@
 
 
 				//test for showing building height change;
-				var t=setInterval(setLevels,1000/30);
+				if(!usingServer) 
+					var t=setInterval(setLevelsDummy,1000/30);
 		    }
 		    var count = 0;
-		    function setLevels(){
+		    
+		    function setLevelsDummy(){
 		    	
 		    	var level = Math.round(Math.random()*10);
 		    	var index = Math.round(Math.random()*Object.keys(threeObjects).length-1);
@@ -324,7 +350,7 @@
             	}
             }
             
-
+		    
 			
 			
 			/*****************************/
@@ -474,6 +500,7 @@
 				combinedMesh[1] = new THREE.Mesh(secGeometry, faceColorMaterial);
 				
 				setup();
+				console.log(Math.round(Math.random()*Object.keys(threeObjects).length-1));
                     
                 
             }
