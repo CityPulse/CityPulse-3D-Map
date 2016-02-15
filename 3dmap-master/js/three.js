@@ -1632,12 +1632,11 @@ THREE.Vector2.prototype = {
  * @author WestLangley / http://github.com/WestLangley
  */
 
-THREE.Vector3 = function ( x, y, z, readingId ) {
+THREE.Vector3 = function ( x, y, z ) {
 
 	this.x = x || 0;
 	this.y = y || 0;
 	this.z = z || 0;
-	this.readingId = readingId || null;
 
 };
 
@@ -2469,7 +2468,7 @@ THREE.Vector3.prototype = {
 
 	clone: function () {
 
-		return new THREE.Vector3( this.x, this.y, this.z, this.readingId );
+		return new THREE.Vector3( this.x, this.y, this.z);
 
 	}
 
