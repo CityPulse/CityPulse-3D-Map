@@ -66,14 +66,13 @@
 			var raycaster = null;
             var mouse =  null;
 			var plane = null;
-
 			var planeX = 10000;
 			var planeY = 10000;
 			
 			
 			var SHADOW_MAP_WIDTH = 1024, SHADOW_MAP_HEIGHT = 1024;
 		    
-		    populateMap();
+		    
 			
 		    //var rendererStats  = new THREEx.RendererStats()
 		    var rendererStats = new Stats();
@@ -85,8 +84,25 @@
 			rendererStats.domElement.style.bottom    = '0px'
 			document.body.appendChild( rendererStats.domElement )
 
+			//mapping used to make sure that building height do not reach infinity
+			//TODO: needs to be fitted with correct numbers
+			var maxEnergyLevel = 10;
+			var minEnergyLevel = 0.1;
+			var maxScale = 50;
+			var minScale = 0.5;
 
-		
+			Number.prototype.map = function (in_min, in_max, out_min, out_max) {
+ 				 return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+			}
+
+			/*TODO: 
+			* find how to get appropiate colors and shading back in
+			* //dont extrude building below plane
+			* //dont allow camera to go below plane
+			* load roads
+			*/
+			populateMap();
+
 		    function setup()
 			{	
 		        scene = new THREE.Scene();
@@ -110,14 +126,12 @@
 
 
                 camera.position.z = 50;
-                camera.position.x = 50;//threeObjects[threeObjects.length/2].geometry.vertices[0].x;
-                camera.position.y = 25;//threeObjects[threeObjects.length/2].geometry.vertices[0].z;
-                //camera.lookAt(threeObjects[0].position);
+                camera.position.x = 50;
+                camera.position.y = 25;
                 
-                //camera.lookAt(threeObjects[Math.ceil(threeObjects.length/2)].position);
 				
 				controls = new THREE.OrbitControls( camera, renderer.domElement );
-				//controls.addEventListener( 'change', render ); // add this only if there is no animation loop (requestAnimationFrame)
+				
 				controls.enableDamping = true;
 				controls.dampingFactor = 0.25;
 				controls.enableZoom = true;
@@ -136,11 +150,6 @@
 				spotLight.shadowMapHeight = SHADOW_MAP_HEIGHT;
                 scene.add(spotLight);
 				
-            
-               /* hemiLight = new THREE.HemisphereLight( "rgb : (128,128,128)", 0xffffff, 0.6 );
-                hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
-                hemiLight.position.set( 0, 500, 0 );
-                scene.add( hemiLight );*/
 				
 				hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.2);
 				hemiLight.color.setHSL( 0.6, 1, 0.6 );
@@ -161,6 +170,8 @@
 
 				plane.matrixAutoUpdate = false;
 				plane.updateMatrix();
+				//calculate bounding box for limiting camera position
+				plane.geometry.computeBoundingBox();
 
                 scene.add(plane);
 
@@ -169,9 +180,8 @@
                 	mesh.name = "buildings-"+k;
                 	scene.add(mesh);
                 }
-                //combinedMesh.name = "buildings";
-                //scene.add(combinedMesh);
                 
+				
 				render();
 				
 				// SKYDOME
@@ -197,35 +207,50 @@
 
 				scene.add( sky );
 
-
 				//test for showing building height change;
-				var t=setInterval(setLevels,1000/30);
+				var t=setInterval(setLevels,2000);
 		    }
-		    var count = 0;
+		    
+
 		    function setLevels(){
 		    	
-		    	var level = Math.round(Math.random()*10);
-		    	var index = Math.round(Math.random()*Object.keys(threeObjects).length-1);
+		    	var level = Math.random()*10+0.1;
+		    	var index = Math.round(Math.random()*Object.keys(threeObjects).length);
 		    	var name =  index<Math.round(Object.keys(threeObjects).length/4)?"buildings-0":"buildings-1";
 		    	changeBuilding(level, index, name, false);	
 		    	
-		    	count++;
-
-
-		    	/*
-		    	index++;
-		    	if(index>=noOfBuildings){
-		    		index=0;
-		    	}
-		    	*/
 		    }
 
 
 			function render()
 			{
+
+				//makes sure camera does not go beyond x-axis of plane
+				if(camera.position.x<plane.geometry.boundingBox.min.x){
+					camera.position.x=plane.geometry.boundingBox.min.x;
+				}else if(camera.position.x>plane.geometry.boundingBox.max.x){
+					camera.position.x=plane.geometry.boundingBox.max.x;
+				}
+
+				//makes sure camera does not go beyond y-axis of plane
+				if(camera.position.z<plane.geometry.boundingBox.min.y){
+					camera.position.z=plane.geometry.boundingBox.min.y;
+				}else if(camera.position.z>plane.geometry.boundingBox.max.y){
+					camera.position.z=plane.geometry.boundingBox.max.y;
+				} 
+				
+
+				//makes sure that camera can not go below z=0
+				if(camera.position.y<0.5){
+					camera.position.y=0.5;
+					var pov = new THREE.Vector3(0-camera.position.x, 0-camera.position.y,0-camera.position.z);
+					camera.lookAt(pov);
+
+				}
+				
+
 				requestAnimationFrame( render );
 
-				
 				renderer.render(scene, camera);
 				rendererStats.update(renderer);
 			};
@@ -267,6 +292,11 @@
             */
             function changeBuilding(energyLevel, buildingId, name, clicked){
 
+				if(maxEnergyLevel<energyLevel)
+					maxEnergyLevel = energyLevel;
+
+            	energyLevel = energyLevel.map(minEnergyLevel, maxEnergyLevel, minScale, maxScale);
+            	console.log("level: "+energyLevel);	
             	for(var i=0; i<scene.children.length;i++){
             		if(scene.children[i].name === name){
 
@@ -283,38 +313,43 @@
 						var mesh = threeObjects[buildingId];
 						
 						if(mesh !=undefined){
-							//to be able to reset to original height
-							if(clicked && mesh.oldLevel!==undefined)
-            					energyLevel = mesh.oldLevel;
-							mesh.material.color.setRGB(r,g,b);
+							console.log(mesh);
+
 							//mesh.matrix.identity();
 							//mesh.scale.set(1,1,1);	
 							mesh.rotation.set(0,0,0);
 							mesh.updateMatrix();
-							mesh.scale.y =energyLevel;
-							if(mesh.oldLevel == undefined){
-								
-								mesh.oldLevel = 1/energyLevel;
-							}else{
-								if(clicked)
-									mesh.oldLevel = undefined;
-								else
-									mesh.oldLevel *=energyLevel;
+							
+							//to be able to reset to original height
+							
+							if(clicked && mesh.oldLevel!==undefined)
+            					energyLevel = 1;
+							
+							if(mesh.oldLevel == undefined){							
+								mesh.oldLevel = 1;
 							}
+
+							mesh.scale.y =mesh.oldLevel*energyLevel;
+
+							mesh.oldLevel = 1/energyLevel;
+
+							console.log(mesh.oldLevel + "   /   "+energyLevel);
+
 							mesh.updateMatrix();
 							mesh.geometry.applyMatrix(mesh.matrix);
 							mesh.matrix.identity();
 							mesh.geometry.verticesNeedUpdate = true;
 							mesh.geometry.elementsNeedUpdate = true;
-							//mesh.scale.set(1,1,1);
+
 
 							var meshFaces = mesh.geometry.faces;
-							var meshVertices = mesh.geometry.vertices;
 
+							//TODO: create timer to change color back to original
 							for(var j = 0; j<meshFaces.length;j++){
 								meshFaces[j].color.setRGB(r,g,b);
 
 							}
+
 							child.geometry.colorsNeedUpdate = true;
 				            child.geometry.verticesNeedUpdate = true;
 				            //child.geometry.elementsNeedUpdate = true;
@@ -338,13 +373,13 @@
             var noOfBuildings = null;
 			function populateMap(){
 				
-				$.get('data/kml/aarhusByMidte.kml', function(kml)
-				//$.get('data/kml/test.kml', function(kml)
+				//$.get('data/kml/aarhusByMidte.kml', function(kml)
+				$.get('data/kml/test.kml', function(kml)
 				{
 					console.log("got building kml");
 					data = toGeoJSON.kml(kml);
 					noOfBuildings = data.features.length;
-					renderMap(data.features)
+					createBuildingModels(data.features)
 				});
 				/*
 				jQuery.getJSON('data/testdata.json', function(data)
@@ -358,7 +393,7 @@
 				
 
 			// get the data
-			function renderMap(data)
+			function createBuildingModels(data)
 			{
 				
 
@@ -373,6 +408,7 @@
 				var singleGeometry = new THREE.Geometry();
 				var secGeometry =    new THREE.Geometry();
 				var maxLen = Math.round(data.length/2);
+				
 				$.each(data,function(i, item)
 				{
 					var rectShape = new THREE.Shape();
@@ -427,17 +463,21 @@
                     {
                     	var fZ =  geometry.vertices[k].z;
 
-                    	geometry.vertices[k].x -= fCenterX; 
+                    	geometry.vertices[k].x -= fCenterX;
                     	geometry.vertices[k].y = geometry.vertices[k].y-fCenterY;
+
                     	geometry.vertices[k].z = fZ;
                     	//so far we use their index - another way maybe needed!!
                     	geometry.vertices[k].readingId = i;
+                    	if(geometry.vertices[k].z<0)
+                    		geometry.vertices[k].z=0;
 
                        /* geometry.vertices[i].x -= minX; 
                         geometry.vertices[i].z = geometry.vertices[i].y-minY;
                         geometry.vertices[i].y = fZ;*/
                        // console.log(geometry.vertices[i]);
                    }
+                   
                    for( var k = 0; k < geometry.faces.length; k++ ) 
                     {
                     	geometry.faces[k].readingId = i;
@@ -466,6 +506,7 @@
                    	}
                    	
 				});
+				
 				console.log(Object.keys(threeObjects).length+"   /   "+noOfBuildings);
 
 				var faceColorMaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, vertexColors: THREE.VertexColors } );
@@ -473,6 +514,8 @@
 				combinedMesh[0] = new THREE.Mesh(singleGeometry, faceColorMaterial);
 				combinedMesh[1] = new THREE.Mesh(secGeometry, faceColorMaterial);
 				
+
+				console.log("X "+minX+"  Y:"+minY);
 				setup();
                     
                 
