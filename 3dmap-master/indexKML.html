@@ -76,14 +76,39 @@
 			var SHADOW_MAP_WIDTH = 1024, SHADOW_MAP_HEIGHT = 1024;
 		    
 		    
+		    ///////////////////////////////////////////////////////////////
+		    // WEBSOCKET PART
+		    ///////////////////////////////////////////////////////////////
+
+		    var usingServer = true;
+		    // if user is running mozilla then use it's built-in WebSocket
+		    window.WebSocket = window.WebSocket || window.MozWebSocket;
+
+		    // open connection
+		    var connection = new WebSocket('ws://127.0.0.1:8001');
+
+		    connection.onopen = function () {
+		        connection.send(noOfBuildings);
+		    };
+
+		    // most important part - incoming messages
+		    connection.onmessage = function (message) {
+		        console.log(message);
+		        var obj = JSON.parse(message.data);
+		        changeBuilding(obj.value, obj.id, obj.id<Math.round(Object.keys(threeObjects).length/4)?"buildings-0":"buildings-1", false);
+		    };
+		    ///////////////////////////////////////////////////////////////
 			
+
 		    //set renderbox for development information - remove all this for production
+		    
 		    var rendererStats = new Stats();
 			rendererStats.setMode( 0 ); // 0: fps, 1: ms, 2: mb
 		    rendererStats.domElement.style.position   = 'absolute'
 			rendererStats.domElement.style.left  = '0px'
 			rendererStats.domElement.style.bottom    = '0px'
 			document.body.appendChild( rendererStats.domElement );
+			
 			//end stats
 
 			//mapping used to make sure that building height do not reach infinity
@@ -97,12 +122,7 @@
  				 return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 			}
 
-			/*TODO: 
-			* //find how to get appropiate colors and shading back in
-			* //dont extrude building below plane
-			* //dont allow camera to go below plane
-			* load roads
-			*/
+			
 			populateMap();
 
 		    function setup()
@@ -227,9 +247,9 @@
 				scene.add( sky );
 
 				//test for showing building height change;
-				var t=setInterval(setLevels,1000/30);
+				if(!usingServer)
+					var t=setInterval(setLevels,1000/30);
 
-				console.log(scene.children);
 		    }
 		    
 
@@ -284,7 +304,7 @@
 				
 
 				renderer.render(scene, camera);
-				rendererStats.update(renderer);
+				//rendererStats.update(renderer);
 			};
 
 

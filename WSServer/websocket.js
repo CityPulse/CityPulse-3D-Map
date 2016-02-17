@@ -9,8 +9,8 @@ var historicalData = [];
 var maxHistory = 5;
 
 // DUMMY SETUP
-var numberOfBuildings = 5;
-var maxValue = 100;
+var numberOfBuildings = 27;
+var maxValue = 10;
 var minValue = 1;
 var dummyDataInterval = 1000; // mili seconds..
 
@@ -74,7 +74,8 @@ wsServer.on('request', function(request) {
     connection.on('message', function(message) {
         console.log("Received "+message.utf8Data);
         if (message.type === 'utf8') {
-            connection.sendUTF("Message recieved: " + message.utf8Data);
+            //connection.sendUTF("Message recieved: " + message.utf8Data);
+            numberOfBuildings = message.utf8Data;
         }
     });
 
