@@ -527,9 +527,9 @@
 					singleGeometry.mergeVertices(roadLine.geometry.vertices);
 					//roadMeshes.push(roadLine);
 				});
-				
+				console.log(singleGeometry);
 				roadMeshes.push(new THREE.Line(singleGeometry, material));
-				console.log(roadMeshes);
+				
     			roadRdy=true;
 
 				//if(buildRdy)
