@@ -6,13 +6,15 @@ var debugging = false;
 var webSocketsServerPort = 8001;
 
 var historicalData = [];
-var maxHistory = 5;
+var maxHistory = 10;
 
 // DUMMY SETUP
-var numberOfBuildings = 27;
+var numberOfBuildings = 5;
 var maxValue = 10;
 var minValue = 1;
-var dummyDataInterval = 1000; // mili seconds..
+var dummyDataInterval = 100; // mili seconds..
+
+var locked = false;
 
 var server = http.createServer(function(request, response) {
     // process HTTP request. Since we're writing just WebSockets server
@@ -34,12 +36,13 @@ wsServer.on('request', function(request) {
 
     // Start interval of sending data every 5 seconds
     var refreshId = setInterval(function() {
-        buildingId = Math.floor(Math.random() * numberOfBuildings) + 1;    
+        if(locked) return;
+        var buildingId = Math.floor(Math.random() * numberOfBuildings) + 1;    
         value = Math.floor(Math.random() * maxValue) + minValue;        
         unit = "kWh";
 
         if(historicalData[buildingId] == null) {
-            var buildingHistory = [];
+            var buildingHistory = [maxHistory];
             buildingHistory.indexPointer = 0;
             buildingHistory[buildingHistory.indexPointer] = value;
             buildingHistory.indexPointer++;
@@ -53,30 +56,61 @@ wsServer.on('request', function(request) {
 
         if(debugging) {
             console.log('\033[2J');
-            for(i = 0; i < historicalData.length; i++) {
+            for(var i = 0; i < historicalData.length; i++) {
                 if(historicalData[i] == null) {
                     continue;
                 }
 
                 console.log("-------- BUILDING ID: "+i+" --------");
-                for(j = 0; j < historicalData[i].length; j++) {
+                for(var j = 0; j < historicalData[i].length; j++) {
                     console.log(historicalData[i][j]);
                 }
             }
         }
-
-        connection.sendUTF('{"id":'+buildingId+', "value":'+value+',"unit":"'+unit+'"}');
+        connection.sendUTF(JSON.stringify({type:"ENERGY", data:{id:buildingId, value:value, unit:unit}}));
+        //connection.sendUTF('{"type":"ENERGY", "data":{"id":'+buildingId+', "value":'+value+',"unit":"'+unit+'"}}');
     }, dummyDataInterval);
 
 
     // This is the most important callback for us, we'll handle
     // all messages from users here.
     connection.on('message', function(message) {
-        console.log("Received "+message.utf8Data);
+        if(locked) return;
+        locked = true;
+        console.log("--> RECEIVED: " + message.utf8Data);
+        obj = JSON.parse(message.utf8Data);
         if (message.type === 'utf8') {
-            //connection.sendUTF("Message recieved: " + message.utf8Data);
-            numberOfBuildings = message.utf8Data;
+            switch(obj.type) {
+                case "SETUP":
+                    numberOfBuildings = obj.data.value;
+                break;
+                case "HISTORYREQ":
+                    var buildingId = obj.data.value;
+                    if(historicalData[buildingId] != null) {
+                        var buildingHistory = historicalData[buildingId];
+                        var sortedArray = [];
+                        var endCondition = buildingHistory.indexPointer-1;
+
+                        for(var i = buildingHistory.indexPointer; i != endCondition; i++) {
+                            if(i == maxHistory) i = 0;
+                            if(buildingHistory[i] == null) continue;
+                            sortedArray.push(buildingHistory[i]);
+                        }
+                        sortedArray.push(buildingHistory[endCondition]);
+
+                        var resp = JSON.stringify({type:"HISTORYRESP", data:{value:sortedArray}});
+                        connection.sendUTF(resp);
+                        console.log("<-- SEND: " + resp);
+                    } else {
+                        var resp = JSON.stringify({type:"HISTORYRESP", data:{value:-1}});
+                        connection.sendUTF(resp);
+                        console.log("<-- SEND: " + resp);
+                    }
+                break;
+            };
+            
         }
+        locked = false;
     });
 
     connection.on('close', function(connection) {

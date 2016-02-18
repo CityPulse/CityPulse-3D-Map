@@ -5,13 +5,40 @@
 			body { margin: 0; }
 			canvas { width: 100%; height: 100% }
 		</style>
+		<style>
+
+			.bar {
+			  fill: steelblue;
+			}
+
+			/*.bar:hover {
+			  fill: brown;
+			}*/
+
+			.axis {
+			  font: 10px sans-serif;
+			}
+
+			.axis path,
+			.axis line {
+			  fill: none;
+			  stroke: #000;
+			  shape-rendering: crispEdges;
+			}
+
+			.x.axis path {
+			  display: none;
+			}
+
+		</style>
+
 		
 		<script src="js/jquery.js"></script>
 		<script src="js/kmlToJson/togeojson.js"></script>
 		<script src="js/three.js"></script>
 		<script src="js/controls/OrbitControls.js"></script>
 		<script src="js/utm-converter/src/converter.js"></script>
-		
+		<script src="//d3js.org/d3.v3.min.js"></script>
 		<script src='js/renderstats/stats.min.js'></script>
 
 	</head>
@@ -19,7 +46,10 @@
 
 	<div id="infoBox" style="visibility: hidden; position: absolute; z-index: 1; right: 1%; top: 10%; width:200px; height:80%; background-color: grey; border-style: groove; border-color: 00CCFF; border-width: 15px;">
         1234
-    	</div>
+        <script>
+        	
+</script>
+    </div>
 
 	<div id='holder'></div>
 	
@@ -75,33 +105,110 @@
 			
 			var SHADOW_MAP_WIDTH = 1024, SHADOW_MAP_HEIGHT = 1024;
 		    
+		    var connection = null;
+		    var waitingForResponse = false;
 		    
 		    ///////////////////////////////////////////////////////////////
 		    // WEBSOCKET PART
 		    ///////////////////////////////////////////////////////////////
 
-		    var usingServer = false;
+		    var usingServer = true;
 		    // if user is running mozilla then use it's built-in WebSocket
 
-		    if(usingServer){
+		    
+		    function setupWSConnection(maxBuildings) {
 			    window.WebSocket = window.WebSocket || window.MozWebSocket;
 
 			    // open connection
-			    var connection = new WebSocket('ws://127.0.0.1:8001');
+			    connection = new WebSocket('ws://127.0.0.1:8001');
 
 			    connection.onopen = function () {
-			        connection.send(noOfBuildings);
+			        connection.send(JSON.stringify({type: "SETUP", data: {value : maxBuildings}}));
 			    };
 
 			    // most important part - incoming messages
 			    connection.onmessage = function (message) {
-			        console.log(message);
-			        var obj = JSON.parse(message.data);
-			        changeBuilding(obj.value, obj.id, obj.id<Math.round(Object.keys(threeObjects).length/4)?"buildings-0":"buildings-1", false);
+			        var msg = JSON.parse(message.data);
+			        switch(msg.type) {
+			        	case "ENERGY":
+			        		changeBuilding(msg.data.value, msg.data.id, msg.data.id<Math.round(Object.keys(buildingObjects).length/4)?"buildings-0":"buildings-1", false);
+			        	break;
+			        	case "HISTORYRESP":
+				        	if(msg.data.value != -1) {
+					        	console.log(msg);
+					        	var chartData = [];
+					        	for(var i = 0; i < msg.data.value.length; i++) {
+					        		chartData.push({index: i, value: msg.data.value[i]});
+					        	}
+					        	setupInfoBox(chartData);
+					        } else {
+					        	$("#infoBox").append("<p>No historical data for this building.</p>")
+					        }
+					        waitingForResponse = false;
+			        	break;
+			        }
+			        
 			    };
 			}
 		    ///////////////////////////////////////////////////////////////
 			
+		    var svg = null;
+			function setupInfoBox(data) {
+				var margin = {top: 20, right: 20, bottom: 30, left: 20},
+				    width = 220 - margin.left - margin.right,
+				    height = 300 - margin.top - margin.bottom;
+
+				var x = d3.scale.ordinal()
+				    .rangeRoundBands([0, width], .1);
+
+				var y = d3.scale.linear()
+				    .range([height, 0]);
+
+				var xAxis = d3.svg.axis()
+				    .scale(x)
+				    .orient("bottom");
+
+				var yAxis = d3.svg.axis()
+				    .scale(y)
+				    .orient("left");
+
+				svg = d3.select("#infoBox").append("svg")
+				    .attr("width", width + margin.left + margin.right)
+				    .attr("height", height + margin.top + margin.bottom)
+				  .append("g")
+				    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+				x.domain(data.map(function(d) { return d.index; }));
+				y.domain([0, d3.max(data, function(d) { return d.value; })]);
+
+				svg.append("g")
+					.attr("class", "x axis")
+					.attr("transform", "translate(0," + height + ")")
+					.call(xAxis);
+
+				svg.append("g")
+					.attr("class", "y axis")
+					.call(yAxis)
+					.append("text")
+					.attr("transform", "rotate(-90)")
+					.attr("y", 6)
+					.attr("dy", ".71em")
+					.style("text-anchor", "end")
+					.text("Energy");
+
+				svg.selectAll(".bar")
+					.data(data)
+					.enter().append("rect")
+					.attr("class", "bar")
+					.attr("x", function(d) { return x(d.index); })
+					.attr("width", x.rangeBand())
+					.attr("y", function(d) { return y(d.value); })
+					.attr("height", function(d) { return height - y(d.value); });
+			}
+
+			function updateInfoBox(data) {
+				
+			}
 
 		    //set renderbox for development information - remove all this for production
 		    
@@ -127,6 +234,7 @@
 
 			
 			populateMap();
+			
 
 		    function setup()
 			{	
@@ -252,7 +360,9 @@
 				//test for showing building height change;
 				if(!usingServer)
 					var t=setInterval(setLevels,1000/30);
-
+				else
+					setupWSConnection(noOfBuildings);
+console.log("Number of buildings " + noOfBuildings)
 		    }
 		    
 
@@ -319,19 +429,48 @@
             	});
             	
             	$(document).dblclick(function(event) {
-            		var level = Math.round(Math.random()*10);	
+            		if(waitingForResponse) return;
+            		raycaster.setFromCamera( mouse, camera );
 
-					raycaster.setFromCamera( mouse, camera );
-					for(var i =0; i<Object.keys(buildingObjects).length;i++){
-						var name =  i<Math.round(Object.keys(buildingObjects).length/4)?"buildings-0":"buildings-1";
-						changeBuilding(level,i, name, true);	
-					}
+					// calculate objects intersecting the picking ray
+	            	var intersects = raycaster.intersectObjects( scene.children );
+            		for ( var i = 0; i < intersects.length; i++ ) 
+					{
+						if(	intersects[ i ].object.name != "sky" && 
+							intersects[ i ].object.name != "ground" &&
+							!intersects[ i ].object.name.startsWith("road") ) {
+							if (intersects[i].face.readingId !== selectedObject) {
+
+								// if(selectedObject !== null)
+									//selectedObject.scale.z = 1; //Reduce height of old selected object
+								selectedObject = intersects[i].face.readingId; // Assign new selected object
+								//selectedObject.scale.y = 2;
+							};
+							
+			         		break;
+						}
+
+						//Doubleclicked on the ground, deselects building.
+						//if(selectedObject !== null)
+							// selectedObject.scale.z = 1;
+						selectedObject = null;
+		            }
+
+
+            		// var level = Math.round(Math.random()*10);	
+
+					// raycaster.setFromCamera( mouse, camera );
+					// for(var i =0; i<Object.keys(buildingObjects).length;i++){
+					// 	var name =  i<Math.round(Object.keys(buildingObjects).length/4)?"buildings-0":"buildings-1";
+					// 	changeBuilding(level,i, name, true);	
+					// }
 					
-					level = 1/level;
-
+					// level = 1/level;
+					console.log("SelectedObject: " + selectedObject);
 		            if(selectedObject !== null) {
-		            	console.log(selectedObject.id);
-						$('#infoBox').html("Now showing data for building: " + selectedObject.id);
+		            	waitingForResponse = true;
+						connection.send(JSON.stringify({type: "HISTORYREQ", data: {value : selectedObject}}));
+						$('#infoBox').html("Now showing data for building: " + selectedObject + "\n");
 		            	$("#infoBox").css('visibility', 'visible');
 		            }
 		            else
