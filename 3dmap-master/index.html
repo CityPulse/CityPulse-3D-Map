@@ -143,7 +143,6 @@
 			        	break;
 			        	case "HISTORYRESP":
 				        	if(msg.data.value != -1) {
-					        	console.log(msg);
 					        	var chartData = [];
 					        	for(var i = 0; i < msg.data.value.length; i++) {
 					        		chartData.push({index: i, value: msg.data.value[i]});
@@ -476,7 +475,6 @@
 					// }
 					
 					// level = 1/level;
-					console.log("SelectedObject: " + selectedObject);
 		            if(selectedObject !== null) {
 		            	waitingForResponse = true;
 						connection.send(JSON.stringify({type: "HISTORYREQ", data: {value : selectedObject}}));
