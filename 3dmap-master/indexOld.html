@@ -1,0 +1,349 @@
+<html>
+	<head>
+		<title>My first Three.js app</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+		<script src="js/three.min.js"></script>
+		<script src="js/controls/OrbitControls.js"></script>
+		<script src="js/utm-converter/src/converter.js"></script>
+	</head>
+	<body>
+	
+		<div id="infoBox" style="visibility: hidden; position: absolute; z-index: 1; right: 1%; top: 10%; width:200px; height:80%; background-color: grey; border-style: groove; border-color: 00CCFF; border-width: 15px;">
+        1234
+    	</div>
+
+	<script type="x-shader/x-vertex" id="vertexShader">
+
+			varying vec3 vWorldPosition;
+
+			void main() {
+
+				vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+				vWorldPosition = worldPosition.xyz;
+
+				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+			}
+
+		</script>
+
+	
+	<script type="x-shader/x-fragment" id="fragmentShader">
+
+			uniform vec3 topColor;
+			uniform vec3 bottomColor;
+			uniform float offset;
+			uniform float exponent;
+
+			varying vec3 vWorldPosition;
+
+			void main() {
+
+				float h = normalize( vWorldPosition + offset ).y;
+				gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
+
+			}
+			</script>
+	
+		<script>
+		    var threeObjects=[];
+		    var renderer=null;
+		    var scene=null;
+		    var camera=null;
+			var controls= null;
+			var raycaster = null;
+            var mouse =  null;
+			var plane = null;
+
+			var selectedObject = null;
+			
+			
+			var SHADOW_MAP_WIDTH = 1024, SHADOW_MAP_HEIGHT = 1024;
+		    
+		    populateMap();
+			
+
+
+		
+		    function setup()
+			{	
+		        scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 100000 );
+				raycaster = new THREE.Raycaster();
+				mouse = new THREE.Vector2();
+				mouse.x = -1;
+				mouse.y = 1;
+				
+				scene.fog = new THREE.Fog( 0xffffff, 1, 1600 );
+				scene.fog.color.setHSL( 0.6, 0, 1 );
+
+
+                renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize( window.innerWidth, window.innerHeight );
+                renderer.setClearColor(0xdddddd);
+				renderer.shadowMapEnabled = true;
+				renderer.shadowMapType = THREE.PCFSoftShadowMap;
+                document.body.appendChild( renderer.domElement );
+
+                
+				//document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				$(document).mousemove(onDocumentMouseMove);
+
+
+				$(document).dblclick(function(event) {
+					raycaster.setFromCamera( mouse, camera );
+
+					// calculate objects intersecting the picking ray
+	            	var intersects = raycaster.intersectObjects( scene.children );
+
+		            for ( var i = 0; i < intersects.length; i++ ) 
+					{
+						if(intersects[ i ].object.name != "sky" &&  intersects[ i ].object.name != "ground" ) {
+							if (intersects[i].object !== selectedObject) {
+								if(selectedObject !== null)
+									selectedObject.scale.z = 1; //Reduce height of old selected object
+								selectedObject = intersects[i].object; // Assign new selected object
+								selectedObject.scale.z = 2;
+							};
+							
+			         		break;
+						}
+
+						//Doubleclicked on the ground, deselects building.
+						if(selectedObject !== null)
+							selectedObject.scale.z = 1;
+						selectedObject = null;
+		            }
+		            
+		            if(selectedObject !== null) {
+		            	console.log(selectedObject.id);
+						$('#infoBox').html("Now showing data for building: " + selectedObject.id);
+		            	$("#infoBox").css('visibility', 'visible');
+		            }
+		            else
+		            	$("#infoBox").css('visibility', 'hidden');
+						
+				});
+				
+                //var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+                //var material = new THREE.MeshLambertMaterial( {color: 0x00ff00} );
+                //var cube = new THREE.Mesh( geometry, material );
+                //cube.position.x= threeObjects[threeObjects.lenght/2].geometry.vertices[0].x;
+                //cube.position.y= threeObjects[threeObjects.lenght/2].geometry.vertices[0].y;
+                //cube.position.z=0;
+                //scene.add( cube );
+
+                camera.position.z = 200;
+                camera.position.x = 200;//threeObjects[threeObjects.length/2].geometry.vertices[0].x;
+                camera.position.y = 100;//threeObjects[threeObjects.length/2].geometry.vertices[0].z;
+                //camera.lookAt(threeObjects[0].position);
+                camera.lookAt(threeObjects[threeObjects.length/2].position);
+				
+				controls = new THREE.OrbitControls( camera, renderer.domElement );
+				//controls.addEventListener( 'change', render ); // add this only if there is no animation loop (requestAnimationFrame)
+				controls.enableDamping = true;
+				controls.dampingFactor = 0.85;
+				controls.enableZoom = true;
+            
+            
+                // add spotlight for the shadows
+                var spotLight = new THREE.SpotLight(0xffffff);
+                spotLight.position.set(-2000, 820, 260);
+                spotLight.castShadow = true;
+				spotLight.shadowCameraVisible = true;
+				spotLight.shadowCameraNear = 1200;
+				spotLight.shadowCameraFar = 2500;
+				spotLight.shadowCameraFov = 50;
+				spotLight.shadowBias = 0.00001;
+				spotLight.shadowMapWidth = SHADOW_MAP_WIDTH;
+				spotLight.shadowMapHeight = SHADOW_MAP_HEIGHT;
+                scene.add(spotLight);
+				
+            
+               /* hemiLight = new THREE.HemisphereLight( "rgb : (128,128,128)", 0xffffff, 0.6 );
+                hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
+                hemiLight.position.set( 0, 500, 0 );
+                scene.add( hemiLight );*/
+				
+				hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.2);
+				hemiLight.color.setHSL( 0.6, 1, 0.6 );
+				hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
+				hemiLight.position.set( 0, 500, 0 );
+				scene.add( hemiLight );
+                
+                $.each(threeObjects,function(i, item)
+				{
+					item.rotation.x += -3.1415*0.5;
+					item.castShadow = true;
+					item.receiveShadow = true;
+                    scene.add(item);
+                }
+				);
+                
+                render();
+            
+                var planeGeo =  new THREE.PlaneBufferGeometry(2048, 2048,32, 32 );// new THREE.PlaneGeometry(2000,2000);
+                var planeMat = new THREE.MeshLambertMaterial("rgb(128, 128, 128)");
+                plane = new THREE.Mesh(planeGeo, planeMat);
+ 
+                // rotate it to correct position
+                plane.rotation.x = -Math.PI/2;
+				plane.castShadow = false;
+				plane.receiveShadow = true;
+				plane.name = "ground";
+                scene.add(plane);
+				
+				
+				// SKYDOME
+
+				var vertexShader = document.getElementById( 'vertexShader' ).textContent;
+				var fragmentShader = document.getElementById( 'fragmentShader' ).textContent;
+				var uniforms = {
+					topColor: 	 { type: "c", value: new THREE.Color( 0x0077ff ) },
+					bottomColor: { type: "c", value: new THREE.Color( 0xffffff ) },
+					offset:		 { type: "f", value: 33 },
+					exponent:	 { type: "f", value: 0.6 }
+				};
+				uniforms.topColor.value.copy( hemiLight.color );
+				scene.fog.color.copy( uniforms.bottomColor.value );
+
+				var skyGeo = new THREE.SphereGeometry( 4000, 32, 15 );
+				var skyMat = new THREE.ShaderMaterial( { vertexShader: vertexShader, fragmentShader: fragmentShader, uniforms: uniforms, side: THREE.BackSide } );
+				var sky = new THREE.Mesh( skyGeo, skyMat );
+				sky.name = "sky";
+				scene.add( sky );
+		    }
+			
+			function onDocumentMouseMove( event ) 
+			{
+	            mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+	            mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;							
+            }
+            
+
+			function render()
+			{
+				requestAnimationFrame( render );
+
+	            
+				
+				//var groundObject = scene.getObjectByName( "ground");
+				//	groundObject.material.color.set( "rgb(128, 128, 128)");
+				
+				$.each(threeObjects,function(i, item)
+				{
+					item.material.color.set( 0x00ffff );
+					if(selectedObject !== null)
+						selectedObject.material.color.set(0x00ff00);
+                });
+
+				
+				//if(plane != null)
+			//	plane.material.color.set( "rgb(128, 128, 128)");
+	
+				
+				renderer.render(scene, camera);
+			};
+			
+			
+			/*****************************/
+			/*                           */
+			/*         Geo data          */	
+			/*                           */
+			/*****************************/
+			
+			// get the data
+			function populateMap()
+			{
+                jQuery.getJSON('data/testdata.json', function(data)
+				{
+                    var converter = new UtmConverter();
+                    var minX = 10000000;
+                    var minY = 10000000;
+					
+					var maxX = -100000.0;
+                    var maxY = -100000.0;
+					
+                    $.each(data.features,function(i, item)
+					{
+                        var rectShape = new THREE.Shape();
+                        var height=0;
+                        
+                        $.each(item.geometry.coordinates, function(j, itemTwo)
+						{
+                            var utmResult= converter.toUtm({coord: [itemTwo[0], itemTwo[1]]});
+                            
+                            //Calculate bounding box
+                            if(utmResult.coord.x<minX)
+							{
+                                minX=utmResult.coord.x;
+							}
+                            if(utmResult.coord.y<minY)
+							{
+                                minY=utmResult.coord.y;
+							}
+							
+							if(utmResult.coord.x > maxX)
+							{
+                                maxX=utmResult.coord.x;
+							}
+                            if(utmResult.coord.y > maxY)
+							{
+                                maxY=utmResult.coord.y;
+							}
+                            
+                            if (j==0)
+							{
+                                height=itemTwo[2];
+                                rectShape.moveTo(utmResult.coord.x, utmResult.coord.y);
+                            }
+							else
+							{
+                                rectShape.lineTo(utmResult.coord.x, utmResult.coord.y); 
+                            }
+                        });
+
+                        var geometry = new THREE.ExtrudeGeometry(rectShape, { amount: height, bevelEnabled: true, bevelSegments: 1, steps: 1, bevelSize: 0.1, bevelThickness: 0.1 });
+
+						var fCenterX = minX + (maxX-minX)*0.5;
+						var fCenterY = minY + (maxY-minY)*0.5;
+       
+                        //Converting the 2D mapping to 3D mapping (shifting z and y coordinates)         
+                        for( var i = 0; i < geometry.vertices.length; i++ ) 
+						{
+                            var fZ =  geometry.vertices[i].z;
+							
+							geometry.vertices[i].x -= fCenterX; 
+                            geometry.vertices[i].y = geometry.vertices[i].y-fCenterY;
+                            geometry.vertices[i].z = fZ;
+							
+                           /* geometry.vertices[i].x -= minX; 
+                            geometry.vertices[i].z = geometry.vertices[i].y-minY;
+                            geometry.vertices[i].y = fZ;*/
+                           // console.log(geometry.vertices[i]);
+                        }
+						
+						geometry.computeFaceNormals();
+						
+			
+                       // var material = new THREE.MeshPhongMaterial( { color: "rgb (128,128,250)", specular: "rgb (32,32,32)", shininess: 30, shading: THREE.FlatShading } );
+                        var material = new THREE.MeshLambertMaterial( {color: "rgb(128,128,250)" });
+                        var rectMesh = new THREE.Mesh(geometry, material) ;	
+                        rectMesh.id = i;	
+				
+                        threeObjects.push(rectMesh);
+                    });
+                    
+                    setup();
+                    
+                });
+            }
+					
+		</script>
+	</body>
+</html>

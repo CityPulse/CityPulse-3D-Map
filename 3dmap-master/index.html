@@ -1,22 +1,28 @@
 <html>
 	<head>
-		<title>My first Three.js app</title>
+		<title>KML c3ap</title>
 		<style>
 			body { margin: 0; }
 			canvas { width: 100%; height: 100% }
 		</style>
-
-		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-		<script src="js/three.min.js"></script>
+		
+		<script src="js/jquery.js"></script>
+		<script src="js/kmlToJson/togeojson.js"></script>
+		<script src="js/three.js"></script>
 		<script src="js/controls/OrbitControls.js"></script>
 		<script src="js/utm-converter/src/converter.js"></script>
+		
+		<script src='js/renderstats/stats.min.js'></script>
+
 	</head>
 	<body>
-	
-		<div id="infoBox" style="visibility: hidden; position: absolute; z-index: 1; right: 1%; top: 10%; width:200px; height:80%; background-color: grey; border-style: groove; border-color: 00CCFF; border-width: 15px;">
+
+	<div id="infoBox" style="visibility: hidden; position: absolute; z-index: 1; right: 1%; top: 10%; width:200px; height:80%; background-color: grey; border-style: groove; border-color: 00CCFF; border-width: 15px;">
         1234
     	</div>
 
+	<div id='holder'></div>
+	
 	<script type="x-shader/x-vertex" id="vertexShader">
 
 			varying vec3 vWorldPosition;
@@ -51,7 +57,10 @@
 			</script>
 	
 		<script>
-		    var threeObjects=[];
+			var roadRdy, buildRdy = false;
+		    var buildingObjects={};
+		    var roadMeshes = [];
+		    var combinedMesh = [];
 		    var renderer=null;
 		    var scene=null;
 		    var camera=null;
@@ -59,17 +68,66 @@
 			var raycaster = null;
             var mouse =  null;
 			var plane = null;
-
-			var selectedObject = null;
+			var planeX = 10000;
+			var planeY = 10000;
+			var originalBuildingColor = 0x00ffff;
 			
 			
 			var SHADOW_MAP_WIDTH = 1024, SHADOW_MAP_HEIGHT = 1024;
 		    
-		    populateMap();
+		    
+		    ///////////////////////////////////////////////////////////////
+		    // WEBSOCKET PART
+		    ///////////////////////////////////////////////////////////////
+
+		    var usingServer = false;
+		    // if user is running mozilla then use it's built-in WebSocket
+
+		    if(usingServer){
+			    window.WebSocket = window.WebSocket || window.MozWebSocket;
+
+			    // open connection
+			    var connection = new WebSocket('ws://127.0.0.1:8001');
+
+			    connection.onopen = function () {
+			        connection.send(noOfBuildings);
+			    };
+
+			    // most important part - incoming messages
+			    connection.onmessage = function (message) {
+			        console.log(message);
+			        var obj = JSON.parse(message.data);
+			        changeBuilding(obj.value, obj.id, obj.id<Math.round(Object.keys(threeObjects).length/4)?"buildings-0":"buildings-1", false);
+			    };
+			}
+		    ///////////////////////////////////////////////////////////////
 			
 
+		    //set renderbox for development information - remove all this for production
+		    
+		    var rendererStats = new Stats();
+			rendererStats.setMode( 0 ); // 0: fps, 1: ms, 2: mb
+		    rendererStats.domElement.style.position   = 'absolute'
+			rendererStats.domElement.style.left  = '0px'
+			rendererStats.domElement.style.bottom    = '0px'
+			document.body.appendChild( rendererStats.domElement );
+			
+			//end stats
 
-		
+			//mapping used to make sure that building height do not reach infinity
+			//TODO: needs to be fitted with correct numbers
+			var maxEnergyLevel = 10;
+			var minEnergyLevel = 0.1;
+			var maxScale = 10;
+			var minScale = 0.5;
+
+			Number.prototype.map = function (in_min, in_max, out_min, out_max) {
+ 				 return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+			}
+
+			
+			populateMap();
+
 		    function setup()
 			{	
 		        scene = new THREE.Scene();
@@ -79,8 +137,8 @@
 				mouse.x = -1;
 				mouse.y = 1;
 				
-				scene.fog = new THREE.Fog( 0xffffff, 1, 1600 );
-				scene.fog.color.setHSL( 0.6, 0, 1 );
+				//scene.fog = new THREE.Fog( 0xffffff, 1, 1600 );
+				//scene.fog.color.setHSL( 0.6, 0, 1 );
 
 
                 renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -89,115 +147,84 @@
 				renderer.shadowMapEnabled = true;
 				renderer.shadowMapType = THREE.PCFSoftShadowMap;
                 document.body.appendChild( renderer.domElement );
+                addMouseHandling();
 
-                
-				//document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-				$(document).mousemove(onDocumentMouseMove);
-
-
-				$(document).dblclick(function(event) {
-					raycaster.setFromCamera( mouse, camera );
-
-					// calculate objects intersecting the picking ray
-	            	var intersects = raycaster.intersectObjects( scene.children );
-
-		            for ( var i = 0; i < intersects.length; i++ ) 
-					{
-						if(intersects[ i ].object.name != "sky" &&  intersects[ i ].object.name != "ground" ) {
-							if (intersects[i].object !== selectedObject) {
-								if(selectedObject !== null)
-									selectedObject.scale.z = 1; //Reduce height of old selected object
-								selectedObject = intersects[i].object; // Assign new selected object
-								selectedObject.scale.z = 2;
-							};
-							
-			         		break;
-						}
-
-						//Doubleclicked on the ground, deselects building.
-						if(selectedObject !== null)
-							selectedObject.scale.z = 1;
-						selectedObject = null;
-		            }
-		            
-		            if(selectedObject !== null) {
-		            	console.log(selectedObject.id);
-						$('#infoBox').html("Now showing data for building: " + selectedObject.id);
-		            	$("#infoBox").css('visibility', 'visible');
-		            }
-		            else
-		            	$("#infoBox").css('visibility', 'hidden');
-						
-				});
-				
-                //var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-                //var material = new THREE.MeshLambertMaterial( {color: 0x00ff00} );
-                //var cube = new THREE.Mesh( geometry, material );
-                //cube.position.x= threeObjects[threeObjects.lenght/2].geometry.vertices[0].x;
-                //cube.position.y= threeObjects[threeObjects.lenght/2].geometry.vertices[0].y;
-                //cube.position.z=0;
-                //scene.add( cube );
-
-                camera.position.z = 200;
-                camera.position.x = 200;//threeObjects[threeObjects.length/2].geometry.vertices[0].x;
-                camera.position.y = 100;//threeObjects[threeObjects.length/2].geometry.vertices[0].z;
-                //camera.lookAt(threeObjects[0].position);
-                camera.lookAt(threeObjects[threeObjects.length/2].position);
+                /*
+                camera.position.z = 50;
+                camera.position.x = 50;
+                camera.position.y = 25;
+                */
+                camera.position.z = 965;
+                camera.position.x = 1435;
+                camera.position.y = 1415;
 				
 				controls = new THREE.OrbitControls( camera, renderer.domElement );
-				//controls.addEventListener( 'change', render ); // add this only if there is no animation loop (requestAnimationFrame)
+				
 				controls.enableDamping = true;
-				controls.dampingFactor = 0.85;
+				controls.dampingFactor = 0.25;
 				controls.enableZoom = true;
             
             
                 // add spotlight for the shadows
                 var spotLight = new THREE.SpotLight(0xffffff);
-                spotLight.position.set(-2000, 820, 260);
+                //var spotLight = new THREE.SpotLight(0xffffff, 0.9, 100000, Math.PI/2, 10, 1);
+                spotLight.position.set(-0.75*planeX, 2500, 500);
                 spotLight.castShadow = true;
 				spotLight.shadowCameraVisible = true;
-				spotLight.shadowCameraNear = 1200;
-				spotLight.shadowCameraFar = 2500;
+				spotLight.shadowCameraNear = planeX/2.5;
+				spotLight.shadowCameraFar = 1.5*planeX;
 				spotLight.shadowCameraFov = 50;
 				spotLight.shadowBias = 0.00001;
-				spotLight.shadowMapWidth = SHADOW_MAP_WIDTH;
-				spotLight.shadowMapHeight = SHADOW_MAP_HEIGHT;
+				spotLight.shadowMapWidth = SHADOW_MAP_WIDTH/2;
+				spotLight.shadowMapHeight = SHADOW_MAP_HEIGHT/2;
                 scene.add(spotLight);
 				
-            
-               /* hemiLight = new THREE.HemisphereLight( "rgb : (128,128,128)", 0xffffff, 0.6 );
-                hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
-                hemiLight.position.set( 0, 500, 0 );
-                scene.add( hemiLight );*/
 				
 				hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.2);
 				hemiLight.color.setHSL( 0.6, 1, 0.6 );
 				hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
 				hemiLight.position.set( 0, 500, 0 );
 				scene.add( hemiLight );
-                
-                $.each(threeObjects,function(i, item)
-				{
-					item.rotation.x += -3.1415*0.5;
-					item.castShadow = true;
-					item.receiveShadow = true;
-                    scene.add(item);
-                }
-				);
-                
-                render();
-            
-                var planeGeo =  new THREE.PlaneBufferGeometry(2048, 2048,32, 32 );// new THREE.PlaneGeometry(2000,2000);
+				
+				var planeGeo =  new THREE.PlaneBufferGeometry(planeX, planeY,32, 32 );// new THREE.PlaneGeometry(2000,2000);
                 var planeMat = new THREE.MeshLambertMaterial("rgb(128, 128, 128)");
                 plane = new THREE.Mesh(planeGeo, planeMat);
+                
  
                 // rotate it to correct position
                 plane.rotation.x = -Math.PI/2;
 				plane.castShadow = false;
 				plane.receiveShadow = true;
 				plane.name = "ground";
+
+				plane.matrixAutoUpdate = false;
+				plane.updateMatrix();
+				//calculate bounding box for limiting camera position
+				plane.geometry.computeBoundingBox();
+
                 scene.add(plane);
-				
+
+                console.log("adding buildings to scene")
+                for(var k=0; k<combinedMesh.length;k++){
+                	mesh = combinedMesh[k];
+                	mesh.name = "buildings-"+k;
+                	mesh.castShadow = true;
+					mesh.receiveShadow = true;
+                	scene.add(mesh);
+                }
+
+				console.log("adding roads to scene")
+                for(var k=0; k<roadMeshes.length;k++){
+                	mesh = roadMeshes[k];
+                	mesh.name = "road-"+k;
+                	mesh.castShadow = false;
+					mesh.receiveShadow = false;
+                	scene.add(mesh);
+                }                
+                
+				console.log("Stop:");
+				console.log(new Date());
+				render();
 				
 				// SKYDOME
 
@@ -210,45 +237,191 @@
 					exponent:	 { type: "f", value: 0.6 }
 				};
 				uniforms.topColor.value.copy( hemiLight.color );
-				scene.fog.color.copy( uniforms.bottomColor.value );
+				//scene.fog.color.copy( uniforms.bottomColor.value );
 
 				var skyGeo = new THREE.SphereGeometry( 4000, 32, 15 );
 				var skyMat = new THREE.ShaderMaterial( { vertexShader: vertexShader, fragmentShader: fragmentShader, uniforms: uniforms, side: THREE.BackSide } );
 				var sky = new THREE.Mesh( skyGeo, skyMat );
 				sky.name = "sky";
+
+				sky.matrixAutoUpdate = false;
+				sky.updateMatrix();
+
 				scene.add( sky );
+
+				//test for showing building height change;
+				if(!usingServer)
+					var t=setInterval(setLevels,1000/30);
+
 		    }
-			
-			function onDocumentMouseMove( event ) 
+		    
+
+		    function setLevels(){
+		    	
+		    	var level = Math.random()*10+0.1;
+		    	var index = Math.round(Math.random()*Object.keys(buildingObjects).length);
+		    	var name =  index<Math.round(Object.keys(buildingObjects).length/4)?"buildings-0":"buildings-1";
+		    	changeBuilding(level, index, name, false);	
+		    	
+		    }
+
+		    var cs = 0;
+			function render()
 			{
-	            mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-	            mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;							
+
+				requestAnimationFrame( render );
+				if(cs%100==0){
+					//console.log(camera.position);	
+					cs=0;
+				}
+				cs++;
+				
+				//makes sure camera does not go beyond x-axis of plane
+				if(camera.position.x<plane.geometry.boundingBox.min.x){
+					camera.position.x=plane.geometry.boundingBox.min.x;
+				}else if(camera.position.x>plane.geometry.boundingBox.max.x){
+					camera.position.x=plane.geometry.boundingBox.max.x;
+				}
+
+				//makes sure camera does not go beyond y-axis of plane
+				if(camera.position.z<plane.geometry.boundingBox.min.y){
+					camera.position.z=plane.geometry.boundingBox.min.y;
+				}else if(camera.position.z>plane.geometry.boundingBox.max.y){
+					camera.position.z=plane.geometry.boundingBox.max.y;
+				} 
+				
+
+				//makes sure that camera can not go below z=0
+				if(camera.position.y<0.5){
+					camera.position.y=0.5;
+					var pov = new THREE.Vector3(0-camera.position.x, 0-camera.position.y,0-camera.position.z);
+					camera.lookAt(pov);
+
+				}else if(camera.position.y>2200){
+					camera.position.y=2200;
+					var pov = new THREE.Vector3(0-camera.position.x, 0-camera.position.y,0-camera.position.z);
+					camera.lookAt(pov);
+				}
+				
+
+				renderer.render(scene, camera);
+				rendererStats.update(renderer);
+			};
+
+
+
+
+		    selectedObject=null;
+            function addMouseHandling(){
+            	$(document).mousemove(function(){
+            		mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+	             	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;		
+            	});
+            	
+            	$(document).dblclick(function(event) {
+            		var level = Math.round(Math.random()*10);	
+
+					raycaster.setFromCamera( mouse, camera );
+					for(var i =0; i<Object.keys(buildingObjects).length;i++){
+						var name =  i<Math.round(Object.keys(buildingObjects).length/4)?"buildings-0":"buildings-1";
+						changeBuilding(level,i, name, true);	
+					}
+					
+					level = 1/level;
+
+		            if(selectedObject !== null) {
+		            	console.log(selectedObject.id);
+						$('#infoBox').html("Now showing data for building: " + selectedObject.id);
+		            	$("#infoBox").css('visibility', 'visible');
+		            }
+		            else
+		            	$("#infoBox").css('visibility', 'hidden');
+						
+				});
+
+            }
+
+
+
+
+
+            /*
+            Take energy data and change height of buildings accordingly
+            */
+            function changeBuilding(energyLevel, buildingId, name, clicked){
+
+				if(maxEnergyLevel<energyLevel)
+					maxEnergyLevel = energyLevel;
+
+				var verticeColor = function(random, mesh){
+
+							var r = Math.random();
+							var b = Math.random();
+							var g = Math.random();
+
+							var meshFaces = mesh.geometry.faces;
+
+							//TODO: create timer to change color back to original
+							for(var j = 0; j<meshFaces.length;j++){
+								if(random){
+									meshFaces[j].color.setRGB(r,g,b);	
+								}else{
+									meshFaces[j].color.setHex(0xffffff);
+								}
+								
+
+							}
+
+							child.geometry.colorsNeedUpdate = true;
+            			};
+
+
+
+            	energyLevel = energyLevel.map(minEnergyLevel, maxEnergyLevel, minScale, maxScale);
+
+            	for(var i=0; i<scene.children.length;i++){
+            		if(scene.children[i].name === name){
+
+            			var child = scene.children[i];
+            			
+
+						var mesh = buildingObjects[buildingId];
+						
+						if(mesh !=undefined){
+							//console.log(mesh);
+								
+							mesh.rotation.set(0,0,0);
+							mesh.updateMatrix();
+							
+							//to be able to reset to original height
+							if(clicked && mesh.oldLevel!==undefined)
+            					energyLevel = 1;
+							
+							if(mesh.oldLevel == undefined){							
+								mesh.oldLevel = 1;
+							}
+
+							mesh.scale.y =mesh.oldLevel*energyLevel;
+
+							mesh.oldLevel = 1/energyLevel;
+
+							mesh.updateMatrix();
+							mesh.geometry.applyMatrix(mesh.matrix);
+							mesh.matrix.identity();
+							mesh.geometry.verticesNeedUpdate = true;
+							mesh.geometry.elementsNeedUpdate = true;
+
+							verticeColor(true, mesh);
+							setTimeout(verticeColor,1000, false, mesh);
+
+				            child.geometry.verticesNeedUpdate = true;
+						}	
+            			break;
+            		}
+            	}
             }
             
 
-			function render()
-			{
-				requestAnimationFrame( render );
-
-	            
-				
-				//var groundObject = scene.getObjectByName( "ground");
-				//	groundObject.material.color.set( "rgb(128, 128, 128)");
-				
-				$.each(threeObjects,function(i, item)
-				{
-					item.material.color.set( 0x00ffff );
-					if(selectedObject !== null)
-						selectedObject.material.color.set(0x00ff00);
-                });
-
-				
-				//if(plane != null)
-			//	plane.material.color.set( "rgb(128, 128, 128)");
-	
-				
-				renderer.render(scene, camera);
-			};
 			
 			
 			/*****************************/
@@ -257,91 +430,303 @@
 			/*                           */
 			/*****************************/
 			
-			// get the data
-			function populateMap()
-			{
-                jQuery.getJSON('data/testdata.json', function(data)
-				{
-                    var converter = new UtmConverter();
-                    var minX = 10000000;
-                    var minY = 10000000;
-					
-					var maxX = -100000.0;
-                    var maxY = -100000.0;
-					
-                    $.each(data.features,function(i, item)
-					{
-                        var rectShape = new THREE.Shape();
-                        var height=0;
-                        
-                        $.each(item.geometry.coordinates, function(j, itemTwo)
-						{
-                            var utmResult= converter.toUtm({coord: [itemTwo[0], itemTwo[1]]});
-                            
-                            //Calculate bounding box
-                            if(utmResult.coord.x<minX)
-							{
-                                minX=utmResult.coord.x;
-							}
-                            if(utmResult.coord.y<minY)
-							{
-                                minY=utmResult.coord.y;
-							}
-							
-							if(utmResult.coord.x > maxX)
-							{
-                                maxX=utmResult.coord.x;
-							}
-                            if(utmResult.coord.y > maxY)
-							{
-                                maxY=utmResult.coord.y;
-							}
-                            
-                            if (j==0)
-							{
-                                height=itemTwo[2];
-                                rectShape.moveTo(utmResult.coord.x, utmResult.coord.y);
-                            }
-							else
-							{
-                                rectShape.lineTo(utmResult.coord.x, utmResult.coord.y); 
-                            }
-                        });
+		
 
-                        var geometry = new THREE.ExtrudeGeometry(rectShape, { amount: height, bevelEnabled: true, bevelSegments: 1, steps: 1, bevelSize: 0.1, bevelThickness: 0.1 });
-
-						var fCenterX = minX + (maxX-minX)*0.5;
-						var fCenterY = minY + (maxY-minY)*0.5;
-       
-                        //Converting the 2D mapping to 3D mapping (shifting z and y coordinates)         
-                        for( var i = 0; i < geometry.vertices.length; i++ ) 
-						{
-                            var fZ =  geometry.vertices[i].z;
-							
-							geometry.vertices[i].x -= fCenterX; 
-                            geometry.vertices[i].y = geometry.vertices[i].y-fCenterY;
-                            geometry.vertices[i].z = fZ;
-							
-                           /* geometry.vertices[i].x -= minX; 
-                            geometry.vertices[i].z = geometry.vertices[i].y-minY;
-                            geometry.vertices[i].y = fZ;*/
-                           // console.log(geometry.vertices[i]);
-                        }
-						
-						geometry.computeFaceNormals();
-						
-			
-                       // var material = new THREE.MeshPhongMaterial( { color: "rgb (128,128,250)", specular: "rgb (32,32,32)", shininess: 30, shading: THREE.FlatShading } );
-                        var material = new THREE.MeshLambertMaterial( {color: "rgb(128,128,250)" });
-                        var rectMesh = new THREE.Mesh(geometry, material) ;	
-                        rectMesh.id = i;	
+            var noOfBuildings = null;
+			function populateMap(){
+				console.log("Start:");
+				console.log(new Date());
 				
-                        threeObjects.push(rectMesh);
+				$.get('data/kml/aarhusByMidte.kml', function(kml)
+				//$.get('data/kml/test.kml', function(kml)
+				{
+					console.log("got building kml");
+					data = toGeoJSON.kml(kml);
+					noOfBuildings = data.features.length;
+					createBuildingModels(data.features)
+					getRoads();
+					
+				});
+				
+			}
+
+			function getRoads(){
+				//$.get('data/kml/roadtest.kml', function(kml)
+				$.get('data/kml/aarhusByMidteVeje.kml', function(kml)
+				{
+					console.log("got road kml");
+					data = toGeoJSON.kml(kml);
+				
+					createRoadModels(data.features)
+				});
+			}
+
+			var minX = 10000000;
+			var minY = 10000000;
+
+			var maxX = -100000.0;
+			var maxY = -100000.0;
+
+			function createRoadModels(data){
+				console.log("create roads");
+
+				var converter = new UtmConverter();
+				
+
+				var material = new THREE.LineBasicMaterial({color: 0x00ff00, linewidth:10000});
+				
+				//$.each(item.geometry.coordinates, function(j, itemTwo)
+					
+						
+				
+				$.each(data,function(i, item)
+				{
+
+					var roadGeometry = new THREE.Geometry();
+					var ref;
+					//console.log(item);
+					$.each(item.geometry.coordinates, function(k, coordinate){
+						var utmResult= converter.toUtm({coord: [coordinate[0], coordinate[1]]});
+
+						
+						roadGeometry.vertices.push(new THREE.Vector3(utmResult.coord.x,utmResult.coord.y,0));
+					});
+					
+					//roadLine.rotation.x += -3.1415*0.5;
+                	//roadLine.updateMatrix();
+                	var fCenterX = minX + (maxX-minX)*0.5;
+					var fCenterY = minY + (maxY-minY)*0.5;
+					for( var k = 0; k < roadGeometry.vertices.length; k++ ) {
+		                	
+	                	roadGeometry.vertices[k].x -= fCenterX;
+	                	roadGeometry.vertices[k].y = roadGeometry.vertices[k].y-fCenterY;
+
+	                	if(roadGeometry.vertices[k].z<0.2)
+	                		roadGeometry.vertices[k].z=0.2;
+
+
+	              	}
+	              	roadGeometry.computeFaceNormals();
+	              	var roadLine = new THREE.Line(roadGeometry, material);
+					
+					roadLine.rotation.x += -3.1415*0.5;
+                	roadLine.updateMatrix();
+                	//roadLine.rotation.z += 3.1415;
+                	//roadLine.updateMatrix();
+
+					roadMeshes.push(roadLine);
+					
+				});
+				planeX = maxX-minX+500;
+				planeY = maxY-minY+500;
+
+    			roadRdy=true;
+				//console.log("roads: "+roadMeshes.length);
+				//console.log(roadMeshes);
+				if(buildRdy)
+					setup();
+				
+			}
+			
+				
+
+			// get the building data
+			function createBuildingModels(data)
+			{
+				
+				console.log("converted");
+				var converter = new UtmConverter();
+				/*
+				var minX = 10000000;
+				var minY = 10000000;
+
+				var maxX = -100000.0;
+				var maxY = -100000.0;
+				*/
+				var singleGeometry = new THREE.Geometry();
+				var secGeometry =    new THREE.Geometry();
+				var maxLen = Math.round(data.length/2);
+				/*
+				$.each(data,function(i, item)
+				{
+					var rectShape = new THREE.Shape();
+					var height=0;
+
+					$.each(item.geometry.coordinates[0], function(j, itemTwo){
+						var utmResult= converter.toUtm({coord: [itemTwo[0], itemTwo[1]]});
+						
+                        //Calculate bounding box
+                        if(utmResult.coord.x<minX)
+                        {
+                        	minX=utmResult.coord.x;
+                        }
+                        if(utmResult.coord.y<minY)
+                        {
+                        	minY=utmResult.coord.y;
+                        }
+
+                        if(utmResult.coord.x > maxX)
+                        {
+                        	maxX=utmResult.coord.x;
+                        }
+                        if(utmResult.coord.y > maxY)
+                        {
+                        	maxY=utmResult.coord.y;
+                        }
+					});
+
+				});
+				*/
+				$.each(data,function(i, item)
+				{
+					var rectShape = new THREE.Shape();
+					var height=0;
+
+					$.each(item.geometry.coordinates[0], function(j, itemTwo)
+					//$.each(item.geometry.coordinates, function(j, itemTwo)
+					{
+
+						var utmResult= converter.toUtm({coord: [itemTwo[0], itemTwo[1]]});
+						
+                        //Calculate bounding box
+                        if(utmResult.coord.x<minX)
+                        {
+                        	minX=utmResult.coord.x;
+                        }
+                        if(utmResult.coord.y<minY)
+                        {
+                        	minY=utmResult.coord.y;
+                        }
+
+                        if(utmResult.coord.x > maxX)
+                        {
+                        	maxX=utmResult.coord.x;
+                        }
+                        if(utmResult.coord.y > maxY)
+                        {
+                        	maxY=utmResult.coord.y;
+                        }
+                        
+                        if (j==0)
+                        {
+                        	height=itemTwo[2];
+                        	rectShape.moveTo(utmResult.coord.x, utmResult.coord.y);
+                        }
+                        else
+                        {
+                        	rectShape.lineTo(utmResult.coord.x, utmResult.coord.y); 
+                        }
+
                     });
-                    
-                    setup();
-                    
-                });
+
+					var geometry = new THREE.ExtrudeGeometry(rectShape, { amount: height, bevelEnabled: true, bevelSegments: 1, steps: 1, bevelSize: 0.1, bevelThickness: 0.1 });
+					var material = new THREE.MeshLambertMaterial( {color: "rgb(128,128,250)" });
+                   	var rectMesh = new THREE.Mesh(geometry, material) ;		
+                   	buildingObjects[i] = rectMesh;
+
+					/*
+					var fCenterX = minX + (maxX-minX)*0.5;
+					var fCenterY = minY + (maxY-minY)*0.5;
+
+					planeX = maxX-minX+500;
+					planeY = maxY-minY+500;
+
+                    //Converting the 2D mapping to 3D mapping (shifting z and y coordinates)         
+                    for( var k = 0; k < geometry.vertices.length; k++ ) 
+                    {
+                    	
+                    	geometry.vertices[k].x -= fCenterX;
+                    	geometry.vertices[k].y = geometry.vertices[k].y-fCenterY;
+
+                    	if(geometry.vertices[k].z<0)
+                    		geometry.vertices[k].z=0;
+
+                   }
+                   
+                   for( var k = 0; k < geometry.faces.length; k++ ) 
+                    {
+                    	geometry.faces[k].readingId = i;
+                    }
+
+					geometry.computeFaceNormals();
+
+
+                   	// var material = new THREE.MeshPhongMaterial( { color: "rgb (128,128,250)", specular: "rgb (32,32,32)", shininess: 30, shading: THREE.FlatShading } );
+                   	var material = new THREE.MeshLambertMaterial( {color: "rgb(128,128,250)" });
+                   	var rectMesh = new THREE.Mesh(geometry, material) ;		
+
+                   	rectMesh.rotation.x += -3.1415*0.5;
+                	rectMesh.updateMatrix();
+
+                	
+                	buildingObjects[i] = rectMesh;
+                   	if(i>maxLen){
+                   	
+                   		secGeometry.merge(rectMesh.geometry, rectMesh.matrix);
+                   	}else{
+                   		singleGeometry.merge(rectMesh.geometry, rectMesh.matrix);
+                   		
+                   	}
+                   	*/
+                   	
+				});
+
+				for(var i=0; i<Object.keys(buildingObjects).length;i++){
+					var building = buildingObjects[i];
+
+					var fCenterX = minX + (maxX-minX)*0.5;
+					var fCenterY = minY + (maxY-minY)*0.5;
+
+					planeX = maxX-minX+500;
+					planeY = maxY-minY+500;
+
+                    //Converting the 2D mapping to 3D mapping (shifting z and y coordinates)         
+                    for( var k = 0; k < building.geometry.vertices.length; k++ ) 
+                    {
+                    	
+                    	building.geometry.vertices[k].x -= fCenterX;
+                    	building.geometry.vertices[k].y = building.geometry.vertices[k].y-fCenterY;
+
+                    	if(building.geometry.vertices[k].z<0)
+                    		building.geometry.vertices[k].z=0;
+
+                   }
+                   
+                   for( var k = 0; k < building.geometry.faces.length; k++ ) 
+                    {
+                    	building.geometry.faces[k].readingId = i;
+                    }
+
+					building.geometry.computeFaceNormals();
+
+
+                   	building.rotation.x += -3.1415*0.5;
+                	building.updateMatrix();
+
+                	
+                	//buildingObjects[i] = rectMesh;
+                   	if(i>maxLen){
+                   	
+                   		secGeometry.merge(building.geometry, building.matrix);
+                   	}else{
+                   		singleGeometry.merge(building.geometry, building.matrix);
+                   		
+                   	}
+				}
+				
+				//console.log(Object.keys(buildingObjects).length+"   /   "+noOfBuildings);
+
+				var faceColorMaterial = new THREE.MeshLambertMaterial( { color: originalBuildingColor, vertexColors: THREE.VertexColors } );
+
+				combinedMesh[0] = new THREE.Mesh(singleGeometry, faceColorMaterial);
+				combinedMesh[1] = new THREE.Mesh(secGeometry, faceColorMaterial);
+				buildRdy=true;
+
+				//console.log("X "+minX+"  Y:"+minY);
+				if(roadRdy)
+					setup();
+       
+                
             }
 					
 		</script>
