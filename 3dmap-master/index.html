@@ -68,8 +68,16 @@
 			var raycaster = null;
             var mouse =  null;
 			var plane = null;
+
 			var planeX = 10000;
 			var planeY = 10000;
+			var minX = 10000000;
+			var minY = 10000000;
+			var maxX = -100000.0;
+			var maxY = -100000.0;
+
+			var noOfBuildings = null;
+
 			var originalBuildingColor = 0x00ffff;
 			
 			
@@ -131,7 +139,7 @@
 		    function setup()
 			{	
 		        scene = new THREE.Scene();
-                camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 100000 );
+                camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 5, 100000 );
 				raycaster = new THREE.Raycaster();
 				mouse = new THREE.Vector2();
 				mouse.x = -1;
@@ -260,7 +268,7 @@
 		    	
 		    	var level = Math.random()*10+0.1;
 		    	var index = Math.round(Math.random()*Object.keys(buildingObjects).length);
-		    	var name =  index<Math.round(Object.keys(buildingObjects).length/4)?"buildings-0":"buildings-1";
+		    	var name =  index<Math.round(Object.keys(buildingObjects).length/2)?"buildings-0":"buildings-1";
 		    	changeBuilding(level, index, name, false);	
 		    	
 		    }
@@ -270,8 +278,10 @@
 			{
 
 				requestAnimationFrame( render );
+
 				if(cs%100==0){
 					//console.log(camera.position);	
+					console.log(renderer.info);
 					cs=0;
 				}
 				cs++;
@@ -323,7 +333,7 @@
 
 					raycaster.setFromCamera( mouse, camera );
 					for(var i =0; i<Object.keys(buildingObjects).length;i++){
-						var name =  i<Math.round(Object.keys(buildingObjects).length/4)?"buildings-0":"buildings-1";
+						var name =  i<Math.round(Object.keys(buildingObjects).length/2)?"buildings-0":"buildings-1";
 						changeBuilding(level,i, name, true);	
 					}
 					
@@ -340,9 +350,6 @@
 				});
 
             }
-
-
-
 
 
             /*
@@ -432,7 +439,7 @@
 			
 		
 
-            var noOfBuildings = null;
+            
 			function populateMap(){
 				console.log("Start:");
 				console.log(new Date());
@@ -448,6 +455,9 @@
 					
 				});
 				
+				
+				//getRoads();
+				
 			}
 
 			function getRoads(){
@@ -461,11 +471,6 @@
 				});
 			}
 
-			var minX = 10000000;
-			var minY = 10000000;
-
-			var maxX = -100000.0;
-			var maxY = -100000.0;
 
 			function createRoadModels(data){
 				console.log("create roads");
@@ -473,27 +478,30 @@
 				var converter = new UtmConverter();
 				
 
-				var material = new THREE.LineBasicMaterial({color: 0x00ff00, linewidth:10000});
+				var material = new THREE.LineBasicMaterial({color: 0x00ff00, linewidth:50});
 				
-				//$.each(item.geometry.coordinates, function(j, itemTwo)
-					
-						
+				var singleGeometry = new THREE.Geometry();
 				
 				$.each(data,function(i, item)
 				{
 
 					var roadGeometry = new THREE.Geometry();
-					var ref;
+					roadGeometry.dynamic = false;
+					
+					
 					//console.log(item);
 					$.each(item.geometry.coordinates, function(k, coordinate){
-						var utmResult= converter.toUtm({coord: [coordinate[0], coordinate[1]]});
 
+
+						var utmResult= converter.toUtm({coord: [coordinate[0], coordinate[1]]});
 						
 						roadGeometry.vertices.push(new THREE.Vector3(utmResult.coord.x,utmResult.coord.y,0));
+
+
+						
 					});
 					
-					//roadLine.rotation.x += -3.1415*0.5;
-                	//roadLine.updateMatrix();
+
                 	var fCenterX = minX + (maxX-minX)*0.5;
 					var fCenterY = minY + (maxY-minY)*0.5;
 					for( var k = 0; k < roadGeometry.vertices.length; k++ ) {
@@ -502,28 +510,29 @@
 	                	roadGeometry.vertices[k].y = roadGeometry.vertices[k].y-fCenterY;
 
 	                	if(roadGeometry.vertices[k].z<0.2)
+	                		
 	                		roadGeometry.vertices[k].z=0.2;
-
-
 	              	}
-	              	roadGeometry.computeFaceNormals();
+	              	
+	              	//roadGeometry.computeFaceNormals();
+	              	roadGeometry.computeVertexNormals();
 	              	var roadLine = new THREE.Line(roadGeometry, material);
 					
-					roadLine.rotation.x += -3.1415*0.5;
-                	roadLine.updateMatrix();
-                	//roadLine.rotation.z += 3.1415;
+					//roadLine.rotation.x += -3.1415*0.5;
                 	//roadLine.updateMatrix();
+                	roadLine.rotation.x += -3.1415*0.5;
+                	roadLine.updateMatrix();
 
-					roadMeshes.push(roadLine);
-					
+                	console.log(roadLine.geometry.vertices);
+					singleGeometry.mergeVertices(roadLine.geometry.vertices);
+					//roadMeshes.push(roadLine);
 				});
-				planeX = maxX-minX+500;
-				planeY = maxY-minY+500;
-
+				
+				roadMeshes.push(new THREE.Line(singleGeometry, material));
+				console.log(roadMeshes);
     			roadRdy=true;
-				//console.log("roads: "+roadMeshes.length);
-				//console.log(roadMeshes);
-				if(buildRdy)
+
+				//if(buildRdy)
 					setup();
 				
 			}
@@ -536,47 +545,11 @@
 				
 				console.log("converted");
 				var converter = new UtmConverter();
-				/*
-				var minX = 10000000;
-				var minY = 10000000;
 
-				var maxX = -100000.0;
-				var maxY = -100000.0;
-				*/
 				var singleGeometry = new THREE.Geometry();
 				var secGeometry =    new THREE.Geometry();
 				var maxLen = Math.round(data.length/2);
-				/*
-				$.each(data,function(i, item)
-				{
-					var rectShape = new THREE.Shape();
-					var height=0;
 
-					$.each(item.geometry.coordinates[0], function(j, itemTwo){
-						var utmResult= converter.toUtm({coord: [itemTwo[0], itemTwo[1]]});
-						
-                        //Calculate bounding box
-                        if(utmResult.coord.x<minX)
-                        {
-                        	minX=utmResult.coord.x;
-                        }
-                        if(utmResult.coord.y<minY)
-                        {
-                        	minY=utmResult.coord.y;
-                        }
-
-                        if(utmResult.coord.x > maxX)
-                        {
-                        	maxX=utmResult.coord.x;
-                        }
-                        if(utmResult.coord.y > maxY)
-                        {
-                        	maxY=utmResult.coord.y;
-                        }
-					});
-
-				});
-				*/
 				$.each(data,function(i, item)
 				{
 					var rectShape = new THREE.Shape();
@@ -624,50 +597,6 @@
                    	var rectMesh = new THREE.Mesh(geometry, material) ;		
                    	buildingObjects[i] = rectMesh;
 
-					/*
-					var fCenterX = minX + (maxX-minX)*0.5;
-					var fCenterY = minY + (maxY-minY)*0.5;
-
-					planeX = maxX-minX+500;
-					planeY = maxY-minY+500;
-
-                    //Converting the 2D mapping to 3D mapping (shifting z and y coordinates)         
-                    for( var k = 0; k < geometry.vertices.length; k++ ) 
-                    {
-                    	
-                    	geometry.vertices[k].x -= fCenterX;
-                    	geometry.vertices[k].y = geometry.vertices[k].y-fCenterY;
-
-                    	if(geometry.vertices[k].z<0)
-                    		geometry.vertices[k].z=0;
-
-                   }
-                   
-                   for( var k = 0; k < geometry.faces.length; k++ ) 
-                    {
-                    	geometry.faces[k].readingId = i;
-                    }
-
-					geometry.computeFaceNormals();
-
-
-                   	// var material = new THREE.MeshPhongMaterial( { color: "rgb (128,128,250)", specular: "rgb (32,32,32)", shininess: 30, shading: THREE.FlatShading } );
-                   	var material = new THREE.MeshLambertMaterial( {color: "rgb(128,128,250)" });
-                   	var rectMesh = new THREE.Mesh(geometry, material) ;		
-
-                   	rectMesh.rotation.x += -3.1415*0.5;
-                	rectMesh.updateMatrix();
-
-                	
-                	buildingObjects[i] = rectMesh;
-                   	if(i>maxLen){
-                   	
-                   		secGeometry.merge(rectMesh.geometry, rectMesh.matrix);
-                   	}else{
-                   		singleGeometry.merge(rectMesh.geometry, rectMesh.matrix);
-                   		
-                   	}
-                   	*/
                    	
 				});
 
