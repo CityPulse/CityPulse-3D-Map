@@ -91,12 +91,18 @@ wsServer.on('request', function(request) {
                         var sortedArray = [];
                         var endCondition = buildingHistory.indexPointer-1;
 
-                        for(var i = buildingHistory.indexPointer; i != endCondition; i++) {
-                            if(i == maxHistory) i = 0;
-                            if(buildingHistory[i] == null) continue;
-                            sortedArray.push(buildingHistory[i]);
+                        if(buildingHistory.indexPointer > 1) {
+                            for(var i = buildingHistory.indexPointer; i != endCondition; i++) {
+                                
+                                if(i == maxHistory) i = 0;
+                                console.log(i + " - " + buildingHistory[i]);
+                                if(buildingHistory[i] == null) continue;
+                                sortedArray.push(buildingHistory[i]);
+                            }
+                            sortedArray.push(buildingHistory[endCondition]);
+                        } else {
+                            sortedArray.push(buildingHistory[0]);
                         }
-                        sortedArray.push(buildingHistory[endCondition]);
 
                         var resp = JSON.stringify({type:"HISTORYRESP", data:{value:sortedArray}});
                         connection.sendUTF(resp);
