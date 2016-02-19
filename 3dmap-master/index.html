@@ -265,7 +265,7 @@
 				else
 					setupWSConnection(noOfBuildings);
 				
-				console.log(scene.children);
+				
 		    }
 		    
 
@@ -512,6 +512,7 @@
 			}
 
 
+
 			function createRoadModels(data){
 				console.log("create roads");
 
@@ -520,7 +521,7 @@
 				var material = new THREE.LineBasicMaterial({color: 0x00ff00, linewidth:2});
 				
 				var singleGeometry = new THREE.Geometry();
-				
+
 				$.each(data,function(i, item)
 				{
 
@@ -533,7 +534,8 @@
 						var utmResult= converter.toUtm({coord: [coordinate[0], coordinate[1]]});
 						
 						roadGeometry.vertices.push(new THREE.Vector3(utmResult.coord.x,utmResult.coord.y,0));
-						
+
+
 					});
 					
 
@@ -554,10 +556,40 @@
 					
                 	roadLine.rotation.x += -3.1415*0.5;
                 	roadLine.updateMatrix();
+                	var match = false;
+                	$.each(roadMeshes, function(i, mesh){
+                		
+                		var lineStart = roadLine.geometry.vertices[0];
+                		var lineVerticeLen = roadLine.geometry.vertices.length-1;
+                		var lineEnd = roadLine.geometry.vertices[lineVerticeLen];
 
-					roadMeshes.push(roadLine);
+                		var meshGeo = mesh.geometry;
+                		var meshStart = meshGeo.vertices[0];
+                		
+                		var meshVerticeLen = meshGeo.vertices.length-1;
+                		var meshEnd = meshGeo.vertices[meshVerticeLen];
+                		
+
+                		if(lineStart.equals(meshEnd)){
+                			for(ii=0;ii<roadLine.geometry.vertices.length; ii++){
+                				mesh.geometry.vertices.push(roadLine.geometry.vertices[ii]);
+                			}
+
+                			match=true;
+                		}else if(lineEnd.equals(meshStart)){
+                			for(ii=0;ii<mesh.geometry.vertices.length; ii++){
+                				roadLine.geometry.vertices.push(mesh.geometry.vertices[ii]);
+                			}
+
+                			roadMeshes[i] = roadLine;
+                			match=true;
+                		}
+
+                	});
+                	if(!match)
+						roadMeshes.push(roadLine);
+
 				});
-				
 
     			roadRdy=true;
 
