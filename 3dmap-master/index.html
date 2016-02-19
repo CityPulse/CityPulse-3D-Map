@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>KML c3ap</title>
+		<title>Aarhus City</title>
 		<style>
 			body { margin: 0; }
 			canvas { width: 100%; height: 100% }
@@ -41,6 +41,7 @@
 		<script src='js/d3graphs/infobox.js'></script>
 		<script src='js/renderstats/stats.min.js'></script>
 		<script src='js/tween/tween.js'></script>
+		<script src='js/WSClient/wsClient.js'></script>
 
 	</head>
 	<body>
@@ -115,54 +116,12 @@
 			
 			var SHADOW_MAP_WIDTH = 1024, SHADOW_MAP_HEIGHT = 1024;
 		    
-		    var connection = null;
-		    var waitingForResponse = false;
-		    
 		    ///////////////////////////////////////////////////////////////
-		    // WEBSOCKET PART
-		    ///////////////////////////////////////////////////////////////
-
-		    var usingServer = false;
-		    // if user is running mozilla then use it's built-in WebSocket
-
-		    
-		    function setupWSConnection(maxBuildings) {
-			    window.WebSocket = window.WebSocket || window.MozWebSocket;
-
-			    // open connection
-			    connection = new WebSocket('ws://127.0.0.1:8001');
-
-			    connection.onopen = function () {
-			        connection.send(JSON.stringify({type: "SETUP", data: {value : maxBuildings}}));
-			    };
-
-			    // most important part - incoming messages
-			    connection.onmessage = function (message) {
-			        var msg = JSON.parse(message.data);
-			        switch(msg.type) {
-			        	case "ENERGY":
-			        		changeBuilding(msg.data.value, msg.data.id, false);
-			        	break;
-			        	case "HISTORYRESP":
-				        	if(msg.data.value != -1) {
-					        	var chartData = [];
-					        	for(var i = 0; i < msg.data.value.length; i++) {
-					        		chartData.push({index: i, value: msg.data.value[i]});
-					        	}
-					        	setupInfoBox(chartData);
-					        } else {
-					        	$("#infoBox").append("<p>No historical data for this building.</p>")
-					        }
-					        waitingForResponse = false;
-			        	break;
-			        }
-			        
-			    };
-			}
-		    
+			// Decide if we use local dummy data or try to connect to server via WebSockets
+			///////////////////////////////////////////////////////////////
+			var usingServer = false;
 
 		    //set renderbox for development information - remove all this for production
-		    
 		    var rendererStats = new Stats();
 			rendererStats.setMode( 0 ); // 0: fps, 1: ms, 2: mb
 		    rendererStats.domElement.style.position   = 'absolute'
@@ -414,11 +373,11 @@
             }
 
 
+
+
             /*
             Take energy data and change height of buildings accordingly
             */
-
-
             function changeBuilding(energyLevel, buildingId, clicked){
 
 				if(maxEnergyLevel<energyLevel)
@@ -444,15 +403,12 @@
 
 							var meshFaces = mesh.geometry.faces;
 
-							//TODO: create timer to change color back to original
 							for(var j = 0; j<meshFaces.length;j++){
 								if(random){
 									meshFaces[j].color.setRGB(r,g,b);	
 								}else{
 									meshFaces[j].color.setHex(0xffffff);
 								}
-								
-
 							}
 
 							child.geometry.colorsNeedUpdate = true;
@@ -476,6 +432,8 @@
 							var start = 1/mesh.oldLevel;
 							var goal = energyLevel*mesh.oldLevel;
 							
+
+							//smooth the transistion between heights
 							var tween = new TWEEN.Tween({scale:start} )
 								.to( { scale: energyLevel }, timeout )
 								.easing( TWEEN.Easing.Quadratic.InOut )
@@ -501,21 +459,8 @@
 
 							verticeColor(true, mesh);
 							setTimeout(verticeColor,timeout+500, false, mesh);
-							/*
-							mesh.scale.y =mesh.oldLevel*energyLevel;
-
-							mesh.oldLevel = 1/energyLevel;
-
-							mesh.updateMatrix();
-							mesh.geometry.applyMatrix(mesh.matrix);
-							mesh.matrix.identity();
-
-							verticeColor(true, mesh);
-							setTimeout(verticeColor,1000, false, mesh);
-
-				            child.geometry.verticesNeedUpdate = true;
-				            */
 						}	
+
             			break;
             		}
             	}
@@ -620,7 +565,6 @@
 					setup();
 				
 			}
-			
 				
 
 
@@ -720,8 +664,6 @@
                    	building.rotation.x += -3.1415*0.5;
                 	building.updateMatrix();
 
-
-                	//test
                 	
                 	var geoKey = Math.floor(i/maxLen);
                 	if(geometryList[geoKey]==undefined){
@@ -731,17 +673,6 @@
                 	geometryList[geoKey].merge(building.geometry, building.matrix);
 					
 
-
-                	//end test
-                	/*
-                   	if(i>maxLen){
-                   	
-                   		secGeometry.merge(building.geometry, building.matrix);
-                   	}else{
-                   		singleGeometry.merge(building.geometry, building.matrix);
-                   		
-                   	}
-                   	*/
 				}
 				
 
@@ -751,8 +682,6 @@
 					combinedMesh.push(new THREE.Mesh(geometryList[o], faceColorMaterial));
 				}
 
-				//combinedMesh[0] = new THREE.Mesh(singleGeometry, faceColorMaterial);
-				//combinedMesh[1] = new THREE.Mesh(secGeometry, faceColorMaterial);
 				buildRdy=true;
 
 				if(roadRdy)
