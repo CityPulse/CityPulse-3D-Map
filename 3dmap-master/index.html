@@ -32,13 +32,13 @@
 
 		</style>
 
-		
+		<script src="//d3js.org/d3.v3.min.js"></script>
 		<script src="js/jquery.js"></script>
 		<script src="js/kmlToJson/togeojson.js"></script>
 		<script src="js/three.js"></script>
 		<script src="js/controls/OrbitControls.js"></script>
 		<script src="js/utm-converter/src/converter.js"></script>
-		<script src="//d3js.org/d3.v3.min.js"></script>
+		<script src='js/d3graphs/infobox.js'></script>
 		<script src='js/renderstats/stats.min.js'></script>
 
 	</head>
@@ -120,7 +120,7 @@
 		    // WEBSOCKET PART
 		    ///////////////////////////////////////////////////////////////
 
-		    var usingServer = false;
+		    var usingServer = true;
 		    // if user is running mozilla then use it's built-in WebSocket
 
 		    
@@ -157,65 +157,7 @@
 			        
 			    };
 			}
-		    ///////////////////////////////////////////////////////////////
-			
-		    var svg = null;
-			function setupInfoBox(data) {
-				var margin = {top: 20, right: 20, bottom: 30, left: 20},
-				    width = 220 - margin.left - margin.right,
-				    height = 300 - margin.top - margin.bottom;
-
-				var x = d3.scale.ordinal()
-				    .rangeRoundBands([0, width], .1);
-
-				var y = d3.scale.linear()
-				    .range([height, 0]);
-
-				var xAxis = d3.svg.axis()
-				    .scale(x)
-				    .orient("bottom");
-
-				var yAxis = d3.svg.axis()
-				    .scale(y)
-				    .orient("left");
-
-				svg = d3.select("#infoBox").append("svg")
-				    .attr("width", width + margin.left + margin.right)
-				    .attr("height", height + margin.top + margin.bottom)
-				  .append("g")
-				    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-				x.domain(data.map(function(d) { return d.index; }));
-				y.domain([0, d3.max(data, function(d) { return d.value; })]);
-
-				svg.append("g")
-					.attr("class", "x axis")
-					.attr("transform", "translate(0," + height + ")")
-					.call(xAxis);
-
-				svg.append("g")
-					.attr("class", "y axis")
-					.call(yAxis)
-					.append("text")
-					.attr("transform", "rotate(-90)")
-					.attr("y", 6)
-					.attr("dy", ".71em")
-					.style("text-anchor", "end")
-					.text("Energy");
-
-				svg.selectAll(".bar")
-					.data(data)
-					.enter().append("rect")
-					.attr("class", "bar")
-					.attr("x", function(d) { return x(d.index); })
-					.attr("width", x.rangeBand())
-					.attr("y", function(d) { return y(d.value); })
-					.attr("height", function(d) { return height - y(d.value); });
-			}
-
-			function updateInfoBox(data) {
-				
-			}
+		    
 
 		    //set renderbox for development information - remove all this for production
 		    
@@ -239,7 +181,7 @@
  				 return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 			}
 
-			
+			//get the data to populate the map
 			populateMap();
 			
 
@@ -252,10 +194,6 @@
 				mouse.x = -1;
 				mouse.y = 1;
 				
-				//scene.fog = new THREE.Fog( 0xffffff, 1, 1600 );
-				//scene.fog.color.setHSL( 0.6, 0, 1 );
-
-
                 renderer = new THREE.WebGLRenderer({ antialias: true });
                 renderer.setSize( window.innerWidth, window.innerHeight );
                 renderer.setClearColor(0xdddddd);
@@ -264,11 +202,6 @@
                 document.body.appendChild( renderer.domElement );
                 addMouseHandling();
 
-                /*
-                camera.position.z = 50;
-                camera.position.x = 50;
-                camera.position.y = 25;
-                */
                 camera.position.z = 965;
                 camera.position.x = 1435;
                 camera.position.y = 1415;
@@ -314,6 +247,7 @@
 
 				plane.matrixAutoUpdate = false;
 				plane.updateMatrix();
+
 				//calculate bounding box for limiting camera position
 				plane.geometry.computeBoundingBox();
 
@@ -337,7 +271,7 @@
                 	scene.add(mesh);
                 }                
                 
-				console.log("Stop:");
+				console.log("End:");
 				console.log(new Date());
 				render();
 				
@@ -352,7 +286,6 @@
 					exponent:	 { type: "f", value: 0.6 }
 				};
 				uniforms.topColor.value.copy( hemiLight.color );
-				//scene.fog.color.copy( uniforms.bottomColor.value );
 
 				var skyGeo = new THREE.SphereGeometry( 4000, 32, 15 );
 				var skyMat = new THREE.ShaderMaterial( { vertexShader: vertexShader, fragmentShader: fragmentShader, uniforms: uniforms, side: THREE.BackSide } );
@@ -370,7 +303,6 @@
 				else
 					setupWSConnection(noOfBuildings);
 				
-				console.log("Number of buildings " + noOfBuildings)
 		    }
 		    
 
@@ -391,7 +323,7 @@
 
 				if(cs%100==0){
 					//console.log(camera.position);	
-					console.log(renderer.info);
+					//console.log(renderer.info);
 					cs=0;
 				}
 				cs++;
@@ -451,30 +383,17 @@
 							!intersects[ i ].object.name.startsWith("road") ) {
 							if (intersects[i].face.readingId !== selectedObject) {
 
-								// if(selectedObject !== null)
-									//selectedObject.scale.z = 1; //Reduce height of old selected object
 								selectedObject = intersects[i].face.readingId; // Assign new selected object
-								//selectedObject.scale.y = 2;
+
 							};
 							
 			         		break;
 						}
 
-						//Doubleclicked on the ground, deselects building.
-						//if(selectedObject !== null)
-							// selectedObject.scale.z = 1;
 						selectedObject = null;
 		            }
 
-            		// var level = Math.round(Math.random()*10);	
-
-					// raycaster.setFromCamera( mouse, camera );
-					// for(var i =0; i<Object.keys(buildingObjects).length;i++){
-					// 	var name =  i<Math.round(Object.keys(buildingObjects).length/4)?"buildings-0":"buildings-1";
-					// 	changeBuilding(level,i, name, true);	
-					// }
-					
-					// level = 1/level;
+            		
 		            if(selectedObject !== null) {
 		            	waitingForResponse = true;
 						connection.send(JSON.stringify({type: "HISTORYREQ", data: {value : selectedObject}}));
@@ -532,7 +451,6 @@
 						var mesh = buildingObjects[buildingId];
 						
 						if(mesh !=undefined){
-							//console.log(mesh);
 								
 							mesh.rotation.set(0,0,0);
 							mesh.updateMatrix();
@@ -625,16 +543,12 @@
 					var roadGeometry = new THREE.Geometry();
 					roadGeometry.dynamic = false;
 					
-					
-					//console.log(item);
 					$.each(item.geometry.coordinates, function(k, coordinate){
 
 
 						var utmResult= converter.toUtm({coord: [coordinate[0], coordinate[1]]});
 						
 						roadGeometry.vertices.push(new THREE.Vector3(utmResult.coord.x,utmResult.coord.y,0));
-
-
 						
 					});
 					
@@ -651,22 +565,19 @@
 	                		roadGeometry.vertices[k].z=0.2;
 	              	}
 	              	
-	              	//roadGeometry.computeFaceNormals();
 	              	roadGeometry.computeVertexNormals();
 	              	var roadLine = new THREE.Line(roadGeometry, material);
 					
                 	roadLine.rotation.x += -3.1415*0.5;
                 	roadLine.updateMatrix();
-                	//console.log("merg");
-					//singleGeometry.merge(roadLine.geometry, roadLine.matrix);
+
 					roadMeshes.push(roadLine);
 				});
-				console.log(roadMeshes[0]);
-				//roadMeshes.push(new THREE.Line(singleGeometry, material));
 				
+
     			roadRdy=true;
 
-				//if(buildRdy)
+				if(buildRdy)
 					setup();
 				
 			}
@@ -690,7 +601,6 @@
 					var height=0;
 
 					$.each(item.geometry.coordinates[0], function(j, itemTwo)
-					//$.each(item.geometry.coordinates, function(j, itemTwo)
 					{
 
 						var utmResult= converter.toUtm({coord: [itemTwo[0], itemTwo[1]]});
@@ -767,7 +677,6 @@
                 	building.updateMatrix();
 
                 	
-                	//buildingObjects[i] = rectMesh;
                    	if(i>maxLen){
                    	
                    		secGeometry.merge(building.geometry, building.matrix);
@@ -777,7 +686,6 @@
                    	}
 				}
 				
-				//console.log(Object.keys(buildingObjects).length+"   /   "+noOfBuildings);
 
 				var faceColorMaterial = new THREE.MeshLambertMaterial( { color: originalBuildingColor, vertexColors: THREE.VertexColors } );
 
@@ -785,11 +693,9 @@
 				combinedMesh[1] = new THREE.Mesh(secGeometry, faceColorMaterial);
 				buildRdy=true;
 
-				//console.log("X "+minX+"  Y:"+minY);
 				if(roadRdy)
 					setup();
        
-                
             }
 					
 		</script>
