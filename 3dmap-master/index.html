@@ -40,6 +40,7 @@
 		<script src="js/utm-converter/src/converter.js"></script>
 		<script src='js/d3graphs/infobox.js'></script>
 		<script src='js/renderstats/stats.min.js'></script>
+		<script src='js/tween/tween.js'></script>
 
 	</head>
 	<body>
@@ -298,10 +299,12 @@
 				scene.add( sky );
 
 				//test for showing building height change;
+				
 				if(!usingServer)
 					var t=setInterval(setLevels,1000/20);
 				else
 					setupWSConnection(noOfBuildings);
+				
 				
 		    }
 		    
@@ -309,8 +312,11 @@
 		    function setLevels(){
 		    	
 		    	var level = Math.random()*10+0.1;
+		    	
 		    	var index = Math.round(Math.random()*Object.keys(buildingObjects).length);
+		    	//var index = 0;
 		    	var name =  index<Math.round(Object.keys(buildingObjects).length/2)?"buildings-0":"buildings-1";
+
 		    	changeBuilding(level, index, name, false);	
 		    	
 		    }
@@ -318,10 +324,15 @@
 		    var cs = 0;
 			function render()
 			{
-
+				
 				requestAnimationFrame( render );
+				TWEEN.update();		
+				if(cs%5==0){
+					
+				}
 
 				if(cs%100==0){
+
 					//console.log(camera.position);	
 					//console.log(renderer.info);
 					cs=0;
@@ -411,6 +422,8 @@
             /*
             Take energy data and change height of buildings accordingly
             */
+
+
             function changeBuilding(energyLevel, buildingId, name, clicked){
 
 				if(maxEnergyLevel<energyLevel)
@@ -441,6 +454,8 @@
 
 
             	energyLevel = energyLevel.map(minEnergyLevel, maxEnergyLevel, minScale, maxScale);
+            	
+            	var timeout = 1000;
 
             	for(var i=0; i<scene.children.length;i++){
             		if(scene.children[i].name === name){
@@ -463,6 +478,35 @@
 								mesh.oldLevel = 1;
 							}
 
+							var start = 1/mesh.oldLevel;
+							var goal = energyLevel*mesh.oldLevel;
+							
+							var tween = new TWEEN.Tween({scale:start} )
+								.to( { scale: energyLevel }, timeout )
+								.easing( TWEEN.Easing.Quadratic.InOut )
+								.onUpdate( function () {
+									
+									mesh.updateMatrix();
+									mesh.geometry.applyMatrix(mesh.matrix);
+									mesh.matrix.identity();
+									
+									mesh.scale.y = mesh.oldLevel*this.scale; 
+
+									mesh.oldLevel = 1/this.scale;
+									child.geometry.verticesNeedUpdate = true;
+									
+
+								})
+								.onComplete(function(){
+									
+									TWEEN.remove(tween);
+									
+								})
+								.start();
+
+							verticeColor(true, mesh);
+							setTimeout(verticeColor,timeout+500, false, mesh);
+							/*
 							mesh.scale.y =mesh.oldLevel*energyLevel;
 
 							mesh.oldLevel = 1/energyLevel;
@@ -470,13 +514,12 @@
 							mesh.updateMatrix();
 							mesh.geometry.applyMatrix(mesh.matrix);
 							mesh.matrix.identity();
-							mesh.geometry.verticesNeedUpdate = true;
-							mesh.geometry.elementsNeedUpdate = true;
 
 							verticeColor(true, mesh);
 							setTimeout(verticeColor,1000, false, mesh);
 
 				            child.geometry.verticesNeedUpdate = true;
+				            */
 						}	
             			break;
             		}
@@ -499,6 +542,7 @@
 				console.log("Start:");
 				console.log(new Date());
 				
+				
 				$.get('data/kml/aarhusByMidte.kml', function(kml)
 				//$.get('data/kml/test.kml', function(kml)
 				{
@@ -506,6 +550,7 @@
 					data = toGeoJSON.kml(kml);
 					noOfBuildings = data.features.length;
 					createBuildingModels(data.features)
+					
 					getRoads();
 					
 				});
@@ -533,7 +578,7 @@
 				var converter = new UtmConverter();
 				
 
-				var material = new THREE.LineBasicMaterial({color: 0x00ff00, linewidth:50});
+				var material = new THREE.LineBasicMaterial({color: 0x00ff00, linewidth:2});
 				
 				var singleGeometry = new THREE.Geometry();
 				
