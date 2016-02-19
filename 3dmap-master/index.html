@@ -120,7 +120,7 @@
 		    // WEBSOCKET PART
 		    ///////////////////////////////////////////////////////////////
 
-		    var usingServer = true;
+		    var usingServer = false;
 		    // if user is running mozilla then use it's built-in WebSocket
 
 		    
@@ -218,7 +218,7 @@
                 //var spotLight = new THREE.SpotLight(0xffffff, 0.9, 100000, Math.PI/2, 10, 1);
                 spotLight.position.set(-0.75*planeX, 2500, 500);
                 spotLight.castShadow = true;
-				spotLight.shadowCameraVisible = true;
+				//spotLight.shadowCameraVisible = true;
 				spotLight.shadowCameraNear = planeX/2.5;
 				spotLight.shadowCameraFar = 1.5*planeX;
 				spotLight.shadowCameraFov = 50;
