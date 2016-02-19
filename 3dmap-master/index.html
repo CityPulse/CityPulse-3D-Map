@@ -32,7 +32,7 @@
 
 		</style>
 
-		<script src="//d3js.org/d3.v3.min.js"></script>
+		<script src='js/d3graphs/d3.min.js'></script>
 		<script src="js/jquery.js"></script>
 		<script src="js/kmlToJson/togeojson.js"></script>
 		<script src="js/three.js"></script>
@@ -108,6 +108,7 @@
 			var maxY = -100000.0;
 
 			var noOfBuildings = null;
+			var noOfBuildingGeoSlice = 150;
 
 			var originalBuildingColor = 0x00ffff;
 			
@@ -140,7 +141,7 @@
 			        var msg = JSON.parse(message.data);
 			        switch(msg.type) {
 			        	case "ENERGY":
-			        		changeBuilding(msg.data.value, msg.data.id, msg.data.id<Math.round(Object.keys(buildingObjects).length/4)?"buildings-0":"buildings-1", false);
+			        		changeBuilding(msg.data.value, msg.data.id, false);
 			        	break;
 			        	case "HISTORYRESP":
 				        	if(msg.data.value != -1) {
@@ -301,23 +302,20 @@
 				//test for showing building height change;
 				
 				if(!usingServer)
-					var t=setInterval(setLevels,1000/20);
+					var t=setInterval(setLevels,1000/4);
 				else
 					setupWSConnection(noOfBuildings);
 				
-				
+				console.log(scene.children);
 		    }
 		    
 
 		    function setLevels(){
 		    	
 		    	var level = Math.random()*10+0.1;
-		    	
 		    	var index = Math.round(Math.random()*Object.keys(buildingObjects).length);
-		    	//var index = 0;
-		    	var name =  index<Math.round(Object.keys(buildingObjects).length/2)?"buildings-0":"buildings-1";
-
-		    	changeBuilding(level, index, name, false);	
+		    	
+		    	changeBuilding(level, index, false);	
 		    	
 		    }
 
@@ -327,14 +325,11 @@
 				
 				requestAnimationFrame( render );
 				TWEEN.update();		
-				if(cs%5==0){
-					
-				}
 
 				if(cs%100==0){
 
 					//console.log(camera.position);	
-					//console.log(renderer.info);
+					console.log(renderer.info);
 					cs=0;
 				}
 				cs++;
@@ -424,12 +419,24 @@
             */
 
 
-            function changeBuilding(energyLevel, buildingId, name, clicked){
+            function changeBuilding(energyLevel, buildingId, clicked){
 
 				if(maxEnergyLevel<energyLevel)
 					maxEnergyLevel = energyLevel;
 
-				var verticeColor = function(random, mesh){
+            	energyLevel = energyLevel.map(minEnergyLevel, maxEnergyLevel, minScale, maxScale);
+            	
+            	var timeout = 1500;
+
+            	var nameNumber = Math.floor(buildingId/(noOfBuildings/noOfBuildingGeoSlice));
+		    	var name = "buildings-"+nameNumber;
+
+            	for(var i=0; i<scene.children.length;i++){
+            		if(scene.children[i].name === name){
+
+            			var child = scene.children[i];
+						
+						var verticeColor = function(random, mesh){
 
 							var r = Math.random();
 							var b = Math.random();
@@ -449,19 +456,7 @@
 							}
 
 							child.geometry.colorsNeedUpdate = true;
-            			};
-
-
-
-            	energyLevel = energyLevel.map(minEnergyLevel, maxEnergyLevel, minScale, maxScale);
-            	
-            	var timeout = 1000;
-
-            	for(var i=0; i<scene.children.length;i++){
-            		if(scene.children[i].name === name){
-
-            			var child = scene.children[i];
-            			
+		    			};            			
 
 						var mesh = buildingObjects[buildingId];
 						
@@ -576,7 +571,6 @@
 				console.log("create roads");
 
 				var converter = new UtmConverter();
-				
 
 				var material = new THREE.LineBasicMaterial({color: 0x00ff00, linewidth:2});
 				
@@ -629,6 +623,10 @@
 			
 				
 
+
+
+
+
 			// get the building data
 			function createBuildingModels(data)
 			{
@@ -636,9 +634,10 @@
 				console.log("converted");
 				var converter = new UtmConverter();
 
-				var singleGeometry = new THREE.Geometry();
-				var secGeometry =    new THREE.Geometry();
-				var maxLen = Math.round(data.length/2);
+
+				var geometryList = [];
+
+				var maxLen = Math.round(data.length/noOfBuildingGeoSlice);
 
 				$.each(data,function(i, item)
 				{
@@ -721,7 +720,20 @@
                    	building.rotation.x += -3.1415*0.5;
                 	building.updateMatrix();
 
+
+                	//test
                 	
+                	var geoKey = Math.floor(i/maxLen);
+                	if(geometryList[geoKey]==undefined){
+                		geometryList[geoKey] = new THREE.Geometry();
+                	}
+
+                	geometryList[geoKey].merge(building.geometry, building.matrix);
+					
+
+
+                	//end test
+                	/*
                    	if(i>maxLen){
                    	
                    		secGeometry.merge(building.geometry, building.matrix);
@@ -729,13 +741,18 @@
                    		singleGeometry.merge(building.geometry, building.matrix);
                    		
                    	}
+                   	*/
 				}
 				
 
 				var faceColorMaterial = new THREE.MeshLambertMaterial( { color: originalBuildingColor, vertexColors: THREE.VertexColors } );
 
-				combinedMesh[0] = new THREE.Mesh(singleGeometry, faceColorMaterial);
-				combinedMesh[1] = new THREE.Mesh(secGeometry, faceColorMaterial);
+				for(var o =0; o<geometryList.length; o++){
+					combinedMesh.push(new THREE.Mesh(geometryList[o], faceColorMaterial));
+				}
+
+				//combinedMesh[0] = new THREE.Mesh(singleGeometry, faceColorMaterial);
+				//combinedMesh[1] = new THREE.Mesh(secGeometry, faceColorMaterial);
 				buildRdy=true;
 
 				if(roadRdy)
