@@ -12,7 +12,9 @@ var maxHistory = 10;
 var numberOfBuildings = 5;
 var maxValue = 10;
 var minValue = 1;
-var dummyDataInterval = 100; // mili seconds..
+var dummyDataInterval = 30;
+var sendDummyDataInterval = 3001;
+var dummyDataArray = [];
 
 var locked = false;
 
@@ -67,10 +69,24 @@ wsServer.on('request', function(request) {
                 }
             }
         }
-        connection.sendUTF(JSON.stringify({type:"ENERGY", data:{id:buildingId, value:value, unit:unit}}));
+
+        dummyDataArray.push({id:buildingId, value:value, unit:unit});
+        
         //connection.sendUTF('{"type":"ENERGY", "data":{"id":'+buildingId+', "value":'+value+',"unit":"'+unit+'"}}');
     }, dummyDataInterval);
 
+    var sendDataIntervalId = setInterval(function() {
+        if(locked) return;
+        locked = true;
+
+        connection.sendUTF(JSON.stringify({type:"ENERGY", data:dummyDataArray}));
+    
+        while(dummyDataArray.length > 0) {
+            dummyDataArray.pop();
+        }
+
+        locked = false;
+    }, sendDummyDataInterval);
 
     // This is the most important callback for us, we'll handle
     // all messages from users here.
