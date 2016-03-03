@@ -46,12 +46,13 @@ function createBuildingModels(data)
 
 
     var geometryList = [];
-    var maxLen = data.length;
-    //var maxLen = Math.round(data.length/noOfBuildingGeoSlice);
+    //var maxLen = data.length;
+    var maxLen = Math.round(data.length/noOfBuildingGeoSlice);
     
 
     $.each(data,function(i, item)
     {
+
         var rectShape = new THREE.Shape();
         var height=0;
 
@@ -130,9 +131,7 @@ function createBuildingModels(data)
         }
 
         geometryList[geoKey].merge(building.geometry, building.matrix);
-        
     });
-
     /*
     console.log("after each "+new Date());
     for(var i=0; i<Object.keys(buildingObjects).length;i++){
