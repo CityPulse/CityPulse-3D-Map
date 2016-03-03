@@ -44,11 +44,12 @@ function createBuildingModels(data)
     
     var converter = new UtmConverter();
 
-
     var geometryList = [];
-    //var maxLen = data.length;
+
     var maxLen = Math.round(data.length/noOfBuildingGeoSlice);
-    
+    if(maxLen===0){
+        maxLen=1;
+    }
 
     $.each(data,function(i, item)
     {
@@ -60,26 +61,7 @@ function createBuildingModels(data)
         {
 
             var utmResult= converter.toUtm({coord: [itemTwo[0], itemTwo[1]]});
-            
-            //Calculate bounding box
-            if(utmResult.coord.x<minX)
-            {
-                minX=utmResult.coord.x;
-            }
-            if(utmResult.coord.y<minY)
-            {
-                minY=utmResult.coord.y;
-            }
-
-            if(utmResult.coord.x > maxX)
-            {
-                maxX=utmResult.coord.x;
-            }
-            if(utmResult.coord.y > maxY)
-            {
-                maxY=utmResult.coord.y;
-            }
-            
+                        
             if (j==0)
             {
                 height=itemTwo[2];
@@ -132,6 +114,7 @@ function createBuildingModels(data)
 
         geometryList[geoKey].merge(building.geometry, building.matrix);
     });
+
     /*
     console.log("after each "+new Date());
     for(var i=0; i<Object.keys(buildingObjects).length;i++){

@@ -1,36 +1,7 @@
 <html>
 	<head>
 		<title>Aarhus City</title>
-		<style>
-			body { margin: 0; }
-			canvas { width: 100%; height: 100% }
-		</style>
-		<style>
-
-			.bar {
-			  fill: steelblue;
-			}
-
-			/*.bar:hover {
-			  fill: brown;
-			}*/
-
-			.axis {
-			  font: 10px sans-serif;
-			}
-
-			.axis path,
-			.axis line {
-			  fill: none;
-			  stroke: #000;
-			  shape-rendering: crispEdges;
-			}
-
-			.x.axis path {
-			  display: none;
-			}
-
-		</style>
+		<link rel="stylesheet" type="text/css" href="style.css">
 
 		<script src='js/d3graphs/d3.min.js'></script>
 		<script src="js/jquery.js"></script>
@@ -47,12 +18,21 @@
 	</head>
 	<body>
 
-	<div id="infoBox" style="visibility: hidden; position: absolute; z-index: 1; right: 1%; top: 10%; width:200px; height:80%; background-color: grey; border-style: groove; border-color: 00CCFF; border-width: 15px;">
+	<div id="infoBox">
         1234
         <script>
         	
 </script>
     </div>
+    <div class="spinner-holder">
+	    <div class="spinner">
+	  		<div class="double-bounce1"></div>
+	  		<div class="double-bounce2"></div>
+	  		
+		</div>
+		<div class="spinner-text">LOADING</div>
+		<div class="spinner-text" id='infoText'>10/1000</div>
+	</div>
 
 	<div id='holder'></div>
 	
@@ -61,12 +41,12 @@
 			varying vec3 vWorldPosition;
 
 			void main() {
-
+				
 				vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
 				vWorldPosition = worldPosition.xyz;
 
 				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-
+				
 			}
 
 		</script>
@@ -91,6 +71,7 @@
 	
 		<script>
 			"use strict";
+
 			var roadRdy, buildRdy = false;
 		    var buildingObjects={};
 		    
@@ -121,7 +102,7 @@
 		    ///////////////////////////////////////////////////////////////
 			// Decide if we use local dummy data or try to connect to server via WebSockets
 			///////////////////////////////////////////////////////////////
-			var usingServer = false;
+			var usingServer = true;
 
 		    //set renderbox for development information - remove all this for production
 		    var rendererStats = new Stats();
@@ -144,9 +125,14 @@
  				 return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 			}
 
-			//get the data to populate the map
-			populateMap();
+			$(function(){
+				//get the data to populate the map and start creating the scene
+				populateMap();
+			});
 			
+			
+
+
 
 		    function setup()
 			{	
@@ -221,7 +207,9 @@
 				               
                 
 				console.log(new Date()+": End setup/start render");
-				console.log();
+				
+				//hide spinner as system is ready
+				$(".spinner-holder").hide();
 				render();
 				
 				// SKYDOME
@@ -338,7 +326,8 @@
 
 		    var selectedObject=null;
             function addMouseHandling(){
-            	$(document).mousemove(function(){
+
+            	$(document).mousemove(function(event) {
             		mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 	             	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;		
             	});
@@ -488,48 +477,48 @@
 			function populateMap(){
 				console.log(new Date()+": start");
 				
-				
-				//$.get('data/kml/aarhusByMidte.kml', function(kml)
-				$.get('data/kml/test.kml', function(kml)
+				showText("retrieving building data from server...");
+				$.get('data/kml/aarhusByMidte.kml', function(kml)
+				//$.get('data/kml/test.kml', function(kml)
 				{
+					showText("Building data loaded from server..");
+					
 					console.log(new Date()+":got building kml");
 					
 					var data = toGeoJSON.kml(kml).features;
 					
-					
 					calculatePlaneBounds(data);
-					setup();
 					
 					noOfBuildings = data.length;
 
 					var maxLen = Math.round(data.length/noOfBuildingGeoSlice)===0?1:Math.round(data.length/noOfBuildingGeoSlice);
-
-					//createBuildingModels(data);
+					//
+					setTimeout(function(){
+						showText("Creating building models");
+						setTimeout(function(){
+							createBuildingModels(data);
+							showText("Building models created");
+							setTimeout(function(){
+								setup();	
+								console.log(new Date()+": buildings loaded");
+							},50)
+							
+						},50);
+						
+					},50);
+					getRoads();
 					
-
-					var k=0;
-					for(var i=0; i<data.length; i+=maxLen){
-						createBuildingModels(data.slice(i,i+maxLen));	
-						k++;
-					}
-					console.log("creatNO: "+k);
-
-					console.log(new Date()+": buildings loaded");
-					//getRoads();
-					
-
 				});
-				
-				
-				//getRoads();
 				
 			}
 
 			function getRoads(){
 				//$.get('data/kml/roadtest.kml', function(kml)
+				showText("Loading roads");
 				$.get('data/kml/aarhusByMidteVeje.kml', function(kml)
 				{
 					console.log(new Date()+": got road kml");
+					showText("Road data loaded from server");
 					var data = toGeoJSON.kml(kml);
 				
 					createRoadModels(data.features);
@@ -538,9 +527,14 @@
 			}
 
 
-
-
-				
+			function showText(text){
+				$("#infoText").text(text);
+				/*
+				$("#infoText").val(function(index, value){
+					return value+"test"+index;
+				});
+				*/
+			}
 					
 		</script>
 	</body>
