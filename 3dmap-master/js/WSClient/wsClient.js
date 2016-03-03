@@ -24,7 +24,9 @@ function setupWSConnection(maxBuildings) {
     	var msg = JSON.parse(message.data);
     	switch(msg.type) {
     		case "ENERGY":
-    		changeBuilding(msg.data.value, msg.data.id, false);
+    		$.each(msg.data, function(index, building) {
+                changeBuilding(building.value, building.id, false);  
+            });
     		break;
     		case "HISTORYRESP":
     		if(msg.data.value != -1) {
