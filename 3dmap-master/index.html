@@ -72,9 +72,7 @@
 		<script>
 			"use strict";
 
-			var roadRdy, buildRdy = false;
-		    var buildingObjects={};
-		    
+		    var buildingObjects={};		    
 		    
 		    var renderer=null;
 		    var scene = new THREE.Scene();
@@ -202,10 +200,7 @@
 
                 scene.add(plane);
                 
-                
-
-				               
-                
+                         
 				console.log(new Date()+": End setup/start render");
 				
 				//hide spinner as system is ready
@@ -284,7 +279,7 @@
 				if(cs%100==0){
 
 					//console.log(camera.position);	
-					//console.log(scene.children);
+					//console.log(scene);
 					cs=0;
 				}
 				cs++;
