@@ -7,11 +7,30 @@ canvas {
 	height: 100% 
 }
 
+
+/*holder of the scene*/
+#holder{
+	display: none;
+}
+
 #cityChooser{
 	position:absolute;
-	left:0px;
-	top:0px;
+	left:10px;
+	top:5px;
 	z-index:100;
+	text-align: center;
+	font-size: 40px;
+	width:100px;
+	color: #333333;
+	font-family: verdana, arial;
+}
+
+.jq-dropdown{
+	text-align: center;
+	font-size: 18px;
+	width:100px;
+	color: #333333;
+	font-family: verdana, arial;
 }
 
 #infoBox{

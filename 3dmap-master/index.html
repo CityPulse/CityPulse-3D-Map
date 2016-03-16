@@ -126,15 +126,21 @@
  				 return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 			}
 
+			var chosenCityId = null;
+
 			$(function(){
 				//start setting up the basics before a anything else happens
 				setup();
 
 				$(".jq-dropdown > ul > li > a").on('click', function(e){
-					//clear scene if previously populated
-					if(!$(".spinner-holder").is(":visible")){
-						$(".spinner-holder").show();
+
+					//do nothing if same city is selected again
+					if(chosenCityId!==null & chosenCityId===this.id){
+						return;
 					}
+					chosenCityId = this.id;
+					showSpinner(true);
+					//clear scene if previously populated
 					if(renderAnimationId!=null){
 						cancelAnimationFrame(renderAnimationId);
 					}
@@ -173,7 +179,8 @@
 			    rendererStats.domElement.style.position   = 'absolute'
 				rendererStats.domElement.style.left  = '0px'
 				rendererStats.domElement.style.bottom    = '0px'
-				document.body.appendChild( rendererStats.domElement );
+				//document.body.appendChild( rendererStats.domElement );
+				$("#holder").append(rendererStats.domElement);
 				
 				//end stats
 		        
@@ -188,7 +195,9 @@
                 renderer.setClearColor(0xdddddd);
 				renderer.shadowMapEnabled = true;
 				renderer.shadowMapType = THREE.PCFSoftShadowMap;
-                document.body.appendChild( renderer.domElement );
+                //document.body.appendChild( renderer.domElement );
+                $("#holder").append(renderer.domElement);
+
                 addMouseHandling();
 
                 camera.position.z = 965;
@@ -291,8 +300,7 @@
 				plane.geometry.computeBoundingBox();
 
                 scene.add(plane);
-                //hide spinner as system is ready
-				$(".spinner-holder").hide();
+                
 				render();
 		    }
 
@@ -552,7 +560,6 @@
 				}
 
 				
-				
 				showText("retrieving building data from server for "+cityName);
 				//$.get('data/kml/aarhusByMidte.kml', function(kml)
 				//$.get('data/kml/test.kml', function(kml)
@@ -576,9 +583,10 @@
 						setTimeout(function(){
 							createBuildingModels(data);
 							showText("Building models created");
-							setTimeout(function(){
-									
+							setTimeout(function(){	
 								console.log(new Date()+": buildings loaded");
+								//hide spinner as system is ready
+								showSpinner(false);
 							},50)
 							
 						},50);
@@ -623,7 +631,23 @@
 				});
 				*/
 			}
-					
+
+			///////////////////////////////////////////////////////////////
+			// Show spinner or scene
+			///////////////////////////////////////////////////////////////
+			
+			function showSpinner(showSpinner){
+				if(showSpinner){
+					$("#holder").hide();
+					$(".spinner-holder").show();
+				}else{
+					console.log("show scene");
+					$("#holder").show();
+					$(".spinner-holder").hide();
+				}
+			}
+
+
 		</script>
 	</body>
 </html>
