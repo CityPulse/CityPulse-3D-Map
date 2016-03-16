@@ -1,10 +1,14 @@
 <html>
 	<head>
-		<title>Aarhus City</title>
-		<link rel="stylesheet" type="text/css" href="style.css">
+		<title>City Visualizer</title>
+		<link type="text/css" rel="stylesheet" href="css/jquery.dropdown.css" />
+		<link rel="stylesheet" type="text/css" href="css/style.css">
+
+		
 
 		<script src='js/d3graphs/d3.min.js'></script>
-		<script src="js/jquery.js"></script>
+		<script src="js/jquery/jquery.js"></script>
+		<script src="js/jquery/jquery.dropdown.js"></script>
 		<script src="js/kmlToJson/togeojson.js"></script>
 		<script src="js/three.js"></script>
 		<script src="js/controls/OrbitControls.js"></script>
@@ -18,25 +22,31 @@
 	</head>
 	<body>
 
-	<div id="infoBox">
-        1234
-        <script>
-        	
-</script>
-    </div>
-    <div class="spinner-holder">
-	    <div class="spinner">
-	  		<div class="double-bounce1"></div>
-	  		<div class="double-bounce2"></div>
-	  		
-		</div>
-		<div class="spinner-text">LOADING</div>
-		<div class="spinner-text" id='infoText'>10/1000</div>
-	</div>
+		<div id="infoBox">
+	        1234
 
-	<div id='holder'></div>
+	    </div>
+	    <div class="spinner-holder">
+		    <div class="spinner">
+		  		<div class="double-bounce1"></div>
+		  		<div class="double-bounce2"></div>
+		  		
+			</div>
+			<div class="spinner-text">LOADING</div>
+			<div class="spinner-text" id='infoText'>waiting for city choosing</div>
+		</div>
+
+		<div id='holder'></div>
+
+		<input type="button" data-jq-dropdown="#jq-dropdown-1" value="Choose city" id='cityChooser'>
+		<div id="jq-dropdown-1" class="jq-dropdown jq-dropdown-tip">
+		    <ul class="jq-dropdown-menu">
+		        <li><a id='8k' name="Aarhus City" href="#1">Aarhus</a></li>
+		        <li><a id='cph' name="Copenhagen City" href="#2">Copenhagen</a></li>
+		    </ul>
+		</div>
 	
-	<script type="x-shader/x-vertex" id="vertexShader">
+		<script type="x-shader/x-vertex" id="vertexShader">
 
 			varying vec3 vWorldPosition;
 
@@ -52,7 +62,7 @@
 		</script>
 
 	
-	<script type="x-shader/x-fragment" id="fragmentShader">
+		<script type="x-shader/x-fragment" id="fragmentShader">
 
 			uniform vec3 topColor;
 			uniform vec3 bottomColor;
@@ -67,14 +77,20 @@
 				gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
 
 			}
-			</script>
+		</script>
+
+
 	
 		<script>
 			"use strict";
 
+			var buildingUrl = "";
+			var roadUrl = "";
+
 		    var buildingObjects={};		    
 		    
 		    var renderer=null;
+		    var renderAnimationId = null;
 		    var scene = new THREE.Scene();
 		    var camera=null;
 			var controls= null;
@@ -97,21 +113,6 @@
 			
 			var SHADOW_MAP_WIDTH = 1024, SHADOW_MAP_HEIGHT = 1024;
 		    
-		    ///////////////////////////////////////////////////////////////
-			// Decide if we use local dummy data or try to connect to server via WebSockets
-			///////////////////////////////////////////////////////////////
-			var usingServer = true;
-
-		    //set renderbox for development information - remove all this for production
-		    var rendererStats = new Stats();
-			rendererStats.setMode( 0 ); // 0: fps, 1: ms, 2: mb
-		    rendererStats.domElement.style.position   = 'absolute'
-			rendererStats.domElement.style.left  = '0px'
-			rendererStats.domElement.style.bottom    = '0px'
-			document.body.appendChild( rendererStats.domElement );
-			
-			//end stats
-
 			//mapping used to make sure that building height do not reach infinity
 			//TODO: needs to be fitted with correct numbers
 			var maxEnergyLevel = 10;
@@ -119,21 +120,62 @@
 			var maxScale = 10;
 			var minScale = 0.5;
 
+			var rendererStats = new Stats();
+
 			Number.prototype.map = function (in_min, in_max, out_min, out_max) {
  				 return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 			}
 
 			$(function(){
-				//get the data to populate the map and start creating the scene
-				populateMap();
+				//start setting up the basics before a anything else happens
+				setup();
+
+				$(".jq-dropdown > ul > li > a").on('click', function(e){
+					//clear scene if previously populated
+					if(!$(".spinner-holder").is(":visible")){
+						$(".spinner-holder").show();
+					}
+					if(renderAnimationId!=null){
+						cancelAnimationFrame(renderAnimationId);
+					}
+
+					for(var i = scene.children.length-1; i>=0; i--){
+						if(scene.children[i].name.indexOf("buildings")>-1 ||scene.children[i].name.indexOf("road")>-1 ||scene.children[i].name.indexOf("ground")>-1){
+							scene.remove(scene.children[i]);	
+						}
+						//console.log(scene.children[i]);
+						
+					}
+					resetPlaneSize();
+
+					e.preventDefault();
+					populateMap(this.id);
+					document.title = this.name;
+
+
+				});
+
 			});
 			
 			
 
-
-
 		    function setup()
 			{	
+
+			    ///////////////////////////////////////////////////////////////
+				// Decide if we use local dummy data or try to connect to server via WebSockets
+				///////////////////////////////////////////////////////////////
+				var usingServer = true;
+
+			    //set renderbox for development information - remove all this for production
+			    
+				rendererStats.setMode( 0 ); // 0: fps, 1: ms, 2: mb
+			    rendererStats.domElement.style.position   = 'absolute'
+				rendererStats.domElement.style.left  = '0px'
+				rendererStats.domElement.style.bottom    = '0px'
+				document.body.appendChild( rendererStats.domElement );
+				
+				//end stats
 		        
                 camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 5, 100000 );
 				raycaster = new THREE.Raycaster();
@@ -181,31 +223,12 @@
 				hemiLight.position.set( 0, 500, 0 );
 				scene.add( hemiLight );
 				
-				var planeGeo =  new THREE.PlaneBufferGeometry(planeX, planeY,32, 32 );// new THREE.PlaneGeometry(2000,2000);
-                var planeMat = new THREE.MeshLambertMaterial("rgb(128, 128, 128)");
-                plane = new THREE.Mesh(planeGeo, planeMat);
-                
- 
-                // rotate it to correct position
-                plane.rotation.x = -Math.PI/2;
-				plane.castShadow = false;
-				plane.receiveShadow = true;
-				plane.name = "ground";
-
-				plane.matrixAutoUpdate = false;
-				plane.updateMatrix();
-
-				//calculate bounding box for limiting camera position
-				plane.geometry.computeBoundingBox();
-
-                scene.add(plane);
+				
                 
                          
 				console.log(new Date()+": End setup/start render");
 				
-				//hide spinner as system is ready
-				$(".spinner-holder").hide();
-				render();
+				
 				
 				// SKYDOME
 
@@ -239,6 +262,40 @@
 				
 		    }
 
+		    ///////////////////////////////////////////////////////////////
+			// Helper methods for setting up the scene with different cities
+			///////////////////////////////////////////////////////////////
+
+
+			function resetPlaneSize(){
+				minY = minX = 10000000;
+				maxY = maxX = -100000.0;
+			}
+
+
+		    function setPlane(){
+		    	var planeGeo =  new THREE.PlaneBufferGeometry(planeX, planeY,32, 32 );// new THREE.PlaneGeometry(2000,2000);
+                var planeMat = new THREE.MeshLambertMaterial("rgb(128, 128, 128)");
+                plane = new THREE.Mesh(planeGeo, planeMat);
+ 				
+                // rotate it to correct position
+                plane.rotation.x = -Math.PI/2;
+				plane.castShadow = false;
+				plane.receiveShadow = true;
+				plane.name = "ground";
+
+				plane.matrixAutoUpdate = false;
+				plane.updateMatrix();
+
+				//calculate bounding box for limiting camera position
+				plane.geometry.computeBoundingBox();
+
+                scene.add(plane);
+                //hide spinner as system is ready
+				$(".spinner-holder").hide();
+				render();
+		    }
+
 
 		    function addMeshes(meshes, isBuildings){
 		    	var prefix = "road-";
@@ -259,6 +316,9 @@
 		    }
 
 		    
+		    ///////////////////////////////////////////////////////////////
+			// Helper methods for testing the height of the buildings
+			///////////////////////////////////////////////////////////////
 
 		    function setLevels(){
 		    	
@@ -269,11 +329,16 @@
 		    	
 		    }
 
+
+			///////////////////////////////////////////////////////////////
+			// Rendering function for three.js
+			///////////////////////////////////////////////////////////////
+
 		    var cs = 0;
 			function render()
 			{
 				
-				requestAnimationFrame( render );
+				renderAnimationId = requestAnimationFrame( render );
 				TWEEN.update();		
 
 				if(cs%100==0){
@@ -318,6 +383,10 @@
 
 
 
+
+			///////////////////////////////////////////////////////////////
+			// Mouse interaction with scene
+			///////////////////////////////////////////////////////////////
 
 		    var selectedObject=null;
             function addMouseHandling(){
@@ -367,9 +436,11 @@
 
 
 
-            /*
-            Take energy data and change height of buildings accordingly
-            */
+
+			///////////////////////////////////////////////////////////////
+			// Changing the height of buildings based on the energi level used
+			///////////////////////////////////////////////////////////////
+
             function changeBuilding(energyLevel, buildingId, clicked){
 
 				if(maxEnergyLevel<energyLevel)
@@ -469,21 +540,33 @@
 			
 		
 
-			function populateMap(){
+			function populateMap(city){
 				console.log(new Date()+": start");
+				buildingUrl = "data/kml/"+city+"/buildings.kml";
+				roadUrl = "data/kml/"+city+"/roads.kml";
+				var cityName = "";
+				if(city==="8k"){
+					cityName = "Aarhus";
+				}else{
+					cityName = "Copenhagen";
+				}
+
 				
-				showText("retrieving building data from server...");
-				$.get('data/kml/aarhusByMidte.kml', function(kml)
+				
+				showText("retrieving building data from server for "+cityName);
+				//$.get('data/kml/aarhusByMidte.kml', function(kml)
 				//$.get('data/kml/test.kml', function(kml)
+				$.get(buildingUrl, function(kml)
 				{
 					showText("Building data loaded from server..");
 					
 					console.log(new Date()+":got building kml");
 					
 					var data = toGeoJSON.kml(kml).features;
-					
+					console.log("b4: "+planeX+"   "+planeY);
 					calculatePlaneBounds(data);
-					
+					console.log("af: "+planeX+"   "+planeY);
+					setPlane();
 					noOfBuildings = data.length;
 
 					var maxLen = Math.round(data.length/noOfBuildingGeoSlice)===0?1:Math.round(data.length/noOfBuildingGeoSlice);
@@ -494,7 +577,7 @@
 							createBuildingModels(data);
 							showText("Building models created");
 							setTimeout(function(){
-								setup();	
+									
 								console.log(new Date()+": buildings loaded");
 							},50)
 							
@@ -507,20 +590,30 @@
 				
 			}
 
+
+			///////////////////////////////////////////////////////////////
+			// Getting road data from server
+			///////////////////////////////////////////////////////////////
+
 			function getRoads(){
 				//$.get('data/kml/roadtest.kml', function(kml)
 				showText("Loading roads");
-				$.get('data/kml/aarhusByMidteVeje.kml', function(kml)
+				//$.get('data/kml/aarhusByMidteVeje.kml', function(kml)
+				$.get(roadUrl, function(kml)
 				{
 					console.log(new Date()+": got road kml");
 					showText("Road data loaded from server");
 					var data = toGeoJSON.kml(kml);
-				
+					
 					createRoadModels(data.features);
 					console.log(new Date()+": roads loaded");
 				});
 			}
 
+
+			///////////////////////////////////////////////////////////////
+			// Show overlay text when loading scenes
+			///////////////////////////////////////////////////////////////
 
 			function showText(text){
 				$("#infoText").text(text);

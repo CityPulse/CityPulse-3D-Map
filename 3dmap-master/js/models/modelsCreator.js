@@ -7,7 +7,7 @@ function calculatePlaneBounds(data){
     {
         $.each(item.geometry.coordinates[0], function(j, itemTwo)
         {
-
+    
             var utmResult= converter.toUtm({coord: [itemTwo[0], itemTwo[1]]});
             
             //Calculate bounding box
@@ -32,8 +32,11 @@ function calculatePlaneBounds(data){
         
     });
 
-    planeX = maxX-minX+500;
-    planeY = maxY-minY+500;
+    console.log("min max: "+minX+"  "+maxX)
+    planeX = maxX-minX+200;
+    planeY = maxY-minY+200;
+    
+      
 }
 
 
@@ -59,7 +62,7 @@ function createBuildingModels(data)
     
         $.each(item.geometry.coordinates[0], function(j, itemTwo)
         {
-            
+      
             var utmResult= converter.toUtm({coord: [itemTwo[0], itemTwo[1]]});
                         
             if (j==0)
@@ -125,6 +128,7 @@ function createBuildingModels(data)
 
     addMeshes(combinedMesh, true);
   
+    
 }
 
 
@@ -138,7 +142,6 @@ function createRoadModels(data){
 
     var material = new THREE.LineBasicMaterial({color: 0x00ff00, linewidth:2});
     
-    var singleGeometry = new THREE.Geometry();
 
     var fCenterX = minX + (maxX-minX)*0.5;
     var fCenterY = minY + (maxY-minY)*0.5;
@@ -151,7 +154,7 @@ function createRoadModels(data){
         
         $.each(item.geometry.coordinates, function(k, coordinate){
 
-
+            
             var utmResult= converter.toUtm({coord: [coordinate[0], coordinate[1]]});
 
             var vertex = new THREE.Vector3(utmResult.coord.x,utmResult.coord.y,0);
@@ -159,19 +162,28 @@ function createRoadModels(data){
             vertex.y = vertex.y-fCenterY;
             if(vertex.z<0.2)
                 vertex.z = 0.2;
-
-            roadGeometry.vertices.push(vertex);
+            var boundaryX = planeX/2;
+            var boundaryY = planeY/2;
+            //to make sure that roads do not go outside the plane.
+            //the plane is calculated on the basis of building position
+            if(Math.abs(vertex.x)<boundaryX && Math.abs(vertex.y)<boundaryY){
+                roadGeometry.vertices.push(vertex);    
+            }
+            
 
         });
-        
+        var col = '#'+Math.floor(Math.random()*16777215).toString(16);
+        //var material = new THREE.LineBasicMaterial({color: col, linewidth:2});
 
         roadGeometry.computeVertexNormals();
         var roadLine = new THREE.Line(roadGeometry, material);
+        
         
         roadLine.rotation.x += -3.1415*0.5;
         roadLine.updateMatrix();
         
         var match = false;
+        
         $.each(roadMeshes, function(i, mesh){
             
             var lineStart = roadLine.geometry.vertices[0];
@@ -201,11 +213,13 @@ function createRoadModels(data){
             }
 
         });
+        
         if(!match)
             roadMeshes.push(roadLine);
 
     });
     console.log("no roads: "+roadMeshes.length);
     addMeshes(roadMeshes, false);
+
     
 }
