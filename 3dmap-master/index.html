@@ -9,7 +9,7 @@
 		<script src='js/d3graphs/d3.min.js'></script>
 		<script src="js/jquery/jquery.js"></script>
 		<script src="js/jquery/jquery.dropdown.js"></script>
-		<script src="js/kmlToJson/togeojson.js"></script>
+		<script src="js/kmlTojson/togeojson.js"></script>
 		<script src="js/three.js"></script>
 		<script src="js/controls/OrbitControls.js"></script>
 		<script src="js/utm-converter/src/converter.js"></script>
@@ -43,6 +43,7 @@
 		    <ul class="jq-dropdown-menu">
 		        <li><a id='8k' name="Aarhus City" href="#1">Aarhus</a></li>
 		        <li><a id='cph' name="Copenhagen City" href="#2">Copenhagen</a></li>
+		        <li><a id='odense' name="Odense City" href="#3">Odense</a></li> 
 		    </ul>
 		</div>
 	
@@ -547,7 +548,12 @@
 				if(city==="8k"){
 					cityName = "Aarhus";
 				}else{
-					cityName = "Copenhagen";
+					if(city==="cph") {
+						cityName = "Copenhagen";
+					}
+					else {
+						cityName = "Odense";
+					}
 				}
 				
 				///////////////////////////////////////////////////////////////
