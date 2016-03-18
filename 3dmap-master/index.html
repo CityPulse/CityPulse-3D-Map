@@ -168,10 +168,6 @@
 		    function setup()
 			{	
 
-			    ///////////////////////////////////////////////////////////////
-				// Decide if we use local dummy data or try to connect to server via WebSockets
-				///////////////////////////////////////////////////////////////
-				var usingServer = true;
 
 			    //set renderbox for development information - remove all this for production
 			    
@@ -261,12 +257,7 @@
 
 				scene.add( sky );
 
-				//test for showing building height change;
-				
-				if(!usingServer)
-					var t=setInterval(setLevels,1000/4);
-				else
-					setupWSConnection(noOfBuildings);
+			
 				
 				
 		    }
@@ -558,6 +549,12 @@
 				}else{
 					cityName = "Copenhagen";
 				}
+				
+				///////////////////////////////////////////////////////////////
+				// Decide if we use local dummy data or try to connect to server via WebSockets
+				///////////////////////////////////////////////////////////////
+				var usingServer = true;
+
 
 				
 				showText("retrieving building data from server for "+cityName);
@@ -593,6 +590,12 @@
 						
 					},50);
 					getRoads();
+					
+					//test for showing building height change;
+					if(!usingServer)
+						var t=setInterval(setLevels,1000/4);
+					else
+						setupWSConnection(noOfBuildings);
 					
 				});
 				
