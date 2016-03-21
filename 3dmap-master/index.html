@@ -9,7 +9,7 @@
 		<script src='js/d3graphs/d3.min.js'></script>
 		<script src="js/jquery/jquery.js"></script>
 		<script src="js/jquery/jquery.dropdown.js"></script>
-		<script src="js/kmlToJson/togeojson.js"></script>
+		<script src="js/kmlTojson/togeojson.js"></script>
 		<script src="js/three.js"></script>
 		<script src="js/controls/OrbitControls.js"></script>
 		<script src="js/utm-converter/src/converter.js"></script>
@@ -43,6 +43,7 @@
 		    <ul class="jq-dropdown-menu">
 		        <li><a id='8k' name="Aarhus City" href="#1">Aarhus</a></li>
 		        <li><a id='cph' name="Copenhagen City" href="#2">Copenhagen</a></li>
+		        <li><a id='odense' name="Odense City" href="#3">Odense</a></li> 
 		    </ul>
 		</div>
 	
@@ -135,13 +136,9 @@
 			$(function(){
 				//start setting up the basics before a anything else happens
 				setup();
-				//bootstrap for testing
-				populateMap("cph");
-				return;
+
 				$(".jq-dropdown > ul > li > a").on('click', function(e){
-					
-					
-					
+
 					//do nothing if same city is selected again
 					if(chosenCityId!==null & chosenCityId===this.id){
 						return;
@@ -275,12 +272,7 @@
 
 				scene.add( sky );
 
-				//test for showing building height change;
-				
-				if(!usingServer)
-					var t=setInterval(setLevels,1000/4);
-				else
-					setupWSConnection(noOfBuildings);
+			
 				
 				
 		    }
@@ -362,17 +354,10 @@
 				renderAnimationId = requestAnimationFrame( render );
 				TWEEN.update();		
 
-				if(cs%1000==0){
+				if(cs%100==0){
 
 					//console.log(camera.position);	
-					//console.log(scene.children);
-					/*
-					for(var i =0; i<scene.children.length; i++){
-						var child = scene.children[i];
-						if(child.name.indexOf("trees")>-1){
-							console.log(child);
-						}
-					}*/
+					//console.log(scene);
 					cs=0;
 				}
 				cs++;
@@ -577,6 +562,7 @@
 				
 				getBuildings();
 
+
 				
 				
 			}
@@ -622,6 +608,12 @@
 						getWater();
 					},50);
 					getRoads();
+					
+					//test for showing building height change;
+					if(!usingServer)
+						var t=setInterval(setLevels,1000/4);
+					else
+						setupWSConnection(noOfBuildings);
 					
 				});
 			}
