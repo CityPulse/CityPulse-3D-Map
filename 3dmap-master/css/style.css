@@ -20,7 +20,7 @@ canvas {
 	z-index:100;
 	text-align: center;
 	font-size: 40px;
-	width:100px;
+	min-width:100px;
 	color: #333333;
 	font-family: verdana, arial;
 }

@@ -86,6 +86,8 @@
 
 			var buildingUrl = "";
 			var roadUrl = "";
+			var treeUrl = "";
+			var waterUrl = "";
 
 		    var buildingObjects={};		    
 		    
@@ -104,6 +106,8 @@
 			var minY = 10000000;
 			var maxX = -100000.0;
 			var maxY = -100000.0;
+
+			var cityName = "";
 
 			var noOfBuildings = null;
 			var noOfBuildingGeoSlice = 150;
@@ -131,22 +135,32 @@
 			$(function(){
 				//start setting up the basics before a anything else happens
 				setup();
-
+				//bootstrap for testing
+				populateMap("cph");
+				return;
 				$(".jq-dropdown > ul > li > a").on('click', function(e){
-
+					
+					
+					
 					//do nothing if same city is selected again
 					if(chosenCityId!==null & chosenCityId===this.id){
 						return;
 					}
+
 					chosenCityId = this.id;
 					showSpinner(true);
+
+					//set name on button
+					cityName = this.name;
+					$("#cityChooser").val(cityName);
+
 					//clear scene if previously populated
 					if(renderAnimationId!=null){
 						cancelAnimationFrame(renderAnimationId);
 					}
 
 					for(var i = scene.children.length-1; i>=0; i--){
-						if(scene.children[i].name.indexOf("buildings")>-1 ||scene.children[i].name.indexOf("road")>-1 ||scene.children[i].name.indexOf("ground")>-1){
+						if(scene.children[i].name.indexOf("buildings")>-1 ||scene.children[i].name.indexOf("roads")>-1 ||scene.children[i].name.indexOf("ground")>-1 ||scene.children[i].name.indexOf("trees")>-1){
 							scene.remove(scene.children[i]);	
 						}
 						//console.log(scene.children[i]);
@@ -305,11 +319,10 @@
 		    }
 
 
-		    function addMeshes(meshes, isBuildings){
-		    	var prefix = "road-";
+		    function addMeshes(meshes, prefix){
+		    	prefix += "-";
 		    	var shadowBool = false;
-		    	if(isBuildings){
-		    		prefix = "buildings-";
+		    	if(prefix.indexOf("buildings")>-1){
 		    		shadowBool = true;
 		    	}
 
@@ -345,14 +358,21 @@
 		    var cs = 0;
 			function render()
 			{
-				
+
 				renderAnimationId = requestAnimationFrame( render );
 				TWEEN.update();		
 
-				if(cs%100==0){
+				if(cs%1000==0){
 
 					//console.log(camera.position);	
-					//console.log(scene);
+					//console.log(scene.children);
+					/*
+					for(var i =0; i<scene.children.length; i++){
+						var child = scene.children[i];
+						if(child.name.indexOf("trees")>-1){
+							console.log(child);
+						}
+					}*/
 					cs=0;
 				}
 				cs++;
@@ -552,14 +572,21 @@
 				console.log(new Date()+": start");
 				buildingUrl = "data/kml/"+city+"/buildings.kml";
 				roadUrl = "data/kml/"+city+"/roads.kml";
-				var cityName = "";
-				if(city==="8k"){
-					cityName = "Aarhus";
-				}else{
-					cityName = "Copenhagen";
-				}
+				treeUrl = "data/kml/"+city+"/trees.kml";
+				waterUrl = "data/kml/"+city+"/water.kml";
+				
+				getBuildings();
 
 				
+				
+			}
+
+
+			///////////////////////////////////////////////////////////////
+			// Getting building data from server
+			///////////////////////////////////////////////////////////////
+
+			function getBuildings(){
 				showText("retrieving building data from server for "+cityName);
 				//$.get('data/kml/aarhusByMidte.kml', function(kml)
 				//$.get('data/kml/test.kml', function(kml)
@@ -570,10 +597,12 @@
 					console.log(new Date()+":got building kml");
 					
 					var data = toGeoJSON.kml(kml).features;
-					console.log("b4: "+planeX+"   "+planeY);
+					
 					calculatePlaneBounds(data);
-					console.log("af: "+planeX+"   "+planeY);
 					setPlane();
+					//getWater();
+					//showSpinner(false);
+					//return;
 					noOfBuildings = data.length;
 
 					var maxLen = Math.round(data.length/noOfBuildingGeoSlice)===0?1:Math.round(data.length/noOfBuildingGeoSlice);
@@ -590,12 +619,11 @@
 							},50)
 							
 						},50);
-						
+						getWater();
 					},50);
 					getRoads();
 					
 				});
-				
 			}
 
 
@@ -616,6 +644,73 @@
 					createRoadModels(data.features);
 					console.log(new Date()+": roads loaded");
 				});
+			}
+
+
+
+
+
+			///////////////////////////////////////////////////////////////
+			// Getting water data from server
+			///////////////////////////////////////////////////////////////
+
+			function getWater(){
+				//check to see if tree model is available
+				$.ajax({
+					url:waterUrl,
+					type:"HEAD",
+					success:function(){
+						showText("Loading water");
+						$.get(waterUrl, function(kml)
+						{
+							console.log(new Date()+": got water kml");
+							showText("Water data loaded from server");
+							//console.log(kml);
+							var data = toGeoJSON.kml(kml);
+							//console.log(data);
+							//return;
+							createWaterModels(data.features);
+							console.log(new Date()+": water loaded");
+						});
+					},
+					error: function(){
+						console.log("no water models available - continue with just buildings and roads");
+					}
+				});
+				
+				
+			}
+
+
+
+
+			///////////////////////////////////////////////////////////////
+			// Getting tree data from server
+			///////////////////////////////////////////////////////////////
+
+			function getTrees(){
+				//check to see if tree model is available
+				$.ajax({
+					url:treeUrl,
+					type:"HEAD",
+					success:function(){
+						showText("Loading trees");
+						$.get(treeUrl, function(kml)
+						{
+							console.log(new Date()+": got tree kml");
+							showText("Tree data loaded from server");
+							var data = toGeoJSON.kml(kml);
+							
+							createTreesModels(data.features);
+							console.log(new Date()+": trees loaded");
+						});
+					},
+					error: function(){
+						console.log("no tree models available - continue with just buildings and roads");
+					}
+				});
+				
+				
 			}
 
 

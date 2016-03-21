@@ -1,7 +1,9 @@
 "use strict";
 
+var converter = new UtmConverter();
+
 function calculatePlaneBounds(data){
-    var converter = new UtmConverter();
+    
 
     $.each(data,function(i, item)
     {
@@ -32,9 +34,8 @@ function calculatePlaneBounds(data){
         
     });
 
-    console.log("min max: "+minX+"  "+maxX)
-    planeX = maxX-minX+200;
-    planeY = maxY-minY+200;
+    planeX = maxX-minX+750;
+    planeY = maxY-minY+750;
     
       
 }
@@ -45,7 +46,7 @@ function createBuildingModels(data)
 {
     var combinedMesh = [];
     
-    var converter = new UtmConverter();
+    
 
     var geometryList = [];
 
@@ -126,7 +127,7 @@ function createBuildingModels(data)
     }
 
 
-    addMeshes(combinedMesh, true);
+    addMeshes(combinedMesh, "buildings");
   
     
 }
@@ -138,7 +139,6 @@ function createRoadModels(data){
     console.log("create roads");
     var roadMeshes = [];
 
-    var converter = new UtmConverter();
 
     var material = new THREE.LineBasicMaterial({color: 0x00ff00, linewidth:2});
     
@@ -162,10 +162,10 @@ function createRoadModels(data){
             vertex.y = vertex.y-fCenterY;
             if(vertex.z<0.2)
                 vertex.z = 0.2;
-            var boundaryX = planeX/2;
-            var boundaryY = planeY/2;
             //to make sure that roads do not go outside the plane.
             //the plane is calculated on the basis of building position
+            var boundaryX = planeX/2;
+            var boundaryY = planeY/2;
             if(Math.abs(vertex.x)<boundaryX && Math.abs(vertex.y)<boundaryY){
                 roadGeometry.vertices.push(vertex);    
             }
@@ -219,7 +219,154 @@ function createRoadModels(data){
 
     });
     console.log("no roads: "+roadMeshes.length);
-    addMeshes(roadMeshes, false);
+    addMeshes(roadMeshes, "roads");
 
     
+}
+
+
+
+
+
+
+function createWaterModels(data){
+    console.log("create water");
+    var waterMeshes = [];
+
+
+    //var material = new THREE.LineBasicMaterial({color: 0x0000ff, linewidth:2});
+    var material = new THREE.MeshLambertMaterial( {color: "rgb(128,128,250)" });
+
+    var fCenterX = minX + (maxX-minX)*0.5;
+    var fCenterY = minY + (maxY-minY)*0.5;
+
+    var geometries = new THREE.Geometry();
+    
+
+    $.each(data,function(i, item)
+    {
+        
+        var rectShape = new THREE.Shape();
+        var height=0.1;
+        
+        $.each(item.geometry.coordinates[0], function(k, coordinate){
+
+            var utmResult= converter.toUtm({coord: [coordinate[0], coordinate[1]]});
+            
+            if (k==0)
+            {
+                rectShape.moveTo(utmResult.coord.x, utmResult.coord.y);
+            }
+            else
+            {
+                rectShape.lineTo(utmResult.coord.x, utmResult.coord.y); 
+            }
+
+        });
+        
+        
+        var geometry = new THREE.ExtrudeGeometry(rectShape, { amount: height, bevelEnabled: true, bevelSegments: 1, steps: 1, bevelSize: 0.1, bevelThickness: 0.1 });
+        
+        var water = new THREE.Mesh(geometry, material) ;     
+        
+
+        var fCenterX = minX + (maxX-minX)*0.5;
+        var fCenterY = minY + (maxY-minY)*0.5;
+
+
+        //Converting the 2D mapping to 3D mapping (shifting z and y coordinates)         
+        for( var k = 0; k < water.geometry.vertices.length; k++ ) 
+        {
+            
+            water.geometry.vertices[k].x -= fCenterX;
+            water.geometry.vertices[k].y = water.geometry.vertices[k].y-fCenterY;
+
+            if(water.geometry.vertices[k].z<0)
+                water.geometry.vertices[k].z=0;
+
+       }
+       
+        water.geometry.computeFaceNormals();
+
+
+        water.rotation.x += -3.1415*0.5;
+        water.updateMatrix();
+        geometries.merge(water.geometry, water.matrix);
+        
+        
+    });
+    
+    geometries.dynamic=false;
+    var waterMesh = new THREE.Mesh(geometries,material);
+    waterMeshes.push(waterMesh);    
+    addMeshes(waterMeshes, "water");
+    
+}
+
+
+
+
+
+function createTreesModels(data){
+
+    var combinedGeo = new THREE.Geometry();
+
+    var fCenterX = minX + (maxX-minX)*0.5;
+    var fCenterY = minY + (maxY-minY)*0.5;
+    var meshes = [];
+
+    $.each(data, function(k, item){
+        var coordinate = item.geometry.coordinates;
+        var utmResult= converter.toUtm({coord: [coordinate[0], coordinate[1]]});
+        
+        var geometry = new THREE.CylinderGeometry(2,2,1000,8);
+        
+        var m = new THREE.Matrix4();
+        
+        m.makeTranslation(utmResult.coord.x, 0, utmResult.coord.y);
+        
+        geometry.applyMatrix(m);
+        
+
+        var material = new THREE.MeshBasicMaterial({color:0xff0000});
+        var cylinder = new THREE.Mesh(geometry, material);
+
+        var fCenterX = minX + (maxX-minX)*0.5;
+        var fCenterY = minY + (maxY-minY)*0.5;
+
+
+        //Converting the 2D mapping to 3D mapping (shifting z and y coordinates)         
+        for( var k = 0; k < cylinder.geometry.vertices.length; k++ ) 
+        {
+            
+            cylinder.geometry.vertices[k].x -= fCenterX;
+            cylinder.geometry.vertices[k].z = cylinder.geometry.vertices[k].z-fCenterY;
+
+            //if(cylinder.geometry.vertices[k].z<0)
+                //cylinder.geometry.vertices[k].z=0;
+
+       }
+        
+        //combinedGeo.merge(cylinder.geometry, cylinder.matrix);
+
+        /*
+        var vertex = new THREE.Vector3(utmResult.coord.x,utmResult.coord.y,0);
+        vertex.x -= fCenterX;
+        vertex.y = vertex.y-fCenterY;
+        if(vertex.z<0.2)
+            vertex.z = 0.2;
+        var boundaryX = planeX/2;
+        var boundaryY = planeY/2;
+        //to make sure that roads do not go outside the plane.
+        //the plane is calculated on the basis of building position
+        if(Math.abs(vertex.x)<boundaryX && Math.abs(vertex.y)<boundaryY){
+            roadGeometry.vertices.push(vertex);    
+        }
+        */
+        
+
+        meshes.push(cylinder);
+        //return false;
+    });
+    addMeshes(meshes,"trees");
 }
