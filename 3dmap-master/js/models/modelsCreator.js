@@ -307,19 +307,24 @@ function createWaterModels(data){
 
 
 
+
 function createTreesModels(data){
 
     var combinedGeo = new THREE.Geometry();
+    
+    var material = new THREE.MeshBasicMaterial({color:0x006400});
 
     var fCenterX = minX + (maxX-minX)*0.5;
     var fCenterY = minY + (maxY-minY)*0.5;
     var meshes = [];
 
     $.each(data, function(k, item){
+        
         var coordinate = item.geometry.coordinates;
         var utmResult= converter.toUtm({coord: [coordinate[0], coordinate[1]]});
+        var height = coordinate[2];
         
-        var geometry = new THREE.CylinderGeometry(2,2,1000,8);
+        var geometry = new THREE.CylinderGeometry(2,2,2*height,8);
         
         var m = new THREE.Matrix4();
         
@@ -327,9 +332,16 @@ function createTreesModels(data){
         
         geometry.applyMatrix(m);
         
-
-        var material = new THREE.MeshBasicMaterial({color:0xff0000});
         var cylinder = new THREE.Mesh(geometry, material);
+            
+        //make sure trees are placed on the plane, not below it    
+        geometry.computeBoundingBox();
+        if(geometry.boundingBox.max.y>0){
+            var translate = geometry.boundingBox.max.y;
+            var m = new THREE.Matrix4();
+            m.makeTranslation(0, -translate, 0);
+            geometry.applyMatrix(m);
+        }
 
         var fCenterX = minX + (maxX-minX)*0.5;
         var fCenterY = minY + (maxY-minY)*0.5;
@@ -342,31 +354,16 @@ function createTreesModels(data){
             cylinder.geometry.vertices[k].x -= fCenterX;
             cylinder.geometry.vertices[k].z = cylinder.geometry.vertices[k].z-fCenterY;
 
-            //if(cylinder.geometry.vertices[k].z<0)
-                //cylinder.geometry.vertices[k].z=0;
-
        }
         
-        //combinedGeo.merge(cylinder.geometry, cylinder.matrix);
+        combinedGeo.merge(cylinder.geometry, cylinder.matrix);
 
-        /*
-        var vertex = new THREE.Vector3(utmResult.coord.x,utmResult.coord.y,0);
-        vertex.x -= fCenterX;
-        vertex.y = vertex.y-fCenterY;
-        if(vertex.z<0.2)
-            vertex.z = 0.2;
-        var boundaryX = planeX/2;
-        var boundaryY = planeY/2;
-        //to make sure that roads do not go outside the plane.
-        //the plane is calculated on the basis of building position
-        if(Math.abs(vertex.x)<boundaryX && Math.abs(vertex.y)<boundaryY){
-            roadGeometry.vertices.push(vertex);    
-        }
-        */
-        
-
-        meshes.push(cylinder);
-        //return false;
     });
+    
+    combinedGeo.dynamic=false;
+    var treeMesh = new THREE.Mesh(combinedGeo,material);
+    treeMesh.rotation.x += 3.1415;
+    treeMesh.updateMatrix();
+    meshes.push(treeMesh);
     addMeshes(meshes,"trees");
 }

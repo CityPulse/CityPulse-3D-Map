@@ -136,7 +136,7 @@
 			$(function(){
 				//start setting up the basics before a anything else happens
 				setup();
-
+				
 				$(".jq-dropdown > ul > li > a").on('click', function(e){
 
 					//do nothing if same city is selected again
@@ -179,10 +179,7 @@
 		    function setup()
 			{	
 
-			    ///////////////////////////////////////////////////////////////
-				// Decide if we use local dummy data or try to connect to server via WebSockets
-				///////////////////////////////////////////////////////////////
-				var usingServer = true;
+			    
 
 			    //set renderbox for development information - remove all this for production
 			    
@@ -573,6 +570,13 @@
 			///////////////////////////////////////////////////////////////
 
 			function getBuildings(){
+
+				///////////////////////////////////////////////////////////////
+				// Decide if we use local dummy data or try to connect to server via WebSockets
+				///////////////////////////////////////////////////////////////
+				var usingServer = true;
+
+				
 				showText("retrieving building data from server for "+cityName);
 				//$.get('data/kml/aarhusByMidte.kml', function(kml)
 				//$.get('data/kml/test.kml', function(kml)
@@ -586,7 +590,7 @@
 					
 					calculatePlaneBounds(data);
 					setPlane();
-					//getWater();
+					//getTrees();
 					//showSpinner(false);
 					//return;
 					noOfBuildings = data.length;
@@ -603,7 +607,7 @@
 								//hide spinner as system is ready
 								showSpinner(false);
 							},50)
-							
+							getTrees();
 						},50);
 						getWater();
 					},50);
@@ -691,8 +695,9 @@
 						{
 							console.log(new Date()+": got tree kml");
 							showText("Tree data loaded from server");
+
 							var data = toGeoJSON.kml(kml);
-							
+
 							createTreesModels(data.features);
 							console.log(new Date()+": trees loaded");
 						});
