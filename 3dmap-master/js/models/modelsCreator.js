@@ -77,14 +77,14 @@ function createBuildingModels(data)
         if(item.geometry.type==='GeometryCollection'){
             
             $.each(item.geometry.geometries, function(k, geometry){
-                building = _createConcreteBuildingModels(geometry.coordinates[0]);
+                building = _createConcreteBuildingModels(geometry.coordinates[0],i);
                 buildingObjects[i] = building;
                 geometryList[geoKey].merge(building.geometry, building.matrix);
                 
             });
         }else{
             
-            building = _createConcreteBuildingModels(item.geometry.coordinates[0]);
+            building = _createConcreteBuildingModels(item.geometry.coordinates[0],i);
             buildingObjects[i] = building;
             geometryList[geoKey].merge(building.geometry, building.matrix);
             
@@ -108,7 +108,7 @@ function createBuildingModels(data)
 
 
 
-function _createConcreteBuildingModels(data){
+function _createConcreteBuildingModels(data, buildingId){
 
     var rectShape = new THREE.Shape();
     var height=0;
@@ -153,7 +153,7 @@ function _createConcreteBuildingModels(data){
    
    for( var k = 0; k < building.geometry.faces.length; k++ ) 
     {
-        //building.geometry.faces[k].readingId = i;
+        building.geometry.faces[k].readingId = buildingId;
     }
 
     building.geometry.computeFaceNormals();

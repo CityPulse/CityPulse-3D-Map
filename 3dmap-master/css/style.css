@@ -25,13 +25,39 @@ canvas {
 	font-family: verdana, arial;
 }
 
-.jq-dropdown{
+#datasourceChooser{
+	position:absolute;
+	right:10px;
+	top:5px;
+	z-index:100;
+	text-align: center;
+	font-size: 40px;
+	min-width:100px;
+	color: #333333;
+	font-family: verdana, arial;	
+}
+
+.dropdown-city{
 	text-align: center;
 	font-size: 18px;
 	width:100px;
 	color: #333333;
 	font-family: verdana, arial;
 }
+
+.dropdown-data{
+	font-size: 18px;
+	color: #333333;
+	font-family: verdana, arial;
+}
+
+.dropdown-data input{
+	margin-bottom:10px;
+	margin-top:10px;
+}
+
+
+
 
 #infoBox{
 
