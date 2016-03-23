@@ -111,9 +111,11 @@ toGeoJSON = (function() {
                 if (get1(root, 'MultiGeometry')) return getGeometry(get1(root, 'MultiGeometry'));
                 if (get1(root, 'MultiTrack')) return getGeometry(get1(root, 'MultiTrack'));
                 for (i = 0; i < geotypes.length; i++) {
+                    
                     geomNodes = get(root, geotypes[i]);
                     if (geomNodes) {
                         for (j = 0; j < geomNodes.length; j++) {
+
                             geomNode = geomNodes[j];
                             if (geotypes[i] == 'Point') {
                                 geoms.push({
@@ -126,15 +128,62 @@ toGeoJSON = (function() {
                                     coordinates: coord(nodeVal(get1(geomNode, 'coordinates')))
                                 });
                             } else if (geotypes[i] == 'Polygon') {
-                                var rings = get(geomNode, 'LinearRing'),
+                                var boundaryType = "";
+                                
+                                
+                                //if(!(get(geomNode, "innerBoundaryIs").length || get(geomNode, "outerBoundaryIs").length)){
+                                    var rings = get(geomNode, 'LinearRing'),
                                     coords = [];
-                                for (k = 0; k < rings.length; k++) {
-                                    coords.push(coord(nodeVal(get1(rings[k], 'coordinates'))));
+
+                                    for (k = 0; k < rings.length; k++) {
+                                        coords.push(coord(nodeVal(get1(rings[k], 'coordinates'))));
+                                    }
+                                    
+                                    geoms.push({
+                                        type: 'Polygon',
+                                        coordinates: coords,
+                                        boundaryType: boundaryType
+                                    });    
+                                /*    
+                                }else{
+
+                                    if(get(geomNode, "innerBoundaryIs").length){
+                                        console.log("inner");
+                                        boundaryType = "innerBoundaryIs";
+                                        var inner = get(geomNode, "innerBoundaryIs"),
+                                        coords = [];
+                                        for(k=0; k<inner.length; k++){
+                                            var coord1 = coord(nodeVal(get1(inner[k], 'coordinates')));
+                                            coords.push(coord1);
+                                        }
+                                        
+                                        geoms.push({
+                                            type: 'Polygon',
+                                            coordinates: coords,
+                                            boundaryType: boundaryType
+                                        });
+                                    }
+
+                                    if(get(geomNode, "outerBoundaryIs").length>0){
+                                        
+                                        boundaryType = "outerBoundaryIs";
+                                        var outer = get(geomNode, "outerBoundaryIs"),
+                                        coords = [];
+                                        for(k=0; k<outer.length; k++){
+                                            var coord1 = coord(nodeVal(get1(outer[k], 'coordinates'))); 
+                                            coords.push(coord1);
+                                        }
+                                        
+                                        geoms.push({
+                                            type: 'Polygon',
+                                            coordinates: coords,
+                                            boundaryType: boundaryType
+                                        });
+                                    }
                                 }
-                                geoms.push({
-                                    type: 'Polygon',
-                                    coordinates: coords
-                                });
+                                */
+                                
+                                
                             } else if (geotypes[i] == 'Track') {
                                 geoms.push({
                                     type: 'LineString',
@@ -144,6 +193,7 @@ toGeoJSON = (function() {
                         }
                     }
                 }
+                console.log(geoms);
                 return geoms;
             }
             function getPlacemark(root) {
@@ -199,6 +249,9 @@ toGeoJSON = (function() {
                         properties[simpleDatas[i].getAttribute('name')] = nodeVal(simpleDatas[i]);
                     }
                 }
+
+
+
                 return [{
                     type: 'Feature',
                     geometry: (geoms.length === 1) ? geoms[0] : {
