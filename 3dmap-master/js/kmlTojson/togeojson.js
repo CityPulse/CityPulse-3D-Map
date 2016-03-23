@@ -131,7 +131,7 @@ toGeoJSON = (function() {
                                 var boundaryType = "";
                                 
                                 
-                                //if(!(get(geomNode, "innerBoundaryIs").length || get(geomNode, "outerBoundaryIs").length)){
+                                if(!(get(geomNode, "innerBoundaryIs").length || get(geomNode, "outerBoundaryIs").length)){
                                     var rings = get(geomNode, 'LinearRing'),
                                     coords = [];
 
@@ -144,17 +144,17 @@ toGeoJSON = (function() {
                                         coordinates: coords,
                                         boundaryType: boundaryType
                                     });    
-                                /*    
+                                   
                                 }else{
 
                                     if(get(geomNode, "innerBoundaryIs").length){
-                                        console.log("inner");
+                                        
                                         boundaryType = "innerBoundaryIs";
                                         var inner = get(geomNode, "innerBoundaryIs"),
                                         coords = [];
                                         for(k=0; k<inner.length; k++){
-                                            var coord1 = coord(nodeVal(get1(inner[k], 'coordinates')));
-                                            coords.push(coord1);
+                                            
+                                            coords.push(coord(nodeVal(get1(inner[k], 'coordinates'))));
                                         }
                                         
                                         geoms.push({
@@ -170,8 +170,8 @@ toGeoJSON = (function() {
                                         var outer = get(geomNode, "outerBoundaryIs"),
                                         coords = [];
                                         for(k=0; k<outer.length; k++){
-                                            var coord1 = coord(nodeVal(get1(outer[k], 'coordinates'))); 
-                                            coords.push(coord1);
+                                            
+                                            coords.push(coord(nodeVal(get1(outer[k], 'coordinates'))));
                                         }
                                         
                                         geoms.push({
@@ -181,7 +181,7 @@ toGeoJSON = (function() {
                                         });
                                     }
                                 }
-                                */
+                                
                                 
                                 
                             } else if (geotypes[i] == 'Track') {
@@ -193,7 +193,7 @@ toGeoJSON = (function() {
                         }
                     }
                 }
-                console.log(geoms);
+                //console.log(geoms);
                 return geoms;
             }
             function getPlacemark(root) {

@@ -18,6 +18,7 @@
 		<script src='js/tween/tween.js'></script>
 		<script src='js/WSClient/wsClient.js'></script>
 		<script src='js/models/modelsCreator.js'></script>
+		<script src='js/models/ThreeCSG.js'></script>
 
 	</head>
 	<body>
@@ -136,7 +137,9 @@
 			$(function(){
 				//start setting up the basics before a anything else happens
 				setup();
-				
+				//populateMap("cph");
+				//return;
+
 				$(".jq-dropdown > ul > li > a").on('click', function(e){
 
 					//do nothing if same city is selected again
@@ -354,7 +357,7 @@
 				if(cs%100==0){
 
 					//console.log(camera.position);	
-					//console.log(scene);
+					//console.log(scene.children);
 					cs=0;
 				}
 				cs++;
@@ -553,9 +556,11 @@
 			function populateMap(city){
 				console.log(new Date()+": start");
 				buildingUrl = "data/kml/"+city+"/buildings.kml";
+				//buildingUrl = "data/kml/"+city+"/buildingsTest.kml";
 				roadUrl = "data/kml/"+city+"/roads.kml";
 				treeUrl = "data/kml/"+city+"/trees.kml";
 				waterUrl = "data/kml/"+city+"/water.kml";
+				//waterUrl = "data/kml/"+city+"/waterTest.kml";
 				
 				getBuildings();
 
@@ -590,7 +595,8 @@
 					
 					calculatePlaneBounds(data);
 					setPlane();
-					//getTrees();
+
+					//getWater();
 					//showSpinner(false);
 					//return;
 					noOfBuildings = data.length;
@@ -662,6 +668,7 @@
 							console.log(new Date()+": got water kml");
 							showText("Water data loaded from server");
 							//console.log(kml);
+							//debugger;
 							var data = toGeoJSON.kml(kml);
 							//console.log(data);
 							//return;
