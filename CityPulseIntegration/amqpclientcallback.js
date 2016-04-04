@@ -29,7 +29,7 @@ function consumer(conn) {
                                                 	if(triple.object.toString() == "http://purl.oclc.org/NET/UNIS/sao/ec#TrafficJam" || 
 								triple.object.toString() == "http://purl.oclc.org/NET/UNIS/sao/ec#PublicParking" ||
 									triple.object.toString() == "http://purl.oclc.org/NET/UNIS/sao/ec#AarhusPollution" ||
-										triple.object.toString() == "http://purl.oclc.org/NET/UNIS/sao/ec#AarhusNoise") {
+										triple.object.toString() == "http://purl.oclc.org/NET/UNIS/sao/ec#AarhusNoiseLevel") {
                                                         	toSendToMap = true;
                                                 	}
                                         	}
