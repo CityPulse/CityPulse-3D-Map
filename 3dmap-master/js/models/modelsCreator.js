@@ -165,7 +165,27 @@ function _createConcreteBuildingModels(data, buildingId){
     return building;
 }
 
+function _cleanCoordinate(coordinate, roadGeometry) {
+    var fCenterX = minX + (maxX-minX)*0.5;
+    var fCenterY = minY + (maxY-minY)*0.5;
 
+    var utmResult= converter.toUtm({coord: [coordinate[0], coordinate[1]]});
+
+    var vertex = new THREE.Vector3(utmResult.coord.x,utmResult.coord.y,0);
+    vertex.x -= fCenterX;
+    vertex.y = vertex.y-fCenterY;
+    if(vertex.z<0.2)
+        vertex.z = 0.2;
+    //to make sure that roads do not go outside the plane.
+    //the plane is calculated on the basis of building position
+    var boundaryX = planeX/2;
+    var boundaryY = planeY/2;
+    if(Math.abs(vertex.x)<boundaryX && Math.abs(vertex.y)<boundaryY){
+        roadGeometry.vertices.push(vertex); 
+        return true;
+    }
+    return false;
+}
 
 
 function createRoadModels(data){
@@ -176,46 +196,62 @@ function createRoadModels(data){
     var material = new THREE.LineBasicMaterial({color: 0x00ff00, linewidth:2});
     
 
-    var fCenterX = minX + (maxX-minX)*0.5;
-    var fCenterY = minY + (maxY-minY)*0.5;
+
+
+    var roadGeometry = new THREE.Geometry();
+    roadGeometry.dynamic = false;
+
+    console.log("Road file size: " + data.length);
 
     $.each(data,function(i, item)
     {
 
-        var roadGeometry = new THREE.Geometry();
-        roadGeometry.dynamic = false;
-        
-        $.each(item.geometry.coordinates, function(k, coordinate){
-
+        for(var k = 1; k < item.geometry.coordinates.length; k++) {
+            var prevCoordinate = item.geometry.coordinates[k-1];
+            var newCoordinate = item.geometry.coordinates[k];
             
-            var utmResult= converter.toUtm({coord: [coordinate[0], coordinate[1]]});
-
-            var vertex = new THREE.Vector3(utmResult.coord.x,utmResult.coord.y,0);
-            vertex.x -= fCenterX;
-            vertex.y = vertex.y-fCenterY;
-            if(vertex.z<0.2)
-                vertex.z = 0.2;
-            //to make sure that roads do not go outside the plane.
-            //the plane is calculated on the basis of building position
-            var boundaryX = planeX/2;
-            var boundaryY = planeY/2;
-            if(Math.abs(vertex.x)<boundaryX && Math.abs(vertex.y)<boundaryY){
-                roadGeometry.vertices.push(vertex);    
+            // If 'prev' coordinate is added, try and add the 'new'.
+            // If 'new' cant be added, remove the 'prev'.
+            if(_cleanCoordinate(prevCoordinate, roadGeometry)) {
+                if(!_cleanCoordinate(newCoordinate, roadGeometry)) {
+                    roadGeometry.vertices.pop();
+                }
             }
             
+        }
 
-        });
-        var col = '#'+Math.floor(Math.random()*16777215).toString(16);
+
+        // $.each(item.geometry.coordinates, function(k, coordinate){
+
+            
+        //     var utmResult= converter.toUtm({coord: [coordinate[0], coordinate[1]]});
+
+        //     var vertex = new THREE.Vector3(utmResult.coord.x,utmResult.coord.y,0);
+        //     vertex.x -= fCenterX;
+        //     vertex.y = vertex.y-fCenterY;
+        //     if(vertex.z<0.2)
+        //         vertex.z = 0.2;
+        //     //to make sure that roads do not go outside the plane.
+        //     //the plane is calculated on the basis of building position
+        //     var boundaryX = planeX/2;
+        //     var boundaryY = planeY/2;
+        //     if(Math.abs(vertex.x)<boundaryX && Math.abs(vertex.y)<boundaryY){
+        //         roadGeometry.vertices.push(vertex); 
+        //     }
+            
+
+        // });
+        //var col = '#'+Math.floor(Math.random()*16777215).toString(16);
         //var material = new THREE.LineBasicMaterial({color: col, linewidth:2});
 
-        roadGeometry.computeVertexNormals();
+        /*roadGeometry.computeVertexNormals();
         var roadLine = new THREE.Line(roadGeometry, material);
         
         
         roadLine.rotation.x += -3.1415*0.5;
-        roadLine.updateMatrix();
+        roadLine.updateMatrix();*/
         
-        var match = false;
+        /*var match = false;
         
         $.each(roadMeshes, function(i, mesh){
             
@@ -250,7 +286,15 @@ function createRoadModels(data){
         if(!match)
             roadMeshes.push(roadLine);
 
+        */
     });
+
+    roadGeometry.computeVertexNormals();
+    var roadLine = new THREE.Line(roadGeometry, material, THREE.LinePieces);
+    
+    roadLine.rotation.x += -3.1415*0.5;
+    roadLine.updateMatrix();
+    roadMeshes.push(roadLine);
     console.log("no roads: "+roadMeshes.length);
     addMeshes(roadMeshes, "roads");
 
