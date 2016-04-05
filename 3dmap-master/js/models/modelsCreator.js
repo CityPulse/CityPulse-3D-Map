@@ -18,17 +18,16 @@ function calculatePlaneBounds(data){
 
     planeX = maxX-minX+750;
     planeY = maxY-minY+750;
-    
-      
+          
 }
 
 function _calculateConcretePlaneBounds(data){
     //$.each(item.geometry.coordinates[0], function(j, itemTwo)
     $.each(data, function(j, itemTwo)
         {
-    
+
             var utmResult= converter.toUtm({coord: [itemTwo[0], itemTwo[1]]});
-            
+
             //Calculate bounding box
             if(utmResult.coord.x<minX)
             {

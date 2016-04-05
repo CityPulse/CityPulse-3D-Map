@@ -467,7 +467,9 @@
 							selectedObject = intersects[i].face.readingId; // Assign new selected object							
 							break;
 						}else if(intersects[i].object.name.startsWith("event")){
-							console.log("found event");
+							console.log("found event: "+intersects[i].object.text);
+							$('#infoBox').html("Now showing data for event: " + intersects[i].object.text + "\n");
+		            		$("#infoBox").css('visibility', 'visible');
 						}
 						
 						selectedObject = null;
@@ -511,15 +513,24 @@
 				waterUrl = "data/kml/"+city+"/water.kml";
 				//waterUrl = "data/kml/"+city+"/waterTest.kml";
 				
-				//getBuildings();
-				testRun();
+				getBuildings();
+				//testRun();
 
 
 				
 				
 			}
 
+			//solely for testing events. Can be removed when finished
+			function addTestEvent(){
+				var testPos = {lat:12.566725889453012,lng:55.68321681457061};
+				console.log("test evet");
+				showEvent(testPos, "Cheese eating surrender monkeys");
+			}
+
+
 			function testRun(){
+
 				$.get(buildingUrl, function(kml)
 				{
 					
@@ -529,7 +540,12 @@
 					
 					calculatePlaneBounds(data);
 					setPlane();
-
+					var testPos = {lat:12.566725889453012,lng:55.68321681457061};
+					
+					showSpinner(false);
+					
+					showEvent(testPos,"asd");
+					return;
 					
 					
 					
@@ -538,7 +554,7 @@
 					var maxLen = Math.round(data.length/noOfBuildingGeoSlice)===0?1:Math.round(data.length/noOfBuildingGeoSlice);
 					createBuildingModels(data);
 					showSpinner(false);
-					showEvent(null,"asd");
+					
 				});
 			}
 
@@ -570,7 +586,7 @@
 					setPlane();
 
 					//getWater();
-					showEvent(null,"asd", 20);
+					
 					//showSpinner(false);
 					//return;
 					noOfBuildings = data.length;
@@ -592,6 +608,8 @@
 						getWater();
 					},50);
 					getRoads();
+					//for testing events - can be removed when done
+					addTestEvent();
 					
 					/*
 					//test for showing building height change;

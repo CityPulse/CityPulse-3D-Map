@@ -61,7 +61,6 @@ function changeBuilding(energyLevel, buildingId, reset){
 				}
 
 				var start = 1/mesh.oldLevel;
-				var goal = energyLevel*mesh.oldLevel;
 				
 
 				//smooth the transistion between heights
@@ -102,73 +101,80 @@ function changeBuilding(energyLevel, buildingId, reset){
 
 ///////////////////////////////////////////////////////////////
 // Show a sphere to denote an event at a given coordinate with explanation
-// coordinate should be lat/lng 
+// coordinate should be {lat:54.21,12.35} form
 ///////////////////////////////////////////////////////////////
 
 function showEvent(coordinates, text){
 	var geometry = new THREE.SphereGeometry( 50, 10, 10 );
 	var material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
 	var sphere = new THREE.Mesh( geometry, material );
+	sphere.oldLevel=0;
 	sphere.name = "event-";
 	scene.add(sphere);
+	//add the text to the sphere object for reference on click
+	sphere.text = text;
+	//move sphere to position
+	var fCenterX = minX + (maxX-minX)*0.5;
+    var fCenterY = minY + (maxY-minY)*0.5;
+	console.log(coordinates);
+	var utmResult= converter.toUtm({coord: [coordinates.lat, coordinates.lng]});
 
+    var coordX = utmResult.coord.x-=fCenterX;
+    var coordZ = utmResult.coord.y -=fCenterY; 
+	sphere.translateX(coordX);
+	sphere.translateZ(coordZ);
+
+	//setup the tweens
 	var easing = TWEEN.Easing.Quartic.InOut;
-
-	var top = 5;
+	var top = 400;
 	var movement = 2;
-	var lowerPosition = -(movement/2);
-	var topPosition = movement/2;
+	var lowerTarget = {y:-(movement/2)};
+	var topTarget = {y:movement/2};
+	
 
-	console.log("top: "+topPosition+"  "+lowerPosition);
+	console.log("top: "+topTarget+"  "+lowerTarget);
 	console.log(sphere.position);
 
 	var update = function(){
-		console.log(this.yPos);
-		sphere.updateMatrix();
-		sphere.geometry.applyMatrix(sphere.matrix);
-		sphere.position.y = this.yPos;
-		sphere.matrix.identity();
+			
+		var level = this.yPos - sphere.oldLevel;
+		sphere.translateY(level);
+		sphere.oldLevel = this.yPos;
 	}
 
 	var startTween = new TWEEN.Tween({yPos:0} )
-		.to( { yPos: top }, 10000 )
+		.to( { yPos: top }, 2000 )
 		.easing( easing )
+		.onComplete(function(){
+			sphere.geometry.computeBoundingSphere();
+			sphere.matrixWorldNeedsUpdate = true;
+			sphere.oldLevel=0;
+		})
 		.onUpdate(update);
 
 
-	var d = 0;
-	var downTween = new TWEEN.Tween({yPos:0})
-		.to({yPos:lowerPosition},3000)
-		.easing( easing )
-		.onUpdate(function() {
-			sphere.updateMatrix();
-			sphere.geometry.applyMatrix(sphere.matrix);
-			sphere.position.y = this.yPos;
-			if(d%100==0){
-				console.log(sphere.position);
-				d=0;
-			}
-			d++;
-			console.log('ypos; '+this.yPos);
-			//sphere.matrix.identity();
-		});
 
-	var upTween = new TWEEN.Tween({yPos:0})
-		.to({yPos:topPosition},3000)
-		.easing( TWEEN.Easing.Quadratic.InOut )
-		.onUpdate(function() {
-			sphere.updateMatrix();
-			sphere.geometry.applyMatrix(sphere.matrix);
-			sphere.position.y = this.yPos;
-			console.log('ypos; '+this.yPos);
-			//sphere.matrix.identity();
-		});
+	var animation = function(){
+		var level = this.y - sphere.oldLevel;
+		sphere.translateY(this.y);
+		sphere.oldLevel = this.y;
+	}
 
-	/*
-	startTween.chain(downTween);
-	downTween.chain(upTween);
-	upTween.chain(downTween);
-	*/
+	var bounceTween = new TWEEN.Tween(topTarget)
+		.to(lowerTarget, 3000)
+		.repeat( Infinity )
+		.delay( 50 )
+		.yoyo( true )
+		.easing(easing)
+		.onComplete(function(){
+			sphere.matrixWorldNeedsUpdate = true;
+			
+		})
+		.onUpdate(animation);
+
+	
+	startTween.chain(bounceTween);
+	
 	startTween.start();
 
 }
