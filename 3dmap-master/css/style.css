@@ -13,6 +13,19 @@ canvas {
 	display: none;
 }
 
+/* eventAdd is just for testing events. Can be removed at will */
+#eventAdd{
+	position:absolute;
+	left:10px;
+	top:40px;
+	z-index:100;
+	text-align: center;
+	font-size: 40px;
+	min-width:100px;
+	color: #333333;
+	font-family: verdana, arial;
+}
+
 #cityChooser{
 	position:absolute;
 	left:10px;

@@ -50,6 +50,7 @@
 		        <li><a id='odense' name="Odense City" href="#3">Odense</a></li> 
 		    </ul>
 		</div>
+		<input type="button" value="add event" id='eventAdd'>
 
 		<input type="button" data-jq-dropdown="#jq-dropdown-2" value="Choose data source" id='dataSourceChooser'>
 		<div id="jq-dropdown-2" class="jq-dropdown jq-dropdown-tip jq-dropdown-anchor-right dropdown-data">
@@ -156,9 +157,14 @@
 
 
 			function addMenuHandler(){
+
+
+				$("#eventAdd").on('click',function(e){
+					addTestEvent();
+				});
 				//TODO: remove after test
 				populateMap("cph");
-				return;
+				//return;
 				//end test
 
 				//handler for city select
@@ -212,7 +218,7 @@
 					//start selected datasources
 					$('.dropdown-data > ul > li > input:checked').each(function() {
 						startDatasources(this.value);
-						Console.log("chosen data source: "+this.value);
+						console.log("chosen data source: "+this.value);
             			
         			});
 				});
@@ -353,7 +359,8 @@
 		    function addMeshes(meshes, prefix){
 		    	prefix += "-";
 		    	var shadowBool = false;
-		    	if(prefix.indexOf("buildings")>-1){
+		    	if(prefix.indexOf("buildings")>-1 || prefix.startsWith("event")){
+
 		    		shadowBool = true;
 		    	}
 
@@ -467,9 +474,13 @@
 							selectedObject = intersects[i].face.readingId; // Assign new selected object							
 							break;
 						}else if(intersects[i].object.name.startsWith("event")){
-							console.log("found event: "+intersects[i].object.text);
+							//console.log(intersects[i].object);
 							$('#infoBox').html("Now showing data for event: " + intersects[i].object.text + "\n");
 		            		$("#infoBox").css('visibility', 'visible');
+		            		var eventId = intersects[i].object.eventId;
+		            		removeEvent(eventId);
+		            		
+		            		break;
 						}
 						
 						selectedObject = null;
@@ -513,19 +524,31 @@
 				waterUrl = "data/kml/"+city+"/water.kml";
 				//waterUrl = "data/kml/"+city+"/waterTest.kml";
 				
-				getBuildings();
-				//testRun();
+
+				//getBuildings();
+				testRun();
 
 
 				
 				
 			}
-
+			var id = 0;
 			//solely for testing events. Can be removed when finished
 			function addTestEvent(){
 				var testPos = {lat:12.566725889453012,lng:55.68321681457061};
-				console.log("test evet");
-				showEvent(testPos, "Cheese eating surrender monkeys");
+				var x = Math.floor(Math.random() * planeX)-planeX/2;
+				var y = Math.floor(Math.random() * planeY)-planeY/2;
+				var planePos = {x:x,y:y};
+				//console.log(planePos);
+				var type = Math.floor(Math.random() * 4);
+				var serverity = Math.floor(Math.random() * 3);
+				showEvent(planePos, "Cheese eating surrender monkeys",id, type, serverity);
+				
+
+				// type: PublicParking(0), TrafficJam(1), AarhusPollution(2), AarhusNoise(3)
+				// serverity: {0,1,2}
+				id++;
+				//showEventByCoords(testPos, "Cheese eating surrender monkeys",1);
 			}
 
 
@@ -540,13 +563,15 @@
 					
 					calculatePlaneBounds(data);
 					setPlane();
-					var testPos = {lat:12.566725889453012,lng:55.68321681457061};
+
+					for(var i=0; i<100;i++){
+						addTestEvent();	
+					}
 					
-					showSpinner(false);
-					
-					showEvent(testPos,"asd");
-					return;
-					
+					//return;
+					//getTrees();
+					//getWater();
+					//getRoads();
 					
 					
 					noOfBuildings = data.length;
@@ -609,7 +634,7 @@
 					},50);
 					getRoads();
 					//for testing events - can be removed when done
-					addTestEvent();
+					//addTestEvent();
 					
 					/*
 					//test for showing building height change;
