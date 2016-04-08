@@ -168,7 +168,7 @@ function _createConcreteBuildingModels(data, buildingId){
 
 
 function createRoadModels(data){
-    console.log("create roads len:"+data.length);
+    //console.log("create roads len:"+data.length);
     var roadMeshes = [];
 
 
@@ -250,7 +250,7 @@ function createRoadModels(data){
             roadMeshes.push(roadLine);
 
     });
-    console.log("no roads: "+roadMeshes.length);
+    //console.log("no roads: "+roadMeshes.length);
     addMeshes(roadMeshes, "roads");
 
     

@@ -94,10 +94,32 @@ function changeBuilding(energyLevel, buildingId, reset){
 			break;
 		}
 	}
+	//HACK: to give the feeling of dynamically created/deleted events
+	demoEventHack();
 }
 
 //global variables for events
-var eventList = [];
+var eventList = {};
+var shownTextList = [];
+
+
+//just for testing
+var counter = 0;
+function demoEventHack(){
+	counter++;
+	if(counter%5!=0){
+		return;
+	}
+	var key = null;
+	if(Object.keys(eventList).length>=30){
+		for(key in eventList){
+			removeEvent(key);
+			break;
+		}
+	}
+
+	addTestEvent();
+}
 
 
 ///////////////////////////////////////////////////////////////
@@ -147,6 +169,9 @@ function showEvent(coordinates, text,id, type, serverity){
 		case 3:
 			color = 0xcc0000;
 			break;
+		case 4:
+			color = 0x000000;
+			break;
 	}
 
 	var top = 300;
@@ -171,10 +196,9 @@ function showEvent(coordinates, text,id, type, serverity){
 	sphere.eventId = id;
 	var meshes = [];
 	meshes.push(sphere);
+	
 	addMeshes(meshes, "event");
 	
-	//add the text to the sphere object for reference on click
-	sphere.text = text;
 
 	//move sphere to position     
 	sphere.translateX(coordinates.x);
@@ -232,9 +256,91 @@ function showEvent(coordinates, text,id, type, serverity){
 	startTween.start();
 
 	//add event to list, so it is possible to remove it later
-	var event = {mesh:sphere, startTween:startTween, bounceTween:bounceTween};
+	var event = {mesh:sphere, startTween:startTween, bounceTween:bounceTween, text:text};
 	eventList[id] = event;
 
+}
+
+
+
+///////////////////////////////////////////////////////////////
+// shows the text from an event
+// eventId: the event id of the event that was clicked on
+///////////////////////////////////////////////////////////////
+
+function showEventText(eventId){
+	var event = eventList[eventId];
+	
+	if(eventId===undefined || event ===undefined)
+		return;
+	
+	
+	//text geometry - how does it look and feel
+	var textGeom = new THREE.TextGeometry( event.text, {
+	    font: "helvetiker", // Must be lowercase!
+	    size: 50
+	});
+
+	//y position for all text
+	var textYPos = 600;
+
+	var material = new THREE.MeshNormalMaterial({color: 0x00ff00});
+	var textMesh = new THREE.Mesh( textGeom, material );
+	textMesh.name = "text-"+eventId;
+
+
+	event.mesh.geometry.computeBoundingSphere();
+	
+	
+	ePos = event.mesh.position;
+	//move to event model position
+	textMesh.position.set(ePos.x,ePos.y,ePos.z);
+	textMesh.geometry.computeBoundingBox();
+	textMesh.updateMatrix();
+	
+	var max = textMesh.geometry.boundingBox.max;
+	var min = textMesh.geometry.boundingBox.min;
+	var middleX =  (max.x-min.x)/2;
+	var middleZ =  (max.z-min.z)/2;
+	var yPos = textYPos-textMesh.position.y;
+	
+	textMesh.matrix.identity();
+	//rorate to face camera
+	var angle = Math.atan2( ( camera.position.x - textMesh.position.x ), ( camera.position.z - textMesh.position.z ) );
+	textMesh.rotation.y = angle;
+	//center text
+	textMesh.translateX(-middleX);
+	textMesh.translateZ(-middleZ);
+	//move the text a bit up so its visible
+	textMesh.translateY(yPos);
+	
+	//stop bounce effect
+	event.bounceTween.stop();
+    scene.add( textMesh );
+    var shownEvent = {event:event,textMesh:textMesh};
+    shownTextList.push(shownEvent);
+
+    var hex  = 0xff0000;
+	var bbox = new THREE.BoundingBoxHelper( textMesh, hex );
+	bbox.update();
+	//scene.add( bbox );
+}
+
+
+///////////////////////////////////////////////////////////////
+// helper: remove all event text models from scene
+// 
+///////////////////////////////////////////////////////////////
+function removeEventTexts(){
+	$.each(shownTextList, function(i, shown){
+		
+		//safety to hinder crash
+		if(shown===undefined)
+			return;
+		scene.remove(shown.textMesh);
+		shown.event.bounceTween.start();
+	});
+	shownTextList = [];
 }
 
 
@@ -246,42 +352,42 @@ function showEvent(coordinates, text,id, type, serverity){
 function removeEvent(id){
 	var event = eventList[id];
 	//event not found in list - ignore to prevent error
-	if(!event)
+	if(!event){
+		console.log("event not found "+id);
+		console.log(event);
 		return;
+	}
 
-	console.log(event.mesh);
 	TWEEN.remove(event.startTween);
 	TWEEN.remove(event.bounceTween);
 	var mesh = event.mesh;
 	var removeTween = new TWEEN.Tween({yPos:0} )
-		.to( { yPos: -(mesh.position.y+mesh.geometry.boundingSphere.radius) }, 2000 )
+		.to( { yPos: -(mesh.position.y+mesh.geometry.boundingSphere.radius*2) }, 2000 )
 		.easing( TWEEN.Easing.Quartic.InOut )
-		.onComplete(function(){
-			scene.remove(event.mesh);
-			delete eventList[id];
-			TWEEN.remove(removeTween);
-		})
 		.onUpdate(function(){
 			var level = this.yPos - mesh.oldLevel;
 			mesh.translateY(level);
 			mesh.oldLevel = this.yPos;
 		})
 		.start();
-
+	setTimeout(function(){
+		scene.remove(mesh);
+		delete eventList[id];
+		TWEEN.remove(removeTween);
+	},2050);
 
 	
 }
 
 
 ///////////////////////////////////////////////////////////////
-// remove all events from the scene
+// helper: remove all events from the scene
 // 
 ///////////////////////////////////////////////////////////////
 
 function removeAllEvents(){
 
 	$.each(eventList, function(i, event){
-		console.log(event);
 		//safety to hinder crash
 		if(event===undefined)
 			return;
