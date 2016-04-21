@@ -1,5 +1,5 @@
 //VARIABLES
-var queueName = '3dmapqueue';
+var queueName = '3dmapqueue-ttl';
 var exchange = 'events';
 var routingKey = '#';
 var N3 = require('n3');
@@ -13,7 +13,7 @@ function consumer(conn) {
 	var ok = conn.createChannel(on_open);
 	function on_open(err, ch) {
     		if (err != null) bail(err);    
-    		ch.assertQueue(queueName);
+    		ch.assertQueue(queueName, {"messageTtl": 600000});
                 ch.bindQueue(queueName, exchange, routingKey);
 		ch.consume(queueName, function(msg) {
       			if (msg !== null) {
