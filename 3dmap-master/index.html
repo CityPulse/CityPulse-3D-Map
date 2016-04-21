@@ -58,10 +58,13 @@
 		<input type="button" data-jq-dropdown="#jq-dropdown-2" value="Choose data source" id='dataSourceChooser'>
 		<div id="jq-dropdown-2" class="jq-dropdown jq-dropdown-tip jq-dropdown-anchor-right dropdown-data">
 		    <ul class="jq-dropdown-menu">
-		    	<li><input type="checkbox" name="datasource" value="buildingEnergy">Building energy usage</li>
+		    	<li><input type="checkbox" name="datasource" value="PublicParking">Public Parking</li>
 		    	<li class="jq-dropdown-divider"></li>
-  				<li><input type="checkbox" name="datasource" value="pollution">Pollution</li>
-  				<li><input type="checkbox" name="datasource" value="PublicParking">PublicParking</li>
+		    	<li><input type="checkbox" name="datasource" value="TrafficJam">Traffic Jam</li>
+		    	<li class="jq-dropdown-divider"></li>
+		    	<li><input type="checkbox" name="datasource" value="AarhusPollution">Aarhus Pollution</li>
+		    	<li class="jq-dropdown-divider"></li>
+		    	<li><input type="checkbox" name="datasource" value="AarhusNoise">Aarhus Noise</li>
 		    </ul>
 		</div>
 	
@@ -126,6 +129,8 @@
 			var minY = 10000000;
 			var maxX = -100000.0;
 			var maxY = -100000.0;
+			var wgsMinX, wgsMinY, wgsMaxX, wgsMaxY;
+
 
 			var cityName = "";
 
@@ -215,15 +220,7 @@
 
 				//handler for data source select
 				$(".dropdown-data > ul > li > input").on('click',function(e){
-					//stop all unselected datasources
-					$(".dropdown-data > ul >li > input:not(:checked)").each(function(){
-						updateDatasources(this.value, minX, minY, maxX, maxY);
-					});
-					//start selected datasources
-					$('.dropdown-data > ul > li > input:checked').each(function() {
-						updateDatasources(this.value, minX, minY, maxX, maxY);
-            			
-        			});
+					updateDatasources(this.value, wgsMinX, wgsMinY, wgsMaxX, wgsMaxY);
 				});
 
 				//add key handler to reset camera view
@@ -643,7 +640,7 @@
 
 					//getWater();
 					//TEST: adding tests events to screen
-					addTestEvents();
+					
 					//showSpinner(false);
 					//return;
 					noOfBuildings = data.length;
@@ -665,6 +662,8 @@
 						getWater();
 					},50);
 					getRoads();
+
+					setupSocket();
 					//for testing events - can be removed when done
 					//addTestEvent();
 					

@@ -11,6 +11,9 @@ var http = require('http');
 var WebSocketServer = require('websocket').server;
 var webSocketsServerPort = 8001;
 var clients = new Array();
+
+// Test Variables
+var testing = true;
 //END VARIABLES
 
 
@@ -70,8 +73,9 @@ function consumer(conn) {
 							
 							// Send data to client
 							clients.forEach(function(client){
+								console.log('-------- CLIENT: '+client.id+' ------------');	
 								if(client.conn != undefined && client.conn.connected) {
-									if($.inArray(eventType, client.subscribtions) && testForLocation(client, lat, long)) {
+									if(client.subscriptions.indexOf(eventType) >= 0 && testForLocation(client, lat, long)) {
 
 										client.conn.sendUTF(JSON.stringify({
 											eventId:eventId, 
@@ -81,8 +85,18 @@ function consumer(conn) {
 											long: long,
 											date: date
 										}));
+									} else {
+										if(client.subscriptions.indexOf(eventType) < 0) {
+											console.log("Message not sent to client because client is not subscribing to that type of event.");
+										}
+										if(!testForLocation(client, lat, long)) {
+											console.log("Message not sent to client because event is out of area.");	
+										}
 									}
+								} else {
+									console.log("Message not sent to client because connection problems.");
 								}
+								console.log('--------------------------------------------');	
 							});
 						}
 					}
@@ -116,14 +130,37 @@ function setupWSServer() {
 
 	    conn.on('message', function(message) {
 	    	obj = JSON.parse(message.utf8Data);
-	        if (message.type === 'utf8') {
-	            var client = clients[obj.id];
-	            client.subscribtions = obj.subscribtions;
-	            client.minX = obj.minX;
-	            client.minY = obj.minY;
-	            client.maxX = obj.maxX;
-	            client.maxY = obj.maxY;
-	        }
+
+	        // if (message.type === 'utf8') {
+	        	if(obj.type == "setup") {
+		        	clients.forEach(function(client){
+		        		
+		        		if(client.id == obj.id) {
+		        			client.subscriptions = new Array();
+		        			obj.subscriptions.forEach(function(sub) {
+		        				client.subscriptions.push(sub);
+		        			});
+		        			
+				            client.minX = obj.minX;
+				            client.minY = obj.minY;
+				            client.maxX = obj.maxX;
+				            client.maxY = obj.maxY;
+
+				            console.log("Client with id = " + client.id + " is now subscribing to " + client.subscriptions + " in the area of " + client.minX +","+ client.minY + " - " + client.maxX + "," + client.maxY);
+		        		}
+			        	
+		        	});
+		        } else if(obj.type == "close") {
+		        	var index = -1;
+		        	clients.forEach(function(client) {
+		        		if(client.id == obj.id) {
+		        			index = clients.indexOf(client);
+		        		}
+		        	});
+
+		        	clients.splice(index, 1);
+		        }
+	        // }
 	    });
 
 	    var id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -136,19 +173,22 @@ function setupWSServer() {
 	    });
 
 	    conn.sendUTF(JSON.stringify({
+	    	type:"setup",
 			id:id
 		}));
 
 	    var client = {
 	    	conn:conn,
 	    	id:id,
-	    	subscribtions:new Array(),
+	    	subscriptions:new Array(),
 	    	minX:0,
 	    	minY:0,
 	    	maxX:0,
 	    	maxY:0
 	    }
-	    clients[id] = client;
+	    clients.push(client);
+
+	    console.log("clients length = " + clients.length + " and has id = " + id);
 	});
 }
 
@@ -162,6 +202,28 @@ function init() {
 		bail(err);
     consumer(conn);
 	});
+
+	if(testing) {
+		setInterval(function() {
+			if(clients.length == 0) return;
+			clients.forEach(function(client){
+				if(client.subscriptions.length > 0) {
+
+					var lat = Math.random()*(client.maxX-client.minX)+client.minX;
+					var long = Math.random()*(client.maxY-client.minY)+client.minY;
+					client.conn.sendUTF(JSON.stringify({
+						eventId:Math.random(), 
+						eventType:client.subscriptions[0],
+						severityLevel: 2,
+						lat: lat,
+						long: long,
+						date: 0
+					}));
+					console.log("Sending message...");
+				}
+			});
+		}, 10000);
+	}
 }
 
 function testForLocation(client, lat, long) {
