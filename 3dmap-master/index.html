@@ -56,6 +56,7 @@
 		    	<li><input type="checkbox" name="datasource" value="buildingEnergy">Building energy usage</li>
 		    	<li class="jq-dropdown-divider"></li>
   				<li><input type="checkbox" name="datasource" value="pollution">Pollution</li>
+  				<li><input type="checkbox" name="datasource" value="PublicParking">PublicParking</li>
 		    </ul>
 		</div>
 	
@@ -199,12 +200,11 @@
 				$(".dropdown-data > ul > li > input").on('click',function(e){
 					//stop all unselected datasources
 					$(".dropdown-data > ul >li > input:not(:checked)").each(function(){
-						stopDatasources(this.value);
-						resetModels(this.value);
+						updateDatasources(this.value, minX, minY, maxX, maxY);
 					});
 					//start selected datasources
 					$('.dropdown-data > ul > li > input:checked').each(function() {
-						startDatasources(this.value);
+						updateDatasources(this.value, minX, minY, maxX, maxY);
             			
         			});
 				});

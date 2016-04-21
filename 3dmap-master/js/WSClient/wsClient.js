@@ -1,5 +1,6 @@
-var buildingEnergyConnection = null;
-var pollutionConnection = null;
+var connection = null;
+var subscriptions = new Array();
+var clientId;
 
 //var waitingForResponse = false;
 
@@ -7,12 +8,10 @@ var pollutionConnection = null;
 $(function(){
     //close any websocket connections before user leaves page
     $(window).on('beforeunload', function(){
-      if(buildingEnergyConnection){
-        buildingEnergyConnection.close();
+      if(connection){
+        connection.close();
       }
-      if(pollutionConnection){
-        pollutionConnection.close();
-      }
+      
     });
 });
 
@@ -22,54 +21,13 @@ $(function(){
 // Meta methods for WEBSOCKET
 ///////////////////////////////////////////////////////////////
 
-function startDatasources(name){
-    switch(name){
-        case "buildingEnergy":
-        //noOfBuildings = null? no building data loaded.
-        //buildingEnergyConnection!=null? Building connection is already set and data is shown.
-        if(noOfBuildings===null || buildingEnergyConnection!==null) return;
-        setupBuildingEnergySocket(noOfBuildings);
-        break;
+function updateDatasources(name, minX, minY, maxX, maxY){
+    if(!$.inArray(name, subscriptions)) {
+        subscriptions.push(name);
 
-        case "pollution":
-        //dummy methods at the moment - needs to be changed
-        if(noOfBuildings===null || pollutionConnection!==null) return;
-        setupPollutionSocket(noOfBuildings);
-        break;
+        connection.send(JSON.stringify({id: clientId, subscriptions: subscriptions, minX:minX, minY:minY, maxX: maxX, maxY:maxY}))
     }
-}
 
-
-function stopDatasources(name){
-    switch(name){
-        case "buildingEnergy":
-            //no connection to tear down
-            if(buildingEnergyConnection===null) return;
-            buildingEnergyConnection.close();
-            buildingEnergyConnection = null;
-        break;
-
-        case "pollution":
-            if(pollutionConnection===null) return;
-            pollutionConnection.close();
-            pollutionConnection = null;
-        break;
-    }
-}
-
-
-
-function resetModels(name){
-    switch(name){
-        case "buildingEnergy":
-        break;
-
-        case "pollution":
-        //dummy so far - needs to be changed
-        break;
-
-
-    }
 }
 
 ///////////////////////////////////////////////////////////////
@@ -94,6 +52,7 @@ function setupBuildingEnergySocket(maxBuildings) {
     // most important part - incoming messages
     buildingEnergyConnection.onmessage = function (message) {
     	var msg = JSON.parse(message.data);
+        console.log(msg);
     	switch(msg.type) {
     		case "ENERGY":
     		$.each(msg.data, function(index, building) {
@@ -137,6 +96,7 @@ function setupBuildingEnergySocket(maxBuildings) {
     // most important part - incoming messages
     pollutionConnection.onmessage = function (message) {
         var msg = JSON.parse(message.data);
+        console.log(msg);
         switch(msg.type) {
             case "ENERGY":
             $.each(msg.data, function(index, building) {
