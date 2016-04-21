@@ -19,6 +19,8 @@
 		<script src='js/WSClient/wsClient.js'></script>
 		<script src='js/models/modelsCreator.js'></script>
 		<script src='js/models/ThreeCSG.js'></script>
+		<script src='js/eventVisualisation/dataVisualisation.js'></script>
+		<script src="http://mrdoob.github.com/three.js/examples/fonts/helvetiker_regular.typeface.js"></script>
 
 	</head>
 	<body>
@@ -46,9 +48,12 @@
 		        <li class="jq-dropdown-divider"></li>
 		        <li><a id='cph' name="Copenhagen City" href="#2">Copenhagen</a></li>
 		        <li class="jq-dropdown-divider"></li>
-		        <li><a id='odense' name="Odense City" href="#3">Odense</a></li> 
+		        <li><a id='odense' name="Odense City" href="#3">Odense</a></li>
+			<li class="jq-dropdown-divider"></li>
+			<li><a id='ry' name="Ry City" href="#4">Ry</a></li> 
 		    </ul>
 		</div>
+		<!--<input type="button" value="add event" id='eventAdd'>-->
 
 		<input type="button" data-jq-dropdown="#jq-dropdown-2" value="Choose data source" id='dataSourceChooser'>
 		<div id="jq-dropdown-2" class="jq-dropdown jq-dropdown-tip jq-dropdown-anchor-right dropdown-data">
@@ -109,6 +114,7 @@
 		    var renderAnimationId = null;
 		    var scene = new THREE.Scene();
 		    var camera=null;
+		    var initCameraPosition = null;
 			var controls= null;
 			var raycaster = null;
             var mouse =  null;
@@ -158,6 +164,14 @@
 			function addMenuHandler(){
 
 
+				$("#eventAdd").on('click',function(e){
+					addTestEvent();
+				});
+				//TODO: remove after test
+				//populateMap("cph");
+				//return;
+				//end test
+
 				//handler for city select
 				$(".dropdown-city > ul > li > a").on('click', function(e){
 
@@ -179,12 +193,15 @@
 					}
 
 					for(var i = scene.children.length-1; i>=0; i--){
-						if(scene.children[i].name.indexOf("buildings")>-1 ||scene.children[i].name.indexOf("roads")>-1 ||scene.children[i].name.indexOf("ground")>-1 ||scene.children[i].name.indexOf("trees")>-1 ||scene.children[i].name.indexOf("water")>-1){
+						var name = scene.children[i].name;
+						if(!name.startsWith("sky") && !name.startsWith("spotlight") && !name.startsWith("hemilight")){
+
 							scene.remove(scene.children[i]);	
 						}
-						//console.log(scene.children[i]);
-						
 					}
+					//remove any animation tweens in memory
+					TWEEN.removeAll();
+					//reset plane size to acommodate new models
 					resetPlaneSize();
 
 					e.preventDefault();
@@ -208,6 +225,19 @@
             			
         			});
 				});
+
+				//add key handler to reset camera view
+				$(document).keydown(function(e) {
+					if(e.keyCode===82){//'r' pressed
+						if(camera){
+							camera.position.x=initCameraPosition.x;
+							camera.position.y=initCameraPosition.y;
+							camera.position.z=initCameraPosition.z;
+							camera.lookAt(new THREE.Vector3(0,0,0));
+						}
+					}
+        			
+    			});
 			}
 			
 			
@@ -245,7 +275,9 @@
                 camera.position.z = 965;
                 camera.position.x = 1435;
                 camera.position.y = 1415;
-				
+				if(!initCameraPosition){
+					initCameraPosition = {x:camera.position.x, y:camera.position.y, z:camera.position.z};
+				}
 				controls = new THREE.OrbitControls( camera, renderer.domElement );
 				
 				controls.enableDamping = true;
@@ -255,6 +287,7 @@
             
                 // add spotlight for the shadows
                 var spotLight = new THREE.SpotLight(0xffffff);
+                spotLight.name = "spotlight";
                 //var spotLight = new THREE.SpotLight(0xffffff, 0.9, 100000, Math.PI/2, 10, 1);
                 spotLight.position.set(-0.75*planeX, 2500, 500);
                 spotLight.castShadow = true;
@@ -269,6 +302,7 @@
 				
 				
 				var hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.2);
+				hemiLight.name="hemilight";
 				hemiLight.color.setHSL( 0.6, 1, 0.6 );
 				hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
 				hemiLight.position.set( 0, 500, 0 );
@@ -345,7 +379,8 @@
 		    function addMeshes(meshes, prefix){
 		    	prefix += "-";
 		    	var shadowBool = false;
-		    	if(prefix.indexOf("buildings")>-1){
+		    	if(prefix.indexOf("buildings")>-1 || prefix.startsWith("event")){
+
 		    		shadowBool = true;
 		    	}
 
@@ -445,26 +480,30 @@
             		if($("#infoBox").is(':visible')){
             			$("#infoBox").css('visibility', 'hidden');
             		}
+            		//removeEventTexts();
 
-            		if(!buildingEnergyConnection) return;
+            		//not relevant as we add more WS connections$
+            		//if(!buildingEnergyConnection) return;
             		raycaster.setFromCamera( mouse, camera );
 
 					// calculate objects intersecting the picking ray
 	            	var intersects = raycaster.intersectObjects( scene.children );
             		for ( var i = 0; i < intersects.length; i++ ) 
 					{
-						if(	intersects[ i ].object.name != "sky" && 
-							intersects[ i ].object.name != "ground" &&
-							!intersects[ i ].object.name.startsWith("road") ) {
-							if (intersects[i].face.readingId !== selectedObject) {
-
-								selectedObject = intersects[i].face.readingId; // Assign new selected object
-
-							};
-							
-			         		break;
+						console.log(intersects[i].object.name);
+						if(intersects[i].object.name.startsWith("buildings") && intersects[i].face.readingId !== selectedObject){
+							selectedObject = intersects[i].face.readingId; // Assign new selected object							
+							break;
+						}else if(intersects[i].object.name.startsWith("event")){
+		            		var eventId = intersects[i].object.eventId;
+		            		showEventText(eventId);
+		            		//removeEvent(eventId);
+		            		demoEventHack();
+		            		break;
+						}else if(intersects[i].object.name.startsWith("text")){
+							removeEventTexts();
 						}
-
+						
 						selectedObject = null;
 		            }
 
@@ -484,104 +523,7 @@
 
 
 
-			///////////////////////////////////////////////////////////////
-			// Changing the height of buildings based on the energi level used
-			///////////////////////////////////////////////////////////////
-
-            function changeBuilding(energyLevel, buildingId, reset){
-
-				if(maxEnergyLevel<energyLevel)
-					maxEnergyLevel = energyLevel;
-
-            	energyLevel = energyLevel.map(minEnergyLevel, maxEnergyLevel, minScale, maxScale);
-            	
-            	var timeout = 1500;
-
-            	var name = "buildings-";
-            	var nameNumber = -1;
-            	if(!reset){
-            		nameNumber = Math.floor(buildingId/(noOfBuildings/noOfBuildingGeoSlice));
-            		name = "buildings-"+nameNumber;
-            	}
-
-		    		
-
-            	for(var i=0; i<scene.children.length;i++){
-            		if(scene.children[i].name.indexOf(name) !=-1){
-
-            			var child = scene.children[i];
-						
-						var verticeColor = function(random, mesh){
-
-							var r = Math.random();
-							var b = Math.random();
-							var g = Math.random();
-
-							var meshFaces = mesh.geometry.faces;
-
-							for(var j = 0; j<meshFaces.length;j++){
-								if(random){
-									meshFaces[j].color.setRGB(r,g,b);	
-								}else{
-									meshFaces[j].color.setHex(0xffffff);
-								}
-							}
-
-							child.geometry.colorsNeedUpdate = true;
-		    			};
-		    			            			
-
-						var mesh = buildingObjects[buildingId];
-						
-						if(mesh !=undefined){
-								
-							mesh.rotation.set(0,0,0);
-							mesh.updateMatrix();
-							
-							//to be able to reset to original height
-							if(reset && mesh.oldLevel!==undefined)
-            					energyLevel = 1;
-							
-							if(mesh.oldLevel == undefined){							
-								mesh.oldLevel = 1;
-							}
-
-							var start = 1/mesh.oldLevel;
-							var goal = energyLevel*mesh.oldLevel;
-							
-
-							//smooth the transistion between heights
-							var tween = new TWEEN.Tween({scale:start} )
-								.to( { scale: energyLevel }, timeout )
-								.easing( TWEEN.Easing.Quadratic.InOut )
-								.onUpdate( function () {
-									
-									mesh.updateMatrix();
-									mesh.geometry.applyMatrix(mesh.matrix);
-									mesh.matrix.identity();
-									
-									mesh.scale.y = mesh.oldLevel*this.scale; 
-
-									mesh.oldLevel = 1/this.scale;
-									child.geometry.verticesNeedUpdate = true;
-									
-
-								})
-								.onComplete(function(){
-									
-									TWEEN.remove(tween);
-									
-								})
-								.start();
-
-							verticeColor(true, mesh);
-							setTimeout(verticeColor,timeout+500, false, mesh);
-						}	
-
-            			break;
-            		}
-            	}
-            }
+			
             
 
 			
@@ -603,11 +545,73 @@
 				waterUrl = "data/kml/"+city+"/water.kml";
 				//waterUrl = "data/kml/"+city+"/waterTest.kml";
 				
+
 				getBuildings();
+				//for testing the events
+				
+				//testRun();
+
+			}
+
+			function addTestEvents(){
+				for(var i=0; i<30;i++){
+					addTestEvent();	
+				}
+			}
+
+			var id = 0;
+			//solely for testing events. Can be removed when finished
+			function addTestEvent(){
+
+				var testPos = {lat:12.566725889453012,lng:55.68321681457061};
+				var x = Math.floor(Math.random() * planeX)-planeX/2;
+				var y = Math.floor(Math.random() * planeY)-planeY/2;
+				var planePos = {x:x,y:y};
+				//console.log(planePos);
+				var type = Math.floor(Math.random() * 4);
+
+				var serverity = Math.floor(Math.random() * 3);
+				showEvent(planePos, "Cheese eating surrender monkeys",id, type, serverity);
+				
+
+				// type: PublicParking(0), TrafficJam(1), AarhusPollution(2), AarhusNoise(3)
+				// serverity: {0,1,2}
+				if(id==Number.MAX_VALUE-1){
+					id=0;
+				}
+				id++;
+			}
 
 
-				
-				
+			function testRun(){
+
+				$.get(buildingUrl, function(kml)
+				{
+					
+					console.log(new Date()+":got building kml");
+					
+					var data = toGeoJSON.kml(kml).features;
+					
+					calculatePlaneBounds(data);
+					setPlane();
+
+					
+					showSpinner(false);
+					addTestEvents();
+					//return;
+					
+					getTrees();
+					getWater();
+					getRoads();
+					
+					
+					noOfBuildings = data.length;
+
+					var maxLen = Math.round(data.length/noOfBuildingGeoSlice)===0?1:Math.round(data.length/noOfBuildingGeoSlice);
+					createBuildingModels(data);
+					showSpinner(false);
+					
+				});
 			}
 
 
@@ -638,6 +642,8 @@
 					setPlane();
 
 					//getWater();
+					//TEST: adding tests events to screen
+					addTestEvents();
 					//showSpinner(false);
 					//return;
 					noOfBuildings = data.length;
@@ -659,6 +665,8 @@
 						getWater();
 					},50);
 					getRoads();
+					//for testing events - can be removed when done
+					//addTestEvent();
 					
 					/*
 					//test for showing building height change;
