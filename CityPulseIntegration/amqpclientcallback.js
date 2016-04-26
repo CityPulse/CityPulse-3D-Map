@@ -1,10 +1,19 @@
 //VARIABLES
-var queueName = '3dmapqueue-ttl';
+var queueName = '3dmapqueue';
 var exchange = 'events';
 var routingKey = '#';
 var N3 = require('n3');
 var amqpEndpoint = 'amqp://guest:guest@131.227.92.55:8007';
 var debug = true;
+
+// WebSocket Variables
+var http = require('http');
+var WebSocketServer = require('websocket').server;
+var webSocketsServerPort = 8001;
+var clients = new Array();
+
+// Test Variables
+var testing = true;
 //END VARIABLES
 
 
@@ -12,71 +21,216 @@ var debug = true;
 function consumer(conn) {
 	var ok = conn.createChannel(on_open);
 	function on_open(err, ch) {
-    		if (err != null) bail(err);    
-    		ch.assertQueue(queueName, {"messageTtl": 600000});
-                ch.bindQueue(queueName, exchange, routingKey);
+		if (err != null) bail(err);    
+		ch.assertQueue(queueName);
+        ch.bindQueue(queueName, exchange, routingKey);
 		ch.consume(queueName, function(msg) {
-      			if (msg !== null) {
+  			if (msg !== null) {
 				var parser = N3.Parser();
 				var triples = [];
 				var toSendToMap = false;
 				var rdfMessage = msg.content.toString();
 				//console.log(rdfMessage);
-				parser.parse(rdfMessage,
-                                	function (error, triple, prefixes) {
-                                        	if (triple) {
-                                                	triples.push(triple);
-                                                	if(triple.object.toString() == "http://purl.oclc.org/NET/UNIS/sao/ec#TrafficJam" || 
-								triple.object.toString() == "http://purl.oclc.org/NET/UNIS/sao/ec#PublicParking" ||
-									triple.object.toString() == "http://purl.oclc.org/NET/UNIS/sao/ec#AarhusPollution" ||
-										triple.object.toString() == "http://purl.oclc.org/NET/UNIS/sao/ec#AarhusNoiseLevel" ||
-											triple.object.toString() == "http://purl.oclc.org/NET/UNIS/sao/ec#Twitter.Aarhus") {
-                                                        					toSendToMap = true;
-                                                	}
-                                        	}
-						else {
-							//FINISHED PARSING THE RDFMESSAGE
-							if(toSendToMap){
-								var eventId, eventType, severityLevel, lat, long, date;
-								
-								var eventIdSplit = triples[0].subject.split('#');
-								eventId = eventIdSplit[1];
-								
-								var eventTypeSplit = triples[0].object.split('#');
-								eventType = eventTypeSplit[1];
-								
-								var eventSeveritySplit = triples[2].object.split('^^');
-								severityLevel = eventSeveritySplit[0].split('"')[1];
-																
-								var eventLatSplit = triples[4].object.split('^^');
-								lat = eventLatSplit[0].split('"')[1];
+				parser.parse(rdfMessage, function (error, triple, prefixes) {
+                	if (triple) {
+                    	triples.push(triple);
+                    	if(
+                    		triple.object.toString() == "http://purl.oclc.org/NET/UNIS/sao/ec#TrafficJam" || 
+							triple.object.toString() == "http://purl.oclc.org/NET/UNIS/sao/ec#PublicParking" ||
+							triple.object.toString() == "http://purl.oclc.org/NET/UNIS/sao/ec#AarhusPollution" ||
+							triple.object.toString() == "http://purl.oclc.org/NET/UNIS/sao/ec#AarhusNoiseLevel") {
+                            toSendToMap = true;
+                    	}
+                	}
+					else {
+						//FINISHED PARSING THE RDFMESSAGE
+						if(toSendToMap){
+							var eventId, eventType, severityLevel, lat, long, date;
+							
+							var eventIdSplit = triples[0].subject.split('#');
+							eventId = eventIdSplit[1];
+							
+							var eventTypeSplit = triples[0].object.split('#');
+							eventType = eventTypeSplit[1];
+							
+							var eventSeveritySplit = triples[2].object.split('^^');
+							severityLevel = eventSeveritySplit[0].split('"')[1];
+															
+							var eventLatSplit = triples[4].object.split('^^');
+							lat = eventLatSplit[0].split('"')[1];
 
-								var eventLongSplit = triples[5].object.split('^^');
-								long = eventLongSplit[0].split('"')[1];
+							var eventLongSplit = triples[5].object.split('^^');
+							long = eventLongSplit[0].split('"')[1];
 
-								var eventDateSplit = triples[8].object.split('^^');
-								date = eventDateSplit[0].split('"')[1];
+							var eventDateSplit = triples[8].object.split('^^');
+							date = eventDateSplit[0].split('"')[1];
 
-								if(debug) {
-									console.log('-------EVENT BEGIN-----------');
-									console.log("eventId: ", eventId, "eventType: ", eventType, "severityLevel: ", severityLevel, "lat: ", lat, "long: ", long, "date: ", date);
-									console.log('--------EVENT END------------');
-								}
-								
+							if(debug) {
+								console.log('-------EVENT BEGIN-----------');
+								console.log("eventId: ", eventId, "eventType: ", eventType, "severityLevel: ", severityLevel, "lat: ", lat, "long: ", long, "date: ", date);
+								console.log('--------EVENT END------------');
 							}
+							
+							// Send data to client
+							clients.forEach(function(client){
+								console.log('-------- CLIENT: '+client.id+' ------------');	
+								if(client.conn != undefined && client.conn.connected) {
+									if(client.subscriptions.indexOf(eventType) >= 0 && testForLocation(client, lat, long)) {
+
+										client.conn.sendUTF(JSON.stringify({
+											eventId:eventId, 
+											eventType:eventType,
+											severityLevel: severityLevel,
+											lat: lat,
+											long: long,
+											date: date
+										}));
+									} else {
+										if(client.subscriptions.indexOf(eventType) < 0) {
+											console.log("Message not sent to client because client is not subscribing to that type of event.");
+										}
+										if(!testForLocation(client, lat, long)) {
+											console.log("Message not sent to client because event is out of area.");	
+										}
+									}
+								} else {
+									console.log("Message not sent to client because connection problems.");
+								}
+								console.log('--------------------------------------------');	
+							});
 						}
-                                	}
-				
-                        	);
-				//ch.ack(msg);
-      			}
-    		});
+					}
+            	});
+  			}
+		});
   	}
 }
 
-require('amqplib/callback_api')
-  .connect(amqpEndpoint, function(err, conn) {
+function setupWSServer() {
+	// Set up WebSocket Server
+	
+
+	var server = http.createServer(function(request, response) {
+	    // process HTTP request. Since we're writing just WebSockets server
+	    // we don't have to implement anything.
+	});
+	server.listen(webSocketsServerPort, function() { 
+	    console.log((new Date()) + " Server is listening on port " + webSocketsServerPort);
+	});
+
+	// create the server
+	wsServer = new WebSocketServer({
+	    httpServer: server
+	});
+
+	// WebSocket server
+	wsServer.on('request', function(request) {
+	    console.log((new Date()) + ' Connection from origin ' + request.origin + '.');
+	    var conn = request.accept(null, request.origin);
+
+	    conn.on('message', function(message) {
+	    	obj = JSON.parse(message.utf8Data);
+
+	        // if (message.type === 'utf8') {
+	        	if(obj.type == "setup") {
+		        	clients.forEach(function(client){
+		        		
+		        		if(client.id == obj.id) {
+		        			client.subscriptions = new Array();
+		        			obj.subscriptions.forEach(function(sub) {
+		        				client.subscriptions.push(sub);
+		        			});
+		        			
+				            client.minX = obj.minX;
+				            client.minY = obj.minY;
+				            client.maxX = obj.maxX;
+				            client.maxY = obj.maxY;
+
+				            console.log("Client with id = " + client.id + " is now subscribing to " + client.subscriptions + " in the area of " + client.minX +","+ client.minY + " - " + client.maxX + "," + client.maxY);
+		        		}
+			        	
+		        	});
+		        } else if(obj.type == "close") {
+		        	var index = -1;
+		        	clients.forEach(function(client) {
+		        		if(client.id == obj.id) {
+		        			index = clients.indexOf(client);
+		        		}
+		        	});
+
+		        	clients.splice(index, 1);
+		        }
+	        // }
+	    });
+
+	    var id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+	    	var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+    		return v.toString(16);
+		});
+
+	    conn.on('close', function(reasonCode, description) {
+	    	
+	    });
+
+	    conn.sendUTF(JSON.stringify({
+	    	type:"setup",
+			id:id
+		}));
+
+	    var client = {
+	    	conn:conn,
+	    	id:id,
+	    	subscriptions:new Array(),
+	    	minX:0,
+	    	minY:0,
+	    	maxX:0,
+	    	maxY:0
+	    }
+	    clients.push(client);
+
+	    console.log("clients length = " + clients.length + " and has id = " + id);
+	});
+}
+
+function init() {
+
+	setupWSServer();
+
+	// Set up AMQP conn
+	require('amqplib/callback_api').connect(amqpEndpoint, function(err, conn) {
     if (err != null) 
-	bail(err);
+		bail(err);
     consumer(conn);
-  });
+	});
+
+	if(testing) {
+		setInterval(function() {
+			if(clients.length == 0) return;
+			clients.forEach(function(client){
+				if(client.subscriptions.length > 0) {
+
+					var lat = Math.random()*(client.maxX-client.minX)+client.minX;
+					var long = Math.random()*(client.maxY-client.minY)+client.minY;
+					client.conn.sendUTF(JSON.stringify({
+						eventId:Math.random(), 
+						eventType:client.subscriptions[0],
+						severityLevel: 2,
+						lat: lat,
+						long: long,
+						date: 0
+					}));
+					console.log("Sending message...");
+				}
+			});
+		}, 10000);
+	}
+}
+
+function testForLocation(client, lat, long) {
+	if( long > client.minX && long < client.maxX &&
+		lat > client.minY && lat < client.maxY)
+		return true;
+	else return false;
+}
+
+init();

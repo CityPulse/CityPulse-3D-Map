@@ -1,5 +1,6 @@
-var buildingEnergyConnection = null;
-var pollutionConnection = null;
+var connection = null;
+var subscriptions = new Array();
+var clientId;
 
 //var waitingForResponse = false;
 
@@ -7,12 +8,11 @@ var pollutionConnection = null;
 $(function(){
     //close any websocket connections before user leaves page
     $(window).on('beforeunload', function(){
-      if(buildingEnergyConnection){
-        buildingEnergyConnection.close();
+      if(connection){
+        connection.send(JSON.stringify({type:"close", id: clientId}));
+        connection.close();
       }
-      if(pollutionConnection){
-        pollutionConnection.close();
-      }
+      
     });
 });
 
@@ -22,54 +22,16 @@ $(function(){
 // Meta methods for WEBSOCKET
 ///////////////////////////////////////////////////////////////
 
-function startDatasources(name){
-    switch(name){
-        case "buildingEnergy":
-        //noOfBuildings = null? no building data loaded.
-        //buildingEnergyConnection!=null? Building connection is already set and data is shown.
-        if(noOfBuildings===null || buildingEnergyConnection!==null) return;
-        setupBuildingEnergySocket(noOfBuildings);
-        break;
-
-        case "pollution":
-        //dummy methods at the moment - needs to be changed
-        if(noOfBuildings===null || pollutionConnection!==null) return;
-        setupPollutionSocket(noOfBuildings);
-        break;
+function updateDatasources(name, minX, minY, maxX, maxY){
+    if($.inArray(name, subscriptions) == -1) {
+        subscriptions.push(name);
+        connection.send(JSON.stringify({id: clientId, type:'setup', subscriptions: subscriptions, minX:minX, minY:minY, maxX: maxX, maxY:maxY}))
+    } else {
+        subscriptions.splice($.inArray(name, subscriptions), 1);
+        connection.send(JSON.stringify({id: clientId, type:'setup', subscriptions: subscriptions, minX:minX, minY:minY, maxX: maxX, maxY:maxY}))
     }
-}
+    console.log(JSON.stringify({type:"setup", id: clientId, subscriptions: subscriptions, minX:minX, minY:minY, maxX: maxX, maxY:maxY}));
 
-
-function stopDatasources(name){
-    switch(name){
-        case "buildingEnergy":
-            //no connection to tear down
-            if(buildingEnergyConnection===null) return;
-            buildingEnergyConnection.close();
-            buildingEnergyConnection = null;
-        break;
-
-        case "pollution":
-            if(pollutionConnection===null) return;
-            pollutionConnection.close();
-            pollutionConnection = null;
-        break;
-    }
-}
-
-
-
-function resetModels(name){
-    switch(name){
-        case "buildingEnergy":
-        break;
-
-        case "pollution":
-        //dummy so far - needs to be changed
-        break;
-
-
-    }
 }
 
 ///////////////////////////////////////////////////////////////
@@ -77,85 +39,52 @@ function resetModels(name){
 ///////////////////////////////////////////////////////////////
 
 
-function setupBuildingEnergySocket(maxBuildings) {
+function setupSocket() {
 
-    if(!maxBuildings)
-        return;
     // if user is running mozilla then use it's built-in WebSocket
 	window.WebSocket = window.WebSocket || window.MozWebSocket;
 
     // open connection
-    buildingEnergyConnection = new WebSocket('ws://127.0.0.1:8001');
+    connection = new WebSocket('ws://127.0.0.1:8001');
 
-    buildingEnergyConnection.onopen = function () {
-    	buildingEnergyConnection.send(JSON.stringify({type: "SETUP", data: {value : maxBuildings}}));
+    connection.onopen = function () {
+        // Send flagged subscribtions
+    	//connection.send(JSON.stringify({type: "SETUP", data: {value : maxBuildings}}));
     };
 
     // most important part - incoming messages
-    buildingEnergyConnection.onmessage = function (message) {
+    connection.onmessage = function (message) {
     	var msg = JSON.parse(message.data);
-    	switch(msg.type) {
-    		case "ENERGY":
-    		$.each(msg.data, function(index, building) {
-                changeBuilding(building.value, building.id, false);  
-            });
-    		break;
-    		case "HISTORYRESP":
-    		if(msg.data.value != -1) {
-    			var chartData = [];
-    			for(var i = 0; i < msg.data.value.length; i++) {
-    				chartData.push({index: i, value: msg.data.value[i]});
-    			}
-    			setupInfoBox(chartData);
-    		} else {
-    			$("#infoBox").append("<p>No historical data for this building.</p>")
-    		}
-    		//waitingForResponse = false;
-    		break;
-    	}
+        console.log(msg);
+
+        if(msg.type != null && msg.type == "setup") {
+            clientId = msg.id;
+        } else {
+            console.log("asd");
+            showEventByCoords({lat:msg.lat, lng:msg.long}, "loool", msg.id, msg.eventType, msg.severityLevel);
+        }
+    	// switch(msg.type) {
+    	// 	case "ENERGY":
+    	// 	$.each(msg.data, function(index, building) {
+     //            changeBuilding(building.value, building.id, false);  
+     //        });
+    	// 	break;
+    	// 	case "HISTORYRESP":
+    	// 	if(msg.data.value != -1) {
+    	// 		var chartData = [];
+    	// 		for(var i = 0; i < msg.data.value.length; i++) {
+    	// 			chartData.push({index: i, value: msg.data.value[i]});
+    	// 		}
+    	// 		setupInfoBox(chartData);
+    	// 	} else {
+    	// 		$("#infoBox").append("<p>No historical data for this building.</p>")
+    	// 	}
+    	// 	//waitingForResponse = false;
+    	// 	break;
+    	// }
     	
     };
 }
 
 
 
-    //dummy method at the moment to test switching between multiple sources - should be properly implemented when Bjarke/Joao is ready
-    function setupPollutionSocket(maxBuildings) {
-    
-    if(!maxBuildings)
-        return;
-    // if user is running mozilla then use it's built-in WebSocket
-    window.WebSocket = window.WebSocket || window.MozWebSocket;
-
-    // open connection
-    pollutionConnection = new WebSocket('ws://127.0.0.1:8001');
-
-    pollutionConnection.onopen = function () {
-        pollutionConnection.send(JSON.stringify({type: "SETUP", data: {value : maxBuildings}}));
-    };
-
-    // most important part - incoming messages
-    pollutionConnection.onmessage = function (message) {
-        var msg = JSON.parse(message.data);
-        switch(msg.type) {
-            case "ENERGY":
-            $.each(msg.data, function(index, building) {
-                changeBuilding(building.value, building.id, false);  
-            });
-            break;
-            case "HISTORYRESP":
-            if(msg.data.value != -1) {
-                var chartData = [];
-                for(var i = 0; i < msg.data.value.length; i++) {
-                    chartData.push({index: i, value: msg.data.value[i]});
-                }
-                setupInfoBox(chartData);
-            } else {
-                $("#infoBox").append("<p>No historical data for this building.</p>")
-            }
-            //waitingForResponse = false;
-            break;
-        }
-        
-    };
-}
