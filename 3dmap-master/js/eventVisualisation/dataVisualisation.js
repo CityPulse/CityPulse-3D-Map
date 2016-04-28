@@ -158,16 +158,16 @@ function showEvent(coordinates, text,id, type, severity){
 	
 	var color = 0xffff00;
 	switch(type){
-		case 0:
+		case "PublicParking":
 			color = 0x267326;
 			break;
-		case 1:
+		case "TrafficJam":
 			color = 0x0059b3;
 			break;
-		case 2:
+		case "AarhusPollution":
 			color = 0x1a1a00;
 			break;
-		case 3:
+		case "AarhusNoise":
 			color = 0xcc0000;
 			break;
 		case 4:

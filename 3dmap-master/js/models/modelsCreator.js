@@ -33,19 +33,23 @@ function _calculateConcretePlaneBounds(data){
             if(utmResult.coord.x<minX)
             {
                 minX=utmResult.coord.x;
+                wgsMinX=itemTwo[0];
             }
             if(utmResult.coord.y<minY)
             {
                 minY=utmResult.coord.y;
+                wgsMinY=itemTwo[1];
             }
 
             if(utmResult.coord.x > maxX)
             {
                 maxX=utmResult.coord.x;
+                wgsMaxX=itemTwo[0];
             }
             if(utmResult.coord.y > maxY)
             {
                 maxY=utmResult.coord.y;
+                wgsMaxY=itemTwo[1];
             }
         });
 }
