@@ -95,7 +95,7 @@ function changeBuilding(energyLevel, buildingId, reset){
 		}
 	}
 	//HACK: to give the feeling of dynamically created/deleted events
-	demoEventHack();
+	//demoEventHack();
 }
 
 //global variables for events
@@ -119,6 +119,7 @@ function demoEventHack(){
 	}
 
 	addTestEvent();
+	console.log("no of events: "+Object.keys(eventList).length);
 }
 
 
@@ -129,10 +130,10 @@ function demoEventHack(){
 // text: text to be shown when event is clicked
 // id: eventId gotten from event
 // type: PublicParking(0), TrafficJam(1), AarhusPollution(2), AarhusNoise(3)
-// serverity: [0,1,2]
+// severity: [0,1,2]
 ///////////////////////////////////////////////////////////////
 
-function showEventByCoords(coordinates, text,id, type, serverity){
+function showEventByCoords(coordinates, text,id, type, severity){
 	var utmResult= converter.toUtm({coord: [coordinates.lat, coordinates.lng]});
 	var fCenterX = minX + (maxX-minX)*0.5;
     var fCenterY = minY + (maxY-minY)*0.5;
@@ -141,7 +142,7 @@ function showEventByCoords(coordinates, text,id, type, serverity){
     var coordY = utmResult.coord.y -=fCenterY;
 
 	var location = {x:coordX, y:coordY};
-	showEvent(location, text,id, type, serverity);
+	showEvent(location, text,id, type, severity);
 }
 
 ///////////////////////////////////////////////////////////////
@@ -150,10 +151,10 @@ function showEventByCoords(coordinates, text,id, type, serverity){
 // text: text to be shown when event is clicked
 // id: eventId gotten from event
 // type: PublicParking(0), TrafficJam(1), AarhusPollution(2), AarhusNoise(3)
-// serverity: {0,1,2}
+// severity: {0,1,2}
 ///////////////////////////////////////////////////////////////
 
-function showEvent(coordinates, text,id, type, serverity){
+function showEvent(coordinates, text,id, type, severity){
 	
 	var color = 0xffff00;
 	switch(type){
@@ -174,17 +175,8 @@ function showEvent(coordinates, text,id, type, serverity){
 			break;
 	}
 
-	var top = 300;
-	switch(serverity){
-		case 0:
-			top = 100;
-			break;
-		case 1:
-			top = 250;
-			break;
-		case 2:
-			top = 400;
-	}
+	var top = _visualizeSeverity(severity);
+
 	var radius = 20;
 	var geometry = new THREE.SphereGeometry( radius, 10, 10 );	
 	var material = new THREE.MeshBasicMaterial( {color: color} );
@@ -196,14 +188,24 @@ function showEvent(coordinates, text,id, type, serverity){
 	sphere.eventId = id;
 	var meshes = [];
 	meshes.push(sphere);
-	
 	addMeshes(meshes, "event");
-	
-
 	//move sphere to position     
 	sphere.translateX(coordinates.x);
 	sphere.translateZ(coordinates.y);
 	sphere.translateY(-radius*2);
+
+	//add string to sphere
+	var stringLength = top-2*radius;
+	var stringGeometry = new THREE.CylinderGeometry(radius,1,stringLength,8);
+    var string = new THREE.Mesh(stringGeometry, material);
+	string.translateX(coordinates.x);
+	string.translateZ(coordinates.y);
+	string.translateY(-(stringLength/2+2*radius));
+	var strings = [];
+	strings.push(string);
+	addMeshes(strings,"string");
+
+	
 
 	//setup the tweens
 	var easing = TWEEN.Easing.Quartic.InOut;
@@ -213,11 +215,12 @@ function showEvent(coordinates, text,id, type, serverity){
 	var topTarget = {y:movement/2};
 	
 
-	var update = function(){
+	var startAnimation = function(){
 			
 		var level = this.yPos - sphere.oldLevel;
 		sphere.translateY(level);
 		sphere.oldLevel = this.yPos;
+		string.translateY(level);
 	}
 
 	var startTween = new TWEEN.Tween({yPos:0} )
@@ -228,14 +231,13 @@ function showEvent(coordinates, text,id, type, serverity){
 			sphere.matrixWorldNeedsUpdate = true;
 			sphere.oldLevel=0;
 		})
-		.onUpdate(update);
+		.onUpdate(startAnimation);
 
 
 
 	var animation = function(){
-		var level = this.y - sphere.oldLevel;
 		sphere.translateY(this.y);
-		sphere.oldLevel = this.y;
+		string.translateY(this.y);
 	}
 
 	var bounceTween = new TWEEN.Tween(topTarget)
@@ -245,7 +247,7 @@ function showEvent(coordinates, text,id, type, serverity){
 		.yoyo( true )
 		.easing(easing)
 		.onComplete(function(){
-			sphere.matrixWorldNeedsUpdate = true;
+			//sphere.matrixWorldNeedsUpdate = true;
 			
 		})
 		.onUpdate(animation);
@@ -256,7 +258,7 @@ function showEvent(coordinates, text,id, type, serverity){
 	startTween.start();
 
 	//add event to list, so it is possible to remove it later
-	var event = {mesh:sphere, startTween:startTween, bounceTween:bounceTween, text:text};
+	var event = {mesh:sphere, startTween:startTween, bounceTween:bounceTween, text:text, string:string, severity: severity};
 	eventList[id] = event;
 
 }
@@ -315,7 +317,7 @@ function showEventText(eventId){
 	textMesh.translateY(yPos);
 	
 	//stop bounce effect
-	event.bounceTween.stop();
+	//event.bounceTween.stop(); //screws up at the moment. seems like a bug in Tweens code
     scene.add( textMesh );
     var shownEvent = {event:event,textMesh:textMesh};
     shownTextList.push(shownEvent);
@@ -338,7 +340,7 @@ function removeEventTexts(){
 		if(shown===undefined)
 			return;
 		scene.remove(shown.textMesh);
-		shown.event.bounceTween.start();
+		//shown.event.bounceTween.start(); //screws up at the moment. seems like a bug in Tweens code
 	});
 	shownTextList = [];
 }
@@ -361,6 +363,7 @@ function removeEvent(id){
 	TWEEN.remove(event.startTween);
 	TWEEN.remove(event.bounceTween);
 	var mesh = event.mesh;
+	var string = event.string;
 	var removeTween = new TWEEN.Tween({yPos:0} )
 		.to( { yPos: -(mesh.position.y+mesh.geometry.boundingSphere.radius*2) }, 2000 )
 		.easing( TWEEN.Easing.Quartic.InOut )
@@ -368,10 +371,12 @@ function removeEvent(id){
 			var level = this.yPos - mesh.oldLevel;
 			mesh.translateY(level);
 			mesh.oldLevel = this.yPos;
+			string.translateY(level);
 		})
 		.start();
 	setTimeout(function(){
 		scene.remove(mesh);
+		scene.remove(string);
 		delete eventList[id];
 		TWEEN.remove(removeTween);
 	},2050);
@@ -399,17 +404,91 @@ function removeAllEvents(){
 	eventList = [];
 }
 
-/*
-An event is characterised by:
-eventID: unique identifier
-eventType: PublicParking, TrafficJam, AarhusPollution, AarhusNoise, …
-severityLevel: which is basically a number that I will explain for each of the cases, basically is the event value
-Lat and Long: geo coordinates of the event
-Date: when the event occurred
-Now the severity of an event: 
-TrafficJam events -> 0 or 1, meaning: 0 -> no more traffic jam, 1 -> traffic jam. This means that for every traffic jam event that we receive with 1 in the severity value we will receive an event with the same id with the value 0 when there is not anymore any traffic jam.
-PublicParking -> There are still some discussions regarding this particular type of event as the values are inconsistent. However here is a simple explanation that does not reflect the current values, but in order to keep it simple for now we have. 0 -> parking lot almost empty; 1 -> parking lot 50% occupied; 2 -> parking lot almost full
-AarhusPollution -> 0 -> low level of pollution, 1 -> avg. Level of pollution, 2 -> high level of pollution
-AarhusNoise -> not yet implemented but I guess it will be the same as the pollution
-Twitter –> needs to be discussed still.
-*/
+
+///////////////////////////////////////////////////////////////
+// updates a given event to a new severity aka. a height
+// eventId: the event id of the event that was clicked on
+///////////////////////////////////////////////////////////////
+function updateEvent(eventId, severity){
+	var event = eventList[eventId];
+	console.log(severity);
+	//event not found in list - ignore to prevent error
+	if(!event){
+		console.log("event not found "+eventId);
+		return;
+	}
+	var sphere = event.mesh;
+	var string = event.string;
+	string.oldLevel =1;
+
+	var currentHeight = _visualizeSeverity(event.severity);
+	var newHeight = _visualizeSeverity(severity);
+	var diff = newHeight-currentHeight;
+	
+	console.log(newHeight+" - "+currentHeight+" = "+diff);
+	if(diff===0)
+		return;
+
+	var radius = sphere.geometry.boundingSphere.radius;
+
+	var startY = sphere.position.y;
+
+	var easing = TWEEN.Easing.Quartic.InOut;
+	var startTween = new TWEEN.Tween({yPos:1} )
+		.to( { yPos: diff }, 2000 )
+		.easing( easing )
+		.onComplete(function(){
+			console.log("complete");
+			sphere.geometry.computeBoundingSphere();
+			sphere.oldLevel=0;
+			
+			var endY = sphere.position.y-radius;
+			var diff = Math.abs(endY)-Math.abs(startY);
+			var scale = diff/startY+1;
+			string.scale.y=scale;
+			string.translateY(diff/2);
+
+
+		})
+		.onUpdate(function(){
+			var level = this.yPos - sphere.oldLevel;
+			sphere.translateY(level);
+			sphere.oldLevel = this.yPos;
+			//string.translateY(level);
+
+
+
+		});
+	startTween.start();
+
+	event.severity=severity;
+}
+
+
+//function _getBounceTween()
+
+
+///////////////////////////////////////////////////////////////
+// Helper method to calculate the height of the event, based on severity
+// Returns the calculated height
+// severity: {0,1,2}
+///////////////////////////////////////////////////////////////
+
+function _visualizeSeverity(severity){
+	var top = 300;
+	switch(severity){
+		case 0:
+			top = 100;
+			break;
+		case 1:
+			top = 250;
+			break;
+		case 2:
+			top = 400;
+			break;
+		default: 
+			top = 300;
+	}
+
+	return top;
+}
