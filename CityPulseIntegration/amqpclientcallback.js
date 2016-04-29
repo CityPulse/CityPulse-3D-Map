@@ -38,7 +38,8 @@ function consumer(conn) {
                     		triple.object.toString() == "http://purl.oclc.org/NET/UNIS/sao/ec#TrafficJam" || 
 							triple.object.toString() == "http://purl.oclc.org/NET/UNIS/sao/ec#PublicParking" ||
 							triple.object.toString() == "http://purl.oclc.org/NET/UNIS/sao/ec#AarhusPollution" ||
-							triple.object.toString() == "http://purl.oclc.org/NET/UNIS/sao/ec#AarhusNoiseLevel") {
+							triple.object.toString() == "http://purl.oclc.org/NET/UNIS/sao/ec#AarhusNoiseLevel" ||
+							triple.object.toString() == "http://purl.oclc.org/NET/UNIS/sao/ec#Twitter.Aarhus") {
                             toSendToMap = true;
                     	}
                 	}
