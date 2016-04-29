@@ -68,7 +68,6 @@ function createBuildingModels(data)
     if(maxLen===0){
         maxLen=1;
     }
-
     $.each(data,function(i, item)
     {   
         
@@ -224,73 +223,6 @@ function createRoadModels(data){
             
         }
 
-
-        // $.each(item.geometry.coordinates, function(k, coordinate){
-
-            
-        //     var utmResult= converter.toUtm({coord: [coordinate[0], coordinate[1]]});
-
-        //     var vertex = new THREE.Vector3(utmResult.coord.x,utmResult.coord.y,0);
-        //     vertex.x -= fCenterX;
-        //     vertex.y = vertex.y-fCenterY;
-        //     if(vertex.z<0.2)
-        //         vertex.z = 0.2;
-        //     //to make sure that roads do not go outside the plane.
-        //     //the plane is calculated on the basis of building position
-        //     var boundaryX = planeX/2;
-        //     var boundaryY = planeY/2;
-        //     if(Math.abs(vertex.x)<boundaryX && Math.abs(vertex.y)<boundaryY){
-        //         roadGeometry.vertices.push(vertex); 
-        //     }
-            
-
-        // });
-        //var col = '#'+Math.floor(Math.random()*16777215).toString(16);
-        //var material = new THREE.LineBasicMaterial({color: col, linewidth:2});
-
-        /*roadGeometry.computeVertexNormals();
-        var roadLine = new THREE.Line(roadGeometry, material);
-        
-        
-        roadLine.rotation.x += -3.1415*0.5;
-        roadLine.updateMatrix();*/
-        
-        /*var match = false;
-        
-        $.each(roadMeshes, function(i, mesh){
-            
-            var lineStart = roadLine.geometry.vertices[0];
-            var lineVerticeLen = roadLine.geometry.vertices.length-1;
-            var lineEnd = roadLine.geometry.vertices[lineVerticeLen];
-
-            var meshGeo = mesh.geometry;
-            var meshStart = meshGeo.vertices[0];
-            
-            var meshVerticeLen = meshGeo.vertices.length-1;
-            var meshEnd = meshGeo.vertices[meshVerticeLen];
-            
-
-            if(lineStart.equals(meshEnd)){
-                for(var ii=0;ii<roadLine.geometry.vertices.length; ii++){
-                    mesh.geometry.vertices.push(roadLine.geometry.vertices[ii]);
-                }
-
-                match=true;
-            }else if(lineEnd.equals(meshStart)){
-                for(var ii=0;ii<mesh.geometry.vertices.length; ii++){
-                    roadLine.geometry.vertices.push(mesh.geometry.vertices[ii]);
-                }
-
-                roadMeshes[i] = roadLine;
-                match=true;
-            }
-
-        });
-        
-        if(!match)
-            roadMeshes.push(roadLine);
-
-        */
     });
 
     roadGeometry.computeVertexNormals();

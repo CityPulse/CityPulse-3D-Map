@@ -53,7 +53,7 @@
 			<li><a id='ry' name="Ry City" href="#4">Ry</a></li> 
 		    </ul>
 		</div>
-		<!--<input type="button" value="add event" id='eventAdd'>-->
+		<input type="button" value="add event" id='eventAdd'>
 
 		<input type="button" data-jq-dropdown="#jq-dropdown-2" value="Choose data source" id='dataSourceChooser'>
 		<div id="jq-dropdown-2" class="jq-dropdown jq-dropdown-tip jq-dropdown-anchor-right dropdown-data">
@@ -173,7 +173,7 @@
 					addTestEvent();
 				});
 				//TODO: remove after test
-				//populateMap("cph");
+				populateMap("cph");
 				//return;
 				//end test
 
@@ -487,15 +487,17 @@
 	            	var intersects = raycaster.intersectObjects( scene.children );
             		for ( var i = 0; i < intersects.length; i++ ) 
 					{
-						console.log(intersects[i].object.name);
+						console.log(intersects[i].object);
 						if(intersects[i].object.name.startsWith("buildings") && intersects[i].face.readingId !== selectedObject){
 							selectedObject = intersects[i].face.readingId; // Assign new selected object							
 							break;
 						}else if(intersects[i].object.name.startsWith("event")){
 		            		var eventId = intersects[i].object.eventId;
-		            		showEventText(eventId);
+		            		var serverity = Math.floor(Math.random() * 3);
+		            		updateEvent(eventId, serverity);
+		            		//showEventText(eventId);
 		            		//removeEvent(eventId);
-		            		demoEventHack();
+		            		//demoEventHack();
 		            		break;
 						}else if(intersects[i].object.name.startsWith("text")){
 							removeEventTexts();
@@ -595,7 +597,7 @@
 					
 					showSpinner(false);
 					addTestEvents();
-					//return;
+					return;
 					
 					getTrees();
 					getWater();
