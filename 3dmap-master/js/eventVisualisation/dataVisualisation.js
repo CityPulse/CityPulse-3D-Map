@@ -446,7 +446,7 @@ function updateEvent(eventId, severity){
 			var diff = Math.abs(endY)-Math.abs(startY);
 			var scale = diff/startY+1;
 			string.scale.y=scale;
-			string.translateY(diff/2);
+			string.translateY(-diff/2);
 
 
 		})
@@ -454,9 +454,7 @@ function updateEvent(eventId, severity){
 			var level = this.yPos - sphere.oldLevel;
 			sphere.translateY(level);
 			sphere.oldLevel = this.yPos;
-			//string.translateY(level);
-
-
+			string.translateY(level);
 
 		});
 	startTween.start();
