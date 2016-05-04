@@ -208,7 +208,7 @@ function showEventByCoords(coordinates, text,id, type, severity){
 ///////////////////////////////////////////////////////////////
 // Show a sphere to denote an event at a given coordinate with explanation
 // coordinate:  {x:347019,y:6173507} form
-// text: text to be shown when event is clicked
+// text: text to be shown when event is clicked. If undefined, text is set based on type
 // id: eventId gotten from event
 // type: PublicParking(0), TrafficJam(1), AarhusPollution(2), AarhusNoise(3)
 // severity: {0,1,2}
@@ -316,11 +316,35 @@ function showEvent(coordinates, text,id, type, severity){
 	startTween.chain(bounceTween);
 	
 	startTween.start();
-
+	//if no specified text is specified, get it from the type
+	if(text===undefined){
+		text = _getTextFromEventType(type);
+	}
 	//add event to list, so it is possible to remove it later
 	var event = {mesh:sphere, startTween:startTween, bounceTween:bounceTween, text:text, string:string, severity: severity};
 	eventList[id] = event;
 
+}
+
+
+
+function _getTextFromEventType(type){
+	var ret = "Kom Så De Hviie";
+	switch(type){
+		case "PublicParking":
+			ret = "Public Parking";
+			break;
+		case "TrafficJam":
+			ret = "Traffic Jam";
+			break;
+		case "AarhusPollution":
+			ret = "Pollution";
+			break;
+		case "AarhusNoise":
+			ret = "Noise";
+			break;
+	}
+	return ret;
 }
 
 
@@ -335,7 +359,7 @@ function showEventText(eventId){
 	
 	if(eventId===undefined || event ===undefined)
 		return;
-	
+	console.log(event);
 	
 	//text geometry - how does it look and feel
 	var textGeom = new THREE.TextGeometry( event.text, {
@@ -345,8 +369,8 @@ function showEventText(eventId){
 
 	//y position for all text
 	var textYPos = 600;
-
-	var material = new THREE.MeshNormalMaterial({color: 0x00ff00});
+	var color = event.mesh.material.color;
+	var material = new THREE.MeshBasicMaterial({color: color});
 	var textMesh = new THREE.Mesh( textGeom, material );
 	textMesh.name = "text-"+eventId;
 
@@ -381,11 +405,12 @@ function showEventText(eventId){
     scene.add( textMesh );
     var shownEvent = {event:event,textMesh:textMesh};
     shownTextList.push(shownEvent);
-
+    /* for debugging
     var hex  = 0xff0000;
 	var bbox = new THREE.BoundingBoxHelper( textMesh, hex );
 	bbox.update();
-	//scene.add( bbox );
+	scene.add( bbox );
+	*/
 }
 
 

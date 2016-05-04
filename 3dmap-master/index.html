@@ -495,8 +495,8 @@
 						}else if(intersects[i].object.name.startsWith("event")){
 		            		var eventId = intersects[i].object.eventId;
 		            		var serverity = Math.floor(Math.random() * 3);
-		            		updateEvent(eventId, serverity);
-		            		//showEventText(eventId);
+		            		//updateEvent(eventId, serverity);
+		            		showEventText(eventId);
 		            		//removeEvent(eventId);
 		            		//demoEventHack();
 		            		break;
@@ -577,7 +577,7 @@
 				var type = types[Math.floor(Math.random() * 4)];
 
 				var serverity = Math.floor(Math.random() * 3);
-				showEvent(planePos, "Cheese eating surrender monkeys",id, type, serverity);
+				showEvent(planePos, undefined ,id, type, serverity);
 				
 
 				// type: PublicParking(0), TrafficJam(1), AarhusPollution(2), AarhusNoise(3)
