@@ -486,13 +486,11 @@ function updateEvent(eventId, severity){
 	var diff = newHeight-currentHeight;
 	
 	console.log(newHeight+" - "+currentHeight+" = "+diff);
-	if(diff===0){
-		console.log("no height diff");
+	if(diff===0)
 		return;
-	}
 
 	var radius = sphere.geometry.boundingSphere.radius;
-	console.log("radius: "+radius);
+
 	var startY = sphere.position.y;
 
 	var easing = TWEEN.Easing.Quartic.InOut;
@@ -500,30 +498,23 @@ function updateEvent(eventId, severity){
 		.to( { yPos: diff }, 2000 )
 		.easing( easing )
 		.onComplete(function(){
-			scene.updateMatrixWorld();
 			console.log("complete");
 			sphere.geometry.computeBoundingSphere();
 			sphere.oldLevel=0;
-			console.log(sphere);
 			
-			var endY = sphere.position.y;
-			//var endY = sphere.position.y;
+			var endY = sphere.position.y-radius;
 			var diff = Math.abs(endY)-Math.abs(startY);
-
 			var scale = diff/startY+1;
-			console.log("scale: "+scale);
 			string.scale.y=scale;
-			string.translateY(-scale/2);
+			string.translateY(-diff/2);
+
 
 		})
 		.onUpdate(function(){
 			var level = this.yPos - sphere.oldLevel;
 			sphere.translateY(level);
 			sphere.oldLevel = this.yPos;
-			//string.scale.y=1+level;
 			string.translateY(level);
-
-
 
 		});
 	startTween.start();

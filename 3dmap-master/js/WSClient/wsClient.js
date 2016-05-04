@@ -1,6 +1,7 @@
 var connection = null;
 var subscriptions = new Array();
 var clientId;
+var eventIds = new Array();
 
 //var waitingForResponse = false;
 
@@ -60,8 +61,16 @@ function setupSocket() {
         if(msg.type != null && msg.type == "setup") {
             clientId = msg.id;
         } else {
-            console.log("asd");
-            showEventByCoords({lat:msg.lat, lng:msg.long}, "loool", msg.id, msg.eventType, msg.severityLevel);
+            if($.inArray(msg.eventId, eventIds) == -1) {
+                eventIds.push(msg.eventId);
+                showEventByCoords({lat:msg.lat, lng:msg.long}, "loool", msg.eventId, msg.eventType, msg.severityLevel);
+            }
+            else {
+                if(msg.severityLevel != -1)
+                    updateEvent(msg.eventId, msg.severityLevel);
+                else
+                    removeEvent(msg.eventId);
+            }
         }
     	// switch(msg.type) {
     	// 	case "ENERGY":
