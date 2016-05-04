@@ -123,6 +123,66 @@ function demoEventHack(){
 }
 
 
+
+///////////////////////////////////////////////////////////////
+// find the correct building id based on lat/long coordinates
+// return int for id or null if no building is found
+// coordinate: {lat:54.21, lng:12.35} form
+///////////////////////////////////////////////////////////////
+
+function findBuildingByCoords(coordinates){
+	var utmResult= converter.toUtm({coord: [coordinates.lng, coordinates.lat]});
+	var fCenterX = minX + (maxX-minX)*0.5;
+    var fCenterY = minY + (maxY-minY)*0.5;
+
+    var coordX = utmResult.coord.x-=fCenterX;
+    var coordY = utmResult.coord.y -=fCenterY;
+
+    console.log("utm: "+utmResult.coord.y +"  "+fCenterY);
+
+	var origin = new THREE.Vector3(coordX,coordY,0);
+	var direction = new THREE.Vector3(0,1,0);
+
+	var raycaster = new THREE.Raycaster();
+
+	raycaster.set(origin,direction);
+
+	var intersects = raycaster.intersectObjects( scene.children );
+	
+	var buildingId = null;
+
+	for ( var i = 0; i < intersects.length; i++ ) 
+	{
+		console.log(intersects[i]);
+		var readingId = intersects[i].face.readingId;
+		if(readingId!==undefined){
+			buildingId = readingId;
+		}
+	}
+
+
+	
+	/* For debugging only
+	var geometry = new THREE.CylinderGeometry(2,2,6000,8);
+
+	var m = new THREE.Matrix4();
+        
+    m.makeTranslation(utmResult.coord.x, 0, -utmResult.coord.y);
+    //m.makeTranslation(coordX, 0,coordY);
+    
+    geometry.applyMatrix(m);
+
+	var material = new THREE.MeshBasicMaterial({color:0xf56400});
+	var cylinder = new THREE.Mesh(geometry, material);
+	scene.add(cylinder);
+	*/
+	return buildingId;
+}
+
+
+
+
+
 ///////////////////////////////////////////////////////////////
 // Show a sphere to denote an event at a given coordinate with explanation
 // A wrapper for showEvent
@@ -426,11 +486,13 @@ function updateEvent(eventId, severity){
 	var diff = newHeight-currentHeight;
 	
 	console.log(newHeight+" - "+currentHeight+" = "+diff);
-	if(diff===0)
+	if(diff===0){
+		console.log("no height diff");
 		return;
+	}
 
 	var radius = sphere.geometry.boundingSphere.radius;
-
+	console.log("radius: "+radius);
 	var startY = sphere.position.y;
 
 	var easing = TWEEN.Easing.Quartic.InOut;
@@ -438,23 +500,28 @@ function updateEvent(eventId, severity){
 		.to( { yPos: diff }, 2000 )
 		.easing( easing )
 		.onComplete(function(){
+			scene.updateMatrixWorld();
 			console.log("complete");
 			sphere.geometry.computeBoundingSphere();
 			sphere.oldLevel=0;
+			console.log(sphere);
 			
-			var endY = sphere.position.y-radius;
+			var endY = sphere.position.y;
+			//var endY = sphere.position.y;
 			var diff = Math.abs(endY)-Math.abs(startY);
-			var scale = diff/startY+1;
-			string.scale.y=scale;
-			string.translateY(diff/2);
 
+			var scale = diff/startY+1;
+			console.log("scale: "+scale);
+			string.scale.y=scale;
+			string.translateY(-scale/2);
 
 		})
 		.onUpdate(function(){
 			var level = this.yPos - sphere.oldLevel;
 			sphere.translateY(level);
 			sphere.oldLevel = this.yPos;
-			//string.translateY(level);
+			//string.scale.y=1+level;
+			string.translateY(level);
 
 
 
@@ -465,7 +532,6 @@ function updateEvent(eventId, severity){
 }
 
 
-//function _getBounceTween()
 
 
 ///////////////////////////////////////////////////////////////

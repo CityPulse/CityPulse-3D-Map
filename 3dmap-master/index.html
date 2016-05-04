@@ -173,7 +173,7 @@
 					addTestEvent();
 				});
 				//TODO: remove after test
-				populateMap("cph");
+				//populateMap("8k");
 				//return;
 				//end test
 
@@ -474,6 +474,7 @@
             	
             	$(document).dblclick(function(event) {
 
+            		
             		if($("#infoBox").is(':visible')){
             			$("#infoBox").css('visibility', 'hidden');
             		}
@@ -487,7 +488,7 @@
 	            	var intersects = raycaster.intersectObjects( scene.children );
             		for ( var i = 0; i < intersects.length; i++ ) 
 					{
-						console.log(intersects[i].object);
+						//console.log(intersects[i].object);
 						if(intersects[i].object.name.startsWith("buildings") && intersects[i].face.readingId !== selectedObject){
 							selectedObject = intersects[i].face.readingId; // Assign new selected object							
 							break;
@@ -515,7 +516,7 @@
 		            }
 						
 				});
-
+				
             }
 
 
@@ -568,6 +569,12 @@
 				var planePos = {x:x,y:y};
 				//console.log(planePos);
 				var type = Math.floor(Math.random() * 4);
+				var types = [];
+				types.push("PublicParking");
+				types.push("TrafficJam");
+				types.push("AarhusPollution");
+				types.push("AarhusNoise");
+				var type = types[Math.floor(Math.random() * 4)];
 
 				var serverity = Math.floor(Math.random() * 3);
 				showEvent(planePos, "Cheese eating surrender monkeys",id, type, serverity);
