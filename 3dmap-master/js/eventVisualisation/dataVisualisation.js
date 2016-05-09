@@ -361,6 +361,11 @@ function showEventText(eventId){
 		return;
 	console.log(event);
 	
+
+	$('#infoBox').html("Event type: " + event.text + "<br> "+" Severity: "+event.severity);
+	$("#infoBox").css('visibility', 'visible');
+
+	/*
 	//text geometry - how does it look and feel
 	var textGeom = new THREE.TextGeometry( event.text, {
 	    font: "helvetiker", // Must be lowercase!
