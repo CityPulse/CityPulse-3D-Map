@@ -480,8 +480,7 @@
             		}
             		removeEventTexts();
 
-            		//not relevant as we add more WS connections$
-            		//if(!buildingEnergyConnection) return;
+            		
             		raycaster.setFromCamera( mouse, camera );
 
 					// calculate objects intersecting the picking ray
@@ -508,7 +507,7 @@
 		            }
 
             		
-		            if(selectedObject !== null && buildingEnergyConnection!==null) {
+		            if(selectedObject !== null && connection!==null) {
 		            	//waitingForResponse = true;
 						buildingEnergyConnection.send(JSON.stringify({type: "HISTORYREQ", data: {value : selectedObject}}));
 						$('#infoBox').html("Now showing data for building: " + selectedObject + "\n");
