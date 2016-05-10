@@ -360,11 +360,12 @@ function showEventText(eventId){
 	if(eventId===undefined || event ===undefined)
 		return;
 	console.log(event);
-	
+	var text = event.text+": severity: "+event.severity;
 	//text geometry - how does it look and feel
-	var textGeom = new THREE.TextGeometry( event.text, {
+	var textGeom = new THREE.TextGeometry( text, {
 	    font: "helvetiker", // Must be lowercase!
-	    size: 50
+	    size: 45,
+	    height:20
 	});
 
 	//y position for all text
