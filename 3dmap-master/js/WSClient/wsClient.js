@@ -56,19 +56,17 @@ function setupSocket() {
     // most important part - incoming messages
     connection.onmessage = function (message) {
     	var msg = JSON.parse(message.data);
-        console.log(msg);
 
         if(msg.type != null && msg.type == "setup") {
             clientId = msg.id;
         } else {
-            if($.inArray(msg.eventId, eventIds) == -1) {
+            if($.inArray(msg.eventId, eventIds) == -1 && msg.severityLevel != -1) { // If event is new and not to be deleted
                 eventIds.push(msg.eventId);
                 showEventByCoords({lat:msg.lat, lng:msg.long}, "loool", msg.eventId, msg.eventType, msg.severityLevel);
             }
-            else {
-                if(msg.severityLevel != -1)
+            else if($.inArray(msg.eventId, eventIds) != -1 && msg.severityLevel != -1) { // If event is not new and not to be deleted
                     updateEvent(msg.eventId, msg.severityLevel);
-                else
+            } else if($.inArray(msg.eventId, eventIds) != -1 && msg.severityLevel == -1) { // If event is not new and to be deleted
                     removeEvent(msg.eventId);
             }
         }

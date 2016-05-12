@@ -12,6 +12,8 @@ var WebSocketServer = require('websocket').server;
 var webSocketsServerPort = 8001;
 var clients = new Array();
 
+var secondsToRemoveEvents = 120
+
 // Test Variables
 var testing = true;
 //END VARIABLES
@@ -72,39 +74,52 @@ function consumer(conn) {
 								console.log('--------EVENT END------------');
 							}
 							
-							// Send data to client
-							clients.forEach(function(client){
-								console.log('-------- CLIENT: '+client.id+' ------------');	
-								if(client.conn != undefined && client.conn.connected) {
-									if(client.subscriptions.indexOf(eventType) >= 0 && testForLocation(client, lat, long)) {
-
-										client.conn.sendUTF(JSON.stringify({
-											eventId:eventId, 
-											eventType:eventType,
-											severityLevel: severityLevel,
-											lat: lat,
-											long: long,
-											date: date
-										}));
-									} else {
-										if(client.subscriptions.indexOf(eventType) < 0) {
-											console.log("Message not sent to client because client is not subscribing to that type of event.");
-										}
-										if(!testForLocation(client, lat, long)) {
-											console.log("Message not sent to client because event is out of area.");	
-										}
-									}
-								} else {
-									console.log("Message not sent to client because connection problems.");
-								}
-								console.log('--------------------------------------------');	
-							});
+							var numberOfReceivers = sendToClients(eventId, eventType, severityLevel, lat, long, date);
+							
+							if(numberOfReceivers > 0) {
+								setTimeout(function() {
+									sendToClients(eventId, eventType, -1, lat, long, date);
+									console.log("Deleting events again....");
+								}, secondsToRemoveEvents*1000);
+							}
 						}
 					}
             	});
   			}
 		});
   	}
+}
+
+function sendToClients(eventId, eventType, severityLevel, lat, long, date) {
+// Send data to client
+	var count = 0;
+	clients.forEach(function(client){
+		console.log('-------- CLIENT: '+client.id+' ------------');	
+		if(client.conn != undefined && client.conn.connected) {
+			if(client.subscriptions.indexOf(eventType) >= 0 && testForLocation(client, lat, long)) {
+
+				client.conn.sendUTF(JSON.stringify({
+					eventId:eventId, 
+					eventType:eventType,
+					severityLevel: severityLevel,
+					lat: lat,
+					long: long,
+					date: date
+				}));
+				count += 1;
+			} else {
+				if(client.subscriptions.indexOf(eventType) < 0) {
+					console.log("Message not sent to client because client is not subscribing to that type of event.");
+				}
+				if(!testForLocation(client, lat, long)) {
+					console.log("Message not sent to client because event is out of area.");	
+				}
+			}
+		} else {
+			console.log("Message not sent to client because connection problems.");
+		}
+		console.log('--------------------------------------------');	
+	});
 }
 
 function setupWSServer() {
@@ -204,27 +219,6 @@ function init() {
     consumer(conn);
 	});
 
-	if(testing) {
-		setInterval(function() {
-			if(clients.length == 0) return;
-			clients.forEach(function(client){
-				if(client.subscriptions.length > 0) {
-
-					var lat = Math.random()*(client.maxX-client.minX)+client.minX;
-					var long = Math.random()*(client.maxY-client.minY)+client.minY;
-					client.conn.sendUTF(JSON.stringify({
-						eventId:Math.random(), 
-						eventType:client.subscriptions[0],
-						severityLevel: 2,
-						lat: lat,
-						long: long,
-						date: 0
-					}));
-					console.log("Sending message...");
-				}
-			});
-		}, 10000);
-	}
 }
 
 function testForLocation(client, lat, long) {

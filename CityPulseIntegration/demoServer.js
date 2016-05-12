@@ -4,6 +4,8 @@ var WebSocketServer = require('websocket').server;
 var webSocketsServerPort = 8001;
 var clients = new Array();
 
+var secondsToRemoveEvents = 120
+
 function setupWSServer() {
 	// Set up WebSocket Server
 	
@@ -130,7 +132,7 @@ function init() {
 						long: long,
 						date: 0
 					}));
-					}, 20*1000);
+					}, secondsToRemoveEvents*1000);
 				}, 25*1000);
 				console.log("Sending message...");
 			}

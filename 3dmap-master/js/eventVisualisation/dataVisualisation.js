@@ -265,7 +265,6 @@ function showEvent(coordinates, text,id, type, severity){
 	strings.push(string);
 	addMeshes(strings,"string");
 
-	
 
 	//setup the tweens
 	var easing = TWEEN.Easing.Quartic.InOut;
@@ -497,7 +496,6 @@ function removeAllEvents(){
 ///////////////////////////////////////////////////////////////
 function updateEvent(eventId, severity){
 	var event = eventList[eventId];
-	console.log(severity);
 	//event not found in list - ignore to prevent error
 	if(!event){
 		console.log("event not found "+eventId);
@@ -529,10 +527,13 @@ function updateEvent(eventId, severity){
 			sphere.oldLevel=0;
 			
 			var endY = sphere.position.y-radius;
-			var diff = Math.abs(endY)-Math.abs(startY);
+			var _diff = Math.abs(endY)-Math.abs(startY);
 			var scale = diff/startY+1;
+			console.log("DIFF: " + _diff);
+			console.log("SCALE: " + scale);
+
 			string.scale.y=scale;
-			string.translateY(-diff/2);
+			string.translateY(-_diff/2);
 
 
 		})
