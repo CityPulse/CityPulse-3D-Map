@@ -73,8 +73,8 @@ function createBuildingModels(data)
 
     $.each(data,function(i, item)
     {   
-
-        geoKey = item.properties.description.split('=')[1];
+        if(item.properties.description!==undefined)
+            geoKey = item.properties.description.split('=')[1];
         if(geometryList[geoKey]==undefined){
 
             geometryList[geoKey] = new THREE.Geometry();
