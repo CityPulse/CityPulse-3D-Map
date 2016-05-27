@@ -120,6 +120,7 @@ function sendToClients(eventId, eventType, severityLevel, lat, long, date) {
 		}
 		console.log('--------------------------------------------');	
 	});
+	return count;
 }
 
 function setupWSServer() {
@@ -218,7 +219,6 @@ function init() {
 		bail(err);
     consumer(conn);
 	});
-
 }
 
 function testForLocation(client, lat, long) {
