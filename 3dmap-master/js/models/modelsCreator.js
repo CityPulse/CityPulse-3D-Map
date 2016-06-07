@@ -264,6 +264,7 @@ function createWaterModels(data){
             //console.log(item);
         }
         
+        
         var water = null;
 
         if(item.geometry.type==='GeometryCollection'){
@@ -294,16 +295,20 @@ function createWaterModels(data){
         }        
     });
     
-    var outerMesh = new THREE.Mesh(outerGeometry);
-    var outer_bsp = new ThreeBSP(outerMesh);
+    var outerMesh = new THREE.Mesh(outerGeometry,material);
+    if(innerGeometry.vertices.length>0){
+        var outer_bsp = new ThreeBSP(outerMesh);
+        
+        var innerMesh = new THREE.Mesh(innerGeometry);
+        var inner_bsp = new ThreeBSP(innerMesh);
+        console.log("before");
+        var subtract_bsp = outer_bsp.subtract(inner_bsp);
+        console.log('after');
+        var waterMesh = subtract_bsp.toMesh(material);
+    }else{
+        var waterMesh = outerMesh;
+    }
 
-    var innerMesh = new THREE.Mesh(innerGeometry);
-    var inner_bsp = new ThreeBSP(innerMesh);
-
-    var subtract_bsp = outer_bsp.subtract(inner_bsp);
-    
-    var waterMesh = subtract_bsp.toMesh(material);
-    
     waterMeshes.push(waterMesh);    
     addMeshes(waterMeshes, "water");
     
