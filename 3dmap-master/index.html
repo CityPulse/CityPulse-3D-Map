@@ -20,7 +20,7 @@
 		<script src='js/models/modelsCreator.js'></script>
 		<script src='js/models/ThreeCSG.js'></script>
 		<script src='js/eventVisualisation/dataVisualisation.js'></script>
-		<script src="http://mrdoob.github.com/three.js/examples/fonts/helvetiker_regular.typeface.js"></script>
+		<script src="js/fonts/helvetiker_regular.typeface.js"></script>
 
 	</head>
 	<body>
@@ -542,12 +542,12 @@
 				roadUrl = "data/kml/"+city+"/roads.kml";
 				treeUrl = "data/kml/"+city+"/trees.kml";
 				waterUrl = "data/kml/"+city+"/water.kml";
+
 				//waterUrl = "data/kml/"+city+"/waterTest.kml";
 				
-
-				getBuildings();
-				//for testing the events
 				
+				getBuildings();
+				//for testing the all sorts
 				//testRun();
 
 			}
@@ -601,11 +601,11 @@
 					setPlane();
 
 					
-					showSpinner(false);
-					addTestEvents();
-					return;
+					//showSpinner(false);
+					//addTestEvents();
+					//return;
 					
-					getTrees();
+					//getTrees();
 					getWater();
 					getRoads();
 					
@@ -613,7 +613,7 @@
 					noOfBuildings = data.length;
 
 					var maxLen = Math.round(data.length/noOfBuildingGeoSlice)===0?1:Math.round(data.length/noOfBuildingGeoSlice);
-					createBuildingModels(data);
+					//createBuildingModels(data);
 					showSpinner(false);
 					
 				});
