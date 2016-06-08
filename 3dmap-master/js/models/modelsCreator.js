@@ -16,8 +16,8 @@ function calculatePlaneBounds(data){
         
     });
 
-    planeX = maxX-minX;
-    planeY = maxY-minY;
+    planeX = maxX-minX+750;
+    planeY = maxY-minY+750;
     
       
 }
