@@ -55,6 +55,7 @@ function _calculateConcretePlaneBounds(data){
 }
 
 
+
 // get the building data
 function createBuildingModels(data)
 {
@@ -64,16 +65,20 @@ function createBuildingModels(data)
 
     var geometryList = [];
 
-    var maxLen = Math.round(data.length/noOfBuildingGeoSlice);
-    if(maxLen===0){
-        maxLen=1;
-    }
+    
+    var fCenterX = minX + (maxX-minX)*0.5;
+    var fCenterY = minY + (maxY-minY)*0.5;
+
+    var geoKey = 0;
+
     $.each(data,function(i, item)
     {   
-        
-        var geoKey = Math.floor(i/maxLen);
+        if(item.properties.description!==undefined)
+            geoKey = item.properties.description.split('=')[1];
         if(geometryList[geoKey]==undefined){
+
             geometryList[geoKey] = new THREE.Geometry();
+
         }
 
         var building = null;
@@ -82,32 +87,38 @@ function createBuildingModels(data)
             $.each(item.geometry.geometries, function(k, geometry){
                 building = _createConcreteBuildingModels(geometry.coordinates[0],i);
                 buildingObjects[i] = building;
+
                 geometryList[geoKey].merge(building.geometry, building.matrix);
-                
+ 
             });
         }else{
             
             building = _createConcreteBuildingModels(item.geometry.coordinates[0],i);
             buildingObjects[i] = building;
             geometryList[geoKey].merge(building.geometry, building.matrix);
-            
+
         } 
-        
     });
 
 
     var faceColorMaterial = new THREE.MeshLambertMaterial( { color: originalBuildingColor, vertexColors: THREE.VertexColors } );
+    //var faceColorMaterial = new THREE.MeshBasicMaterial( { color: originalBuildingColor, vertexColors: THREE.VertexColors } );
 
+    var geoColor = parseInt(Math.floor(Math.random()*16777215).toString(16),16);
     for(var o =0; o<geometryList.length; o++){
+        if(debugGridSort){
+            geoColor = parseInt(Math.floor(Math.random()*16777215).toString(16),16);
+            faceColorMaterial = new THREE.MeshBasicMaterial( { color: geoColor, vertexColors: THREE.VertexColors } );    
+        }
+        
         combinedMesh.push(new THREE.Mesh(geometryList[o], faceColorMaterial));
     }
 
-
+    
     addMeshes(combinedMesh, "buildings");
   
     
 }
-
 
 
 
@@ -120,10 +131,10 @@ function _createConcreteBuildingModels(data, buildingId){
     {
         
         var utmResult= converter.toUtm({coord: [itemTwo[0], itemTwo[1]]});
-                    
         if (j==0)
         {
             height=itemTwo[2];
+            
             rectShape.moveTo(utmResult.coord.x, utmResult.coord.y);
         }
         else
@@ -162,11 +173,15 @@ function _createConcreteBuildingModels(data, buildingId){
     building.geometry.computeFaceNormals();
 
 
-    building.rotation.x += -3.1415*0.5;
+    building.rotation.x += -Math.PI*0.5;
     building.updateMatrix();
 
     return building;
 }
+
+
+
+
 
 function _cleanCoordinate(coordinate, roadGeometry) {
     var fCenterX = minX + (maxX-minX)*0.5;
