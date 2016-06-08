@@ -196,6 +196,8 @@ function _cleanCoordinate(coordinate, roadGeometry) {
 }
 
 
+
+
 function createRoadModels(data){
     
     var roadMeshes = [];
@@ -380,8 +382,6 @@ function createTreesModels(data){
         m.makeTranslation(utmResult.coord.x, 0, utmResult.coord.y);
         
         geometry.applyMatrix(m);
-        
-        var cylinder = new THREE.Mesh(geometry, material);
             
         //make sure trees are placed on the plane, not below it    
         geometry.computeBoundingBox();
@@ -393,15 +393,15 @@ function createTreesModels(data){
         }
 
         //Converting the 2D mapping to 3D mapping (shifting z and y coordinates)         
-        for( var k = 0; k < cylinder.geometry.vertices.length; k++ ) 
+        for( var k = 0; k < geometry.vertices.length; k++ ) 
         {
             
-            cylinder.geometry.vertices[k].x -= fCenterX;
-            cylinder.geometry.vertices[k].z = cylinder.geometry.vertices[k].z-fCenterY;
+            geometry.vertices[k].x -= fCenterX;
+            geometry.vertices[k].z = geometry.vertices[k].z-fCenterY;
 
        }
         
-        combinedGeo.merge(cylinder.geometry, cylinder.matrix);
+        combinedGeo.merge(geometry);
 
     });
     
