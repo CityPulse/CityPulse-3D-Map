@@ -61,14 +61,8 @@ function _calculateConcretePlaneBounds(data){
 // get the building data
 function createBuildingModels(data)
 {
-    var combinedMesh = [];
-    
-    
-
+    var combinedMesh = [];    
     var geometryList = [];
-
-    
-    
 
     var geoKey = 0;
 
@@ -203,19 +197,17 @@ function _cleanCoordinate(coordinate, roadGeometry) {
 
 
 function createRoadModels(data){
-    console.log("create roads");
+    
     var roadMeshes = [];
 
 
     var material = new THREE.LineBasicMaterial({color: 0x00ff00, linewidth:2});
     
 
-
-
     var roadGeometry = new THREE.Geometry();
     roadGeometry.dynamic = false;
 
-    console.log("Road file size: " + data.length);
+    //console.log("Road file size: " + data.length);
 
     $.each(data,function(i, item)
     {
@@ -242,7 +234,7 @@ function createRoadModels(data){
     roadLine.rotation.x += -3.1415*0.5;
     roadLine.updateMatrix();
     roadMeshes.push(roadLine);
-    console.log("no roads: "+roadMeshes.length);
+    //console.log("no roads: "+roadMeshes.length);
     addMeshes(roadMeshes, "roads");
 
     
@@ -254,7 +246,6 @@ function createRoadModels(data){
 
 
 function createWaterModels(data){
-    console.log("create water");
     var waterMeshes = [];
 
 
@@ -268,10 +259,6 @@ function createWaterModels(data){
 
     $.each(data,function(i, item)
     {
-        if(i<3){
-            //console.log(item);
-        }
-        
         
         var water = null;
 
@@ -279,8 +266,7 @@ function createWaterModels(data){
             
             $.each(item.geometry.geometries, function(k, geometry){
                 water = _createConcreteWaterModels(geometry.coordinates[0]);
-                water = _placeWaterMesh(water);
-                //console.log(geometry);
+                
                 if(geometry.boundaryType==="innerBoundaryIs"){
                    
                     innerGeometry.merge(water.geometry, water.matrix);
@@ -292,7 +278,6 @@ function createWaterModels(data){
         }else{
             
             water = _createConcreteWaterModels(item.geometry.coordinates[0]);
-            water = _placeWaterMesh(water);
             
             if(item.geometry.boundaryType==="innerBoundaryIs"){
              
@@ -322,15 +307,6 @@ function createWaterModels(data){
 }
 
 
-
-
-function _placeWaterMesh(mesh){
-    //TOOD: move this in _createConcreteWaterModels
-    mesh.geometry.computeFaceNormals();
-    mesh.rotation.x += -3.1415*0.5;
-    mesh.updateMatrix();
-    return mesh;
-}
 
 
 function _createConcreteWaterModels(data){
@@ -368,7 +344,13 @@ function _createConcreteWaterModels(data){
         if(water.geometry.vertices[k].z<0)
             water.geometry.vertices[k].z=0;
 
-   }
+    }
+
+    water.geometry.computeFaceNormals();
+    water.rotation.x += -3.1415*0.5;
+    water.updateMatrix();
+
+
    return water;
 }
 
