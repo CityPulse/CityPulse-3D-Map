@@ -18,6 +18,8 @@ function calculatePlaneBounds(data){
 
     planeX = maxX-minX+750;
     planeY = maxY-minY+750;
+    fCenterX = minX + (maxX-minX)*0.5;
+    fCenterY = minY + (maxY-minY)*0.5;
     
       
 }
@@ -66,8 +68,7 @@ function createBuildingModels(data)
     var geometryList = [];
 
     
-    var fCenterX = minX + (maxX-minX)*0.5;
-    var fCenterY = minY + (maxY-minY)*0.5;
+    
 
     var geoKey = 0;
 
@@ -149,10 +150,6 @@ function _createConcreteBuildingModels(data, buildingId){
     var building = new THREE.Mesh(geometry, material) ;     
     
 
-    var fCenterX = minX + (maxX-minX)*0.5;
-    var fCenterY = minY + (maxY-minY)*0.5;
-
-
     //Converting the 2D mapping to 3D mapping (shifting z and y coordinates)         
     for( var k = 0; k < building.geometry.vertices.length; k++ ) 
     {
@@ -184,8 +181,7 @@ function _createConcreteBuildingModels(data, buildingId){
 
 
 function _cleanCoordinate(coordinate, roadGeometry) {
-    var fCenterX = minX + (maxX-minX)*0.5;
-    var fCenterY = minY + (maxY-minY)*0.5;
+    
 
     var utmResult= converter.toUtm({coord: [coordinate[0], coordinate[1]]});
 
@@ -265,9 +261,6 @@ function createWaterModels(data){
     //var material = new THREE.LineBasicMaterial({color: 0x0000ff, linewidth:2});
     var material = new THREE.MeshLambertMaterial( {color: "rgb(128,128,250)" });
 
-    var fCenterX = minX + (maxX-minX)*0.5;
-    var fCenterY = minY + (maxY-minY)*0.5;
-
     var geometries = new THREE.Geometry();
     var outerGeometry = new THREE.Geometry();
     var innerGeometry = new THREE.Geometry();
@@ -316,9 +309,8 @@ function createWaterModels(data){
         
         var innerMesh = new THREE.Mesh(innerGeometry);
         var inner_bsp = new ThreeBSP(innerMesh);
-        console.log("before");
+        
         var subtract_bsp = outer_bsp.subtract(inner_bsp);
-        console.log('after');
         var waterMesh = subtract_bsp.toMesh(material);
     }else{
         var waterMesh = outerMesh;
@@ -366,11 +358,6 @@ function _createConcreteWaterModels(data){
     
     var water = new THREE.Mesh(geometry) ;     
     
-
-    var fCenterX = minX + (maxX-minX)*0.5;
-    var fCenterY = minY + (maxY-minY)*0.5;
-
-
     //Converting the 2D mapping to 3D mapping (shifting z and y coordinates)         
     for( var k = 0; k < water.geometry.vertices.length; k++ ) 
     {
@@ -396,8 +383,6 @@ function createTreesModels(data){
     
     var material = new THREE.MeshBasicMaterial({color:0x006400});
 
-    var fCenterX = minX + (maxX-minX)*0.5;
-    var fCenterY = minY + (maxY-minY)*0.5;
     var meshes = [];
 
     $.each(data, function(k, item){
@@ -424,10 +409,6 @@ function createTreesModels(data){
             m.makeTranslation(0, -translate, 0);
             geometry.applyMatrix(m);
         }
-
-        var fCenterX = minX + (maxX-minX)*0.5;
-        var fCenterY = minY + (maxY-minY)*0.5;
-
 
         //Converting the 2D mapping to 3D mapping (shifting z and y coordinates)         
         for( var k = 0; k < cylinder.geometry.vertices.length; k++ ) 

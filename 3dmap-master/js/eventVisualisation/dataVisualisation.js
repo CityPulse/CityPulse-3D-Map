@@ -132,8 +132,7 @@ function demoEventHack(){
 
 function findBuildingByCoords(coordinates){
 	var utmResult= converter.toUtm({coord: [coordinates.lng, coordinates.lat]});
-	var fCenterX = minX + (maxX-minX)*0.5;
-    var fCenterY = minY + (maxY-minY)*0.5;
+	
 
     var coordX = utmResult.coord.x-=fCenterX;
     var coordY = utmResult.coord.y -=fCenterY;
@@ -195,8 +194,8 @@ function findBuildingByCoords(coordinates){
 
 function showEventByCoords(coordinates, text,id, type, severity){
 	var utmResult= converter.toUtm({coord: [coordinates.lat, coordinates.lng]});
-	var fCenterX = minX + (maxX-minX)*0.5;
-    var fCenterY = minY + (maxY-minY)*0.5;
+	//var fCenterX = minX + (maxX-minX)*0.5;
+    //var fCenterY = minY + (maxY-minY)*0.5;
 
     var coordX = utmResult.coord.x-=fCenterX;
     var coordY = utmResult.coord.y -=fCenterY;
