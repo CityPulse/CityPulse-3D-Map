@@ -3,7 +3,7 @@ var queueName = '3dmapqueue';
 var exchange = 'events';
 var routingKey = '#';
 var N3 = require('n3');
-var amqpEndpoint = 'amqp://guest:guest@131.227.92.55:8007';
+var amqpEndpoint = 'amqp://xpto:xpto@127.0.0.1:8007';
 //END VARIABLES
  
 
