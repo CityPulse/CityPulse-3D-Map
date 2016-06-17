@@ -7,6 +7,7 @@ This application has been conceptualised and developed to be modular, meaning th
 The current elements the map renders are buildings, roads, waterfronts and trees. When initialising the visualisation of a city, the application takes a KML file for each of the map elements as input for visualisation. This means that if the user wants to add new models of cities, he/she needs to provide those data in form of KML file (you can browse under the folder “data/kml/” for the existing models).
 
 #Integration with CityPulse
+
 In order to have access to the real-time events information for the city of Aarhus the 3D map is connecting to the CityPulse Message Bus, to which it subscribes to messages of type “event”. This is done in the amqpclientcallback.js file under the “CityPulseIntegration” folder. After subscribing to this type of events the message bus client will be listening to incoming messages from the message bus. 
 Moreover, and in order to be modular this component is providing a websocket connection to where the 3D map is connecting to in order to receive the updated information and render it. 
 
@@ -18,7 +19,6 @@ Moreover, and in order to be modular this component is providing a websocket con
         amqplib: https://www.npmjs.com/package/amqplib 
         n3: https://www.npmjs.com/package/n3   
 
-
 #Running the application
 
     deploy the 3D map into a web server container
@@ -26,4 +26,7 @@ Moreover, and in order to be modular this component is providing a websocket con
         node amqpclientcallback.js
     Open your browser and browse e.g. http://localhost/3dmap-master/3dmap-master/index.html
 
+
+
+  
 
