@@ -15,9 +15,9 @@ Moreover, and in order to be modular this component is providing a websocket con
 
     Web server container e.g. Apache, JBoss, etc
     Nodejs installed with the following APIs:
-        Websocket: <https://www.npmjs.com/package/websocket>
-        amqplib: <https://www.npmjs.com/package/amqplib> 
-        n3: <https://www.npmjs.com/package/n3>   
+        Websocket: https://www.npmjs.com/package/websocket
+        amqplib: https://www.npmjs.com/package/amqplib 
+        n3: https://www.npmjs.com/package/n3   
 
 #Running the application
 
@@ -29,7 +29,10 @@ Moreover, and in order to be modular this component is providing a websocket con
 #Contributors
 
 The 3DMap has been developed as part of the EU project CityPulse. The Alexandra Institute has provided the main contributions for this application.
-The Alexandra Institute: <https://github.com/organizations/alexandrainst/settings/profile>
+
+CityPulse: <http://www.ict-citypulse.eu/>
+
+The Alexandra Institute: <http://alexandra.dk>
 
   
 
