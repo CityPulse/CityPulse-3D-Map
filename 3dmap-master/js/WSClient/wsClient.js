@@ -38,13 +38,20 @@ function updateDatasources(name, minX, minY, maxX, maxY){
 ///////////////////////////////////////////////////////////////
 // WEBSOCKET PART
 ///////////////////////////////////////////////////////////////
+var delayedEventTime = 1000;
+function handleDelayedEvent() {
+    handleMessage(eventQueue.pop());
+    if(eventQueue.length > 0)
+        setTimeout(handleDelayedEvent, delayedEventTime);
+}
 
 var eventQueue = new Array();
 window.onblur = function() { window.blurred = true; };
 window.onfocus = function() { 
-    while(eventQueue.length > 0) {
-        handleMessage(eventQueue.pop());
-    }
+    if(eventQueue.length > 0)
+    setTimeout(function() {
+        setTimeout(handleDelayedEvent, delayedEventTime);
+    }, delayedEventTime);
     window.blurred = false; 
 };
 

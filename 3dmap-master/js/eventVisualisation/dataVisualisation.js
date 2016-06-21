@@ -242,6 +242,7 @@ function showEvent(coordinates, text,id, type, severity){
 	material.transparent = true;
 	material.opacity = 0.60;
 	var sphere = new THREE.Mesh( geometry, material );
+	sphere.castShadow = false;
 	sphere.oldLevel=0;
 	sphere.name = "event-";
 	sphere.eventId = id;
@@ -257,6 +258,7 @@ function showEvent(coordinates, text,id, type, severity){
 	var stringLength = top-2*radius;
 	var stringGeometry = new THREE.CylinderGeometry(radius,1,stringLength,8);
     var string = new THREE.Mesh(stringGeometry, material);
+    string.castShadow = false;
 	string.translateX(coordinates.x);
 	string.translateZ(coordinates.y);
 	string.translateY(-(stringLength/2+2*radius));

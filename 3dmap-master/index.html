@@ -127,6 +127,7 @@
 
 			var planeX = 10000;
 			var planeY = 10000;
+			var fCenterX, fCenterY;
 			var minX = 10000000;
 			var minY = 10000000;
 			var maxX = -100000.0;
@@ -374,7 +375,7 @@
 		    function addMeshes(meshes, prefix){
 		    	prefix += "-";
 		    	var shadowBool = false;
-		    	if(prefix.indexOf("buildings")>-1 || prefix.startsWith("event")){
+		    	if(prefix.indexOf("buildings")>-1){
 
 		    		shadowBool = true;
 		    	}
