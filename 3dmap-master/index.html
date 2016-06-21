@@ -105,6 +105,8 @@
 	
 		<script>
 			"use strict";
+			//Set this to true to see coloring of buildings based on their geometry
+			var debugGridSort = true;
 
 			var buildingUrl = "";
 			var roadUrl = "";
@@ -135,7 +137,7 @@
 			var cityName = "";
 
 			var noOfBuildings = null;
-			var noOfBuildingGeoSlice = 150;
+			var noOfBuildingGeoSlice = 30;
 
 			var originalBuildingColor = 0x00ffff;
 			
@@ -172,11 +174,7 @@
 				$("#eventAdd").on('click',function(e){
 					addTestEvent();
 				});
-				//TODO: remove after test
-				//populateMap("8k");
-				//return;
-				//end test
-
+				
 				//handler for city select
 				$(".dropdown-city > ul > li > a").on('click', function(e){
 
@@ -253,7 +251,7 @@
 				
 				//end stats
 		        
-                camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 5, 100000 );
+                camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 5, 10000 );
 				raycaster = new THREE.Raycaster();
 				mouse = new THREE.Vector2();
 				mouse.x = -1;
@@ -452,7 +450,14 @@
 					camera.lookAt(pov);
 				}
 				
-
+				/*
+				scene.updateMatrixWorld();
+				scene.traverse(function(obj){
+					if(obj instanceof THREE.LOD){
+						obj.update(camera);
+					}
+				});
+				*/
 				renderer.render(scene, camera);
 				rendererStats.update(renderer);
 			};
@@ -537,8 +542,8 @@
 
 			function populateMap(city){
 				console.log(new Date()+": start");
-				buildingUrl = "data/kml/"+city+"/buildings.kml";
-				//buildingUrl = "data/kml/"+city+"/buildingsTest.kml";
+				buildingUrl = "data/kml/"+city+"/sortedbuildings.kml";
+				//buildingUrl = "data/kml/"+city+"/buildings.kml";
 				roadUrl = "data/kml/"+city+"/roads.kml";
 				treeUrl = "data/kml/"+city+"/trees.kml";
 				waterUrl = "data/kml/"+city+"/water.kml";
@@ -553,7 +558,7 @@
 			}
 
 			function addTestEvents(){
-				for(var i=0; i<30;i++){
+				for(var i=0; i<300;i++){
 					addTestEvent();	
 				}
 			}
@@ -606,6 +611,11 @@
 					//return;
 					
 					//getTrees();
+					
+					//addTestEvents();
+					//return;
+					
+					getTrees();
 					getWater();
 					getRoads();
 					
@@ -613,7 +623,7 @@
 					noOfBuildings = data.length;
 
 					var maxLen = Math.round(data.length/noOfBuildingGeoSlice)===0?1:Math.round(data.length/noOfBuildingGeoSlice);
-					//createBuildingModels(data);
+					createBuildingModels(data);
 					showSpinner(false);
 					
 				});
