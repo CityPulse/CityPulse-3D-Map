@@ -39,6 +39,14 @@ function updateDatasources(name, minX, minY, maxX, maxY){
 // WEBSOCKET PART
 ///////////////////////////////////////////////////////////////
 
+var eventQueue = new Array();
+window.onblur = function() { window.blurred = true; };
+window.onfocus = function() { 
+    while(eventQueue.length > 0) {
+        handleMessage(eventQueue.pop());
+    }
+    window.blurred = false; 
+};
 
 function setupSocket() {
 
@@ -55,21 +63,13 @@ function setupSocket() {
 
     // most important part - incoming messages
     connection.onmessage = function (message) {
-    	var msg = JSON.parse(message.data);
 
-        if(msg.type != null && msg.type == "setup") {
-            clientId = msg.id;
-        } else {
-            if($.inArray(msg.eventId, eventIds) == -1 && msg.severityLevel != -1) { // If event is new and not to be deleted
-                eventIds.push(msg.eventId);
-                showEventByCoords({lat:msg.lat, lng:msg.long}, "loool", msg.eventId, msg.eventType, msg.severityLevel);
-            }
-            else if($.inArray(msg.eventId, eventIds) != -1 && msg.severityLevel != -1) { // If event is not new and not to be deleted
-                    updateEvent(msg.eventId, msg.severityLevel);
-            } else if($.inArray(msg.eventId, eventIds) != -1 && msg.severityLevel == -1) { // If event is not new and to be deleted
-                    removeEvent(msg.eventId);
-            }
-        }
+        if(window.blurred) {
+            eventQueue.push(message);
+            return;
+        } 
+    	
+        handleMessage(message);
     	// switch(msg.type) {
     	// 	case "ENERGY":
     	// 	$.each(msg.data, function(index, building) {
@@ -91,6 +91,24 @@ function setupSocket() {
     	// }
     	
     };
+}
+
+function handleMessage(message) {
+    var msg = JSON.parse(message.data);
+
+    if(msg.type != null && msg.type == "setup") {
+        clientId = msg.id;
+    } else {
+        if($.inArray(msg.eventId, eventIds) == -1 && msg.severityLevel != -1) { // If event is new and not to be deleted
+            eventIds.push(msg.eventId);
+            showEventByCoords({lat:msg.lat, lng:msg.long}, "loool", msg.eventId, msg.eventType, msg.severityLevel);
+        }
+        else if($.inArray(msg.eventId, eventIds) != -1 && msg.severityLevel != -1) { // If event is not new and not to be deleted
+                updateEvent(msg.eventId, msg.severityLevel);
+        } else if($.inArray(msg.eventId, eventIds) != -1 && msg.severityLevel == -1) { // If event is not new and to be deleted
+                removeEvent(msg.eventId);
+        }
+    }
 }
 
 
