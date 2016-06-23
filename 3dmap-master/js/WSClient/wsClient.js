@@ -1,6 +1,6 @@
 var connection = null;
 var subscriptions = new Array();
-var clientId;
+var clientId = -1;
 var eventIds = new Array();
 
 //var waitingForResponse = false;
@@ -70,13 +70,25 @@ function setupSocket() {
 
     // most important part - incoming messages
     connection.onmessage = function (message) {
+        console.log(message);
 
-        if(window.blurred) {
-            eventQueue.push(message);
-            return;
-        } 
+        var msg = JSON.parse(message.data);
+        console.log(msg);
+
+        if(msg.type != null && msg.type == "setup") {
+            clientId = msg.id;
+        } else {
+            if(window.blurred) {
+                eventQueue.push(msg);
+            } else {
+                handleMessage(msg);
+            }
+        }
+
+
+        
     	
-        handleMessage(message);
+        
     	// switch(msg.type) {
     	// 	case "ENERGY":
     	// 	$.each(msg.data, function(index, building) {
@@ -100,21 +112,20 @@ function setupSocket() {
     };
 }
 
-function handleMessage(message) {
-    var msg = JSON.parse(message.data);
-
-    if(msg.type != null && msg.type == "setup") {
-        clientId = msg.id;
+function handleMessage(msg) {
+    console.log($.inArray(msg.eventId, eventIds))
+    if($.inArray(msg.eventId, eventIds) == -1 && msg.severityLevel != -1) { // If event is new and not to be deleted
+        console.log(1);
+        eventIds.push(msg.eventId);
+        showEventByCoords({lat:msg.lat, lng:msg.long}, "loool", msg.eventId, msg.eventType, msg.severityLevel);
+    } else if($.inArray(msg.eventId, eventIds) != -1 && msg.severityLevel != -1) { // If event is not new and not to be deleted
+        console.log(2);
+        updateEvent(msg.eventId, msg.severityLevel);
+    } else if($.inArray(msg.eventId, eventIds) != -1 && msg.severityLevel == -1) { // If event is not new and to be deleted
+        console.log(3);
+        removeEvent(msg.eventId);
     } else {
-        if($.inArray(msg.eventId, eventIds) == -1 && msg.severityLevel != -1) { // If event is new and not to be deleted
-            eventIds.push(msg.eventId);
-            showEventByCoords({lat:msg.lat, lng:msg.long}, "loool", msg.eventId, msg.eventType, msg.severityLevel);
-        }
-        else if($.inArray(msg.eventId, eventIds) != -1 && msg.severityLevel != -1) { // If event is not new and not to be deleted
-                updateEvent(msg.eventId, msg.severityLevel);
-        } else if($.inArray(msg.eventId, eventIds) != -1 && msg.severityLevel == -1) { // If event is not new and to be deleted
-                removeEvent(msg.eventId);
-        }
+        console.log(4);
     }
 }
 

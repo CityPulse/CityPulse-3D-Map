@@ -96,6 +96,7 @@ function sendToClients(eventId, eventType, severityLevel, lat, long, date) {
 	clients.forEach(function(client){
 		console.log('-------- CLIENT: '+client.id+' ------------');	
 		if(client.conn != undefined && client.conn.connected) {
+			console.log(client.subscriptions);
 			if(client.subscriptions.indexOf(eventType) >= 0 && testForLocation(client, lat, long)) {
 
 				client.conn.sendUTF(JSON.stringify({
@@ -151,7 +152,7 @@ function setupWSServer() {
 	        // if (message.type === 'utf8') {
 	        	if(obj.type == "setup") {
 		        	clients.forEach(function(client){
-		        		
+		        		console.log(obj);
 		        		if(client.id == obj.id) {
 		        			client.subscriptions = new Array();
 		        			obj.subscriptions.forEach(function(sub) {
@@ -222,6 +223,10 @@ function init() {
 }
 
 function testForLocation(client, lat, long) {
+	console.log(long + " > " + client.minX);
+	console.log(long + " < " + client.maxX);
+	console.log(lat + " > " + client.minY);
+	console.log(lat + " < " + client.maxY);
 	if( long > client.minX && long < client.maxX &&
 		lat > client.minY && lat < client.maxY)
 		return true;
