@@ -1,5 +1,5 @@
 //VARIABLES
-var queueName = '3dmapqueue';
+var queueName = '3dmapqueue-ttl';
 var exchange = 'events';
 var routingKey = '#';
 var N3 = require('n3');
@@ -24,7 +24,7 @@ function consumer(conn) {
 	var ok = conn.createChannel(on_open);
 	function on_open(err, ch) {
 		if (err != null) bail(err);    
-		ch.assertQueue(queueName);
+		ch.assertQueue(queueName, {"messageTtl": 600000});
         ch.bindQueue(queueName, exchange, routingKey);
 		ch.consume(queueName, function(msg) {
   			if (msg !== null) {
@@ -96,8 +96,9 @@ function sendToClients(eventId, eventType, severityLevel, lat, long, date) {
 	clients.forEach(function(client){
 		console.log('-------- CLIENT: '+client.id+' ------------');	
 		if(client.conn != undefined && client.conn.connected) {
+			console.log(client.subscriptions);
 			if(client.subscriptions.indexOf(eventType) >= 0 && testForLocation(client, lat, long)) {
-
+				console.log("before send");
 				client.conn.sendUTF(JSON.stringify({
 					eventId:eventId, 
 					eventType:eventType,
@@ -106,6 +107,7 @@ function sendToClients(eventId, eventType, severityLevel, lat, long, date) {
 					long: long,
 					date: date
 				}));
+				console.log("after send");
 				count += 1;
 			} else {
 				if(client.subscriptions.indexOf(eventType) < 0) {
@@ -151,7 +153,7 @@ function setupWSServer() {
 	        // if (message.type === 'utf8') {
 	        	if(obj.type == "setup") {
 		        	clients.forEach(function(client){
-		        		
+		        		console.log(obj);
 		        		if(client.id == obj.id) {
 		        			client.subscriptions = new Array();
 		        			obj.subscriptions.forEach(function(sub) {
@@ -222,6 +224,10 @@ function init() {
 }
 
 function testForLocation(client, lat, long) {
+	console.log(long + " > " + client.minX);
+	console.log(long + " < " + client.maxX);
+	console.log(lat + " > " + client.minY);
+	console.log(lat + " < " + client.maxY);
 	if( long > client.minX && long < client.maxX &&
 		lat > client.minY && lat < client.maxY)
 		return true;

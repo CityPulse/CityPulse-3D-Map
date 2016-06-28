@@ -64,7 +64,7 @@
 		    	<li class="jq-dropdown-divider"></li>
 		    	<li><input type="checkbox" name="datasource" value="AarhusPollution">Aarhus Pollution</li>
 		    	<li class="jq-dropdown-divider"></li>
-		    	<li><input type="checkbox" name="datasource" value="AarhusNoise">Aarhus Noise</li>
+		    	<li><input type="checkbox" name="datasource" value="AarhusNoiseLevel">Aarhus Noise</li>
 		    </ul>
 		</div>
 	
@@ -127,6 +127,7 @@
 
 			var planeX = 10000;
 			var planeY = 10000;
+			var fCenterX, fCenterY;
 			var minX = 10000000;
 			var minY = 10000000;
 			var maxX = -100000.0;
@@ -409,7 +410,7 @@
 		    function addMeshes(meshes, prefix){
 		    	prefix += "-";
 		    	var shadowBool = false;
-		    	if(prefix.indexOf("buildings")>-1 || prefix.startsWith("event")){
+		    	if(prefix.indexOf("buildings")>-1){
 
 		    		shadowBool = true;
 		    	}
@@ -602,11 +603,13 @@
 			//solely for testing events. Can be removed when finished
 			function addTestEvent(){
 
-				var testPos = {lat:12.566725889453012,lng:55.68321681457061};
+				//var testPos = {lat:12.566725889453012,lng:55.68321681457061};
+				var testPos = {lat:10.21, lng:56.15};
 				var x = Math.floor(Math.random() * planeX)-planeX/2;
 				var y = Math.floor(Math.random() * planeY)-planeY/2;
 				var planePos = {x:x,y:y};
-				//console.log(planePos);
+				console.log("planeX: "+planeX+" planeY: "+planeY);
+				console.log("planePos.x: "+planePos.x+" planePos.y: "+planePos.y);
 				var type = Math.floor(Math.random() * 4);
 				var types = [];
 				types.push("PublicParking");
