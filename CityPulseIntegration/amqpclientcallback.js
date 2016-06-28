@@ -1,5 +1,5 @@
 //VARIABLES
-var queueName = '3dmapqueue';
+var queueName = '3dmapqueue-ttl';
 var exchange = 'events';
 var routingKey = '#';
 var N3 = require('n3');
@@ -24,7 +24,7 @@ function consumer(conn) {
 	var ok = conn.createChannel(on_open);
 	function on_open(err, ch) {
 		if (err != null) bail(err);    
-		ch.assertQueue(queueName);
+		ch.assertQueue(queueName, {"messageTtl": 600000});
         ch.bindQueue(queueName, exchange, routingKey);
 		ch.consume(queueName, function(msg) {
   			if (msg !== null) {
@@ -98,7 +98,7 @@ function sendToClients(eventId, eventType, severityLevel, lat, long, date) {
 		if(client.conn != undefined && client.conn.connected) {
 			console.log(client.subscriptions);
 			if(client.subscriptions.indexOf(eventType) >= 0 && testForLocation(client, lat, long)) {
-
+				console.log("before send");
 				client.conn.sendUTF(JSON.stringify({
 					eventId:eventId, 
 					eventType:eventType,
@@ -107,6 +107,7 @@ function sendToClients(eventId, eventType, severityLevel, lat, long, date) {
 					long: long,
 					date: date
 				}));
+				console.log("after send");
 				count += 1;
 			} else {
 				if(client.subscriptions.indexOf(eventType) < 0) {

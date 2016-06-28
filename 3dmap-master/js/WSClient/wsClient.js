@@ -70,10 +70,10 @@ function setupSocket() {
 
     // most important part - incoming messages
     connection.onmessage = function (message) {
-        console.log(message);
+       // console.log(message);
 
         var msg = JSON.parse(message.data);
-        console.log(msg);
+       // console.log(msg);
 
         if(msg.type != null && msg.type == "setup") {
             clientId = msg.id;
@@ -81,6 +81,7 @@ function setupSocket() {
             if(window.blurred) {
                 eventQueue.push(msg);
             } else {
+		//console.log("will handle message!");
                 handleMessage(msg);
             }
         }
@@ -113,19 +114,23 @@ function setupSocket() {
 }
 
 function handleMessage(msg) {
-    console.log($.inArray(msg.eventId, eventIds))
+    //console.log($.inArray(msg.eventId, eventIds))
     if($.inArray(msg.eventId, eventIds) == -1 && msg.severityLevel != -1) { // If event is new and not to be deleted
-        console.log(1);
+//        console.log(1);
         eventIds.push(msg.eventId);
-        showEventByCoords({lat:msg.lat, lng:msg.long}, "loool", msg.eventId, msg.eventType, msg.severityLevel);
+        //console.log("will call showEvent");
+
+	console.log("handleMessage -> lat: "+msg.lat+" long: "+msg.long+" eventId: "+msg.eventId+" eventType: "+msg.eventType+" severity: "+msg.severityLevel);
+
+	var coordinates = {lat:msg.lat, lng:msg.long}; 
+
+	showEventByCoords(coordinates, "loool", msg.eventId, msg.eventType, msg.severityLevel);
+
     } else if($.inArray(msg.eventId, eventIds) != -1 && msg.severityLevel != -1) { // If event is not new and not to be deleted
-        console.log(2);
         updateEvent(msg.eventId, msg.severityLevel);
     } else if($.inArray(msg.eventId, eventIds) != -1 && msg.severityLevel == -1) { // If event is not new and to be deleted
-        console.log(3);
         removeEvent(msg.eventId);
     } else {
-        console.log(4);
     }
 }
 

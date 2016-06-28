@@ -568,11 +568,13 @@
 			//solely for testing events. Can be removed when finished
 			function addTestEvent(){
 
-				var testPos = {lat:12.566725889453012,lng:55.68321681457061};
+				//var testPos = {lat:12.566725889453012,lng:55.68321681457061};
+				var testPos = {lat:10.21, lng:56.15};
 				var x = Math.floor(Math.random() * planeX)-planeX/2;
 				var y = Math.floor(Math.random() * planeY)-planeY/2;
 				var planePos = {x:x,y:y};
-				//console.log(planePos);
+				console.log("planeX: "+planeX+" planeY: "+planeY);
+				console.log("planePos.x: "+planePos.x+" planePos.y: "+planePos.y);
 				var type = Math.floor(Math.random() * 4);
 				var types = [];
 				types.push("PublicParking");

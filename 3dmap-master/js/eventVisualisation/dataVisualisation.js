@@ -131,13 +131,16 @@ function demoEventHack(){
 ///////////////////////////////////////////////////////////////
 
 function findBuildingByCoords(coordinates){
-	var utmResult= converter.toUtm({coord: [coordinates.lng, coordinates.lat]});
+
+    var utmResult= converter.toUtm({coord: [coordinates.lng, coordinates.lat]});
 	
+    var fCenterX = minX + (maxX-minX)*0.5;
+    var fCenterY = minY + (maxY-minY)*0.5;
 
     var coordX = utmResult.coord.x-=fCenterX;
     var coordY = utmResult.coord.y -=fCenterY;
-
-    console.log("utm: "+utmResult.coord.y +"  "+fCenterY);
+   
+//    console.log("utm: "+utmResult.coord.y +"  "+fCenterY);
 
 	var origin = new THREE.Vector3(coordX,coordY,0);
 	var direction = new THREE.Vector3(0,1,0);
@@ -193,15 +196,24 @@ function findBuildingByCoords(coordinates){
 ///////////////////////////////////////////////////////////////
 
 function showEventByCoords(coordinates, text,id, type, severity){
-	var utmResult= converter.toUtm({coord: [coordinates.lat, coordinates.lng]});
-	//var fCenterX = minX + (maxX-minX)*0.5;
-    //var fCenterY = minY + (maxY-minY)*0.5;
-
-    var coordX = utmResult.coord.x-=fCenterX;
-    var coordY = utmResult.coord.y -=fCenterY;
-
+	
+	
+	var utmResult= converter.toUtm({coord: [coordinates.lng, coordinates.lat]});
+	var fCenterX = minX + (maxX-minX)*0.5;
+        console.log("minX: "+minX+" maxX: "+maxX);
+	console.log("minY: "+minY+" maxY: "+maxY);
+	var fCenterY = minY + (maxY-minY)*0.5;
+	
+	console.log("fCenterX: "+fCenterX);
+	console.log("fCenterY: "+fCenterY);
+        var coordX = utmResult.coord.x-=fCenterX;
+        console.log("coordX: "+utmResult.coord.x);
+        var coordY = utmResult.coord.y -=fCenterY;
+        console.log("coordY: "+utmResult.coord.y);
 	var location = {x:coordX, y:coordY};
+	//console.log("BEFORE");
 	showEvent(location, text,id, type, severity);
+	//console.log("AFTER");
 }
 
 ///////////////////////////////////////////////////////////////
@@ -215,6 +227,7 @@ function showEventByCoords(coordinates, text,id, type, severity){
 
 function showEvent(coordinates, text,id, type, severity){
 	
+	console.log("SHOW EVENT-> coordX: "+coordinates.x+" coordY: "+coordinates.y+" text: "+text+" id: "+id+" type: "+type+" severity: "+severity);
 	var color = 0xffff00;
 	switch(type){
 		case "PublicParking":
@@ -323,7 +336,7 @@ function showEvent(coordinates, text,id, type, severity){
 	//add event to list, so it is possible to remove it later
 	var event = {mesh:sphere, startTween:startTween, bounceTween:bounceTween, text:text, string:string, severity: severity};
 	eventList[id] = event;
-
+	//console.log("end of showEvent method!");
 }
 
 
