@@ -141,7 +141,7 @@ function _createConcreteBuildingModels(data, buildingId){
 
     var geometry = new THREE.ExtrudeGeometry(rectShape, { amount: height, bevelEnabled: true, bevelSegments: 1, steps: 1, bevelSize: 0.1, bevelThickness: 0.1 });
     var material = new THREE.MeshLambertMaterial( {color: "rgb(128,128,250)" });
-    var building = new THREE.Mesh(geometry, material) ;     
+    var building = new THREE.Mesh(geometry, material);     
     
 
     //Converting the 2D mapping to 3D mapping (shifting z and y coordinates)         

@@ -106,7 +106,7 @@
 		<script>
 			"use strict";
 			//Set this to true to see coloring of buildings based on their geometry
-			var debugGridSort = true;
+			var debugGridSort = false;
 
 			var buildingUrl = "";
 			var roadUrl = "";
@@ -131,6 +131,7 @@
 			var minY = 10000000;
 			var maxX = -100000.0;
 			var maxY = -100000.0;
+			var fCenterX, fCenterY;
 			var wgsMinX, wgsMinY, wgsMaxX, wgsMaxY;
 
 
@@ -235,10 +236,44 @@
     			});
 			}
 			
-			
+			var particles, geometry, materials = [], parameters, i, h, color, sprite, size;
 
 		    function setup()
 			{	
+
+				//test of particles
+				/*
+				geometry = new THREE.Geometry();
+				for ( i = 0; i < 20000; i ++ ) {
+					var vertex = new THREE.Vector3();
+					vertex.x = Math.random() * 2000 - 1000;
+					vertex.y = Math.random() * 2000 - 1000;
+					vertex.z = Math.random() * 2000 - 1000;
+					geometry.vertices.push( vertex );
+				}
+				parameters = [
+					[ [1, 1, 0.5], 5 ],
+					[ [0.95, 1, 0.5], 4 ],
+					[ [0.90, 1, 0.5], 3 ],
+					[ [0.85, 1, 0.5], 2 ],
+					[ [0.80, 1, 0.5], 1 ]
+				];
+				for ( i = 0; i < parameters.length; i ++ ) {
+					color = parameters[i][0];
+					size  = parameters[i][1];
+					materials[i] = new THREE.ParticleBasicMaterial( { size: size } );
+					particles = new THREE.PointCloud( geometry, materials[i] );
+					particles.rotation.x = Math.random() * 6;
+					particles.rotation.y = Math.random() * 6;
+					particles.rotation.z = Math.random() * 6;
+					particles.name = "particles";
+					console.log("particles");
+					scene.add( particles );
+				}
+
+
+				*/
+				//end test
 
 			    //set renderbox for development information - remove all this for production
 			    
@@ -552,7 +587,7 @@
 				
 				
 				getBuildings();
-				//for testing the all sorts
+				//for testing of all sorts
 				//testRun();
 
 			}
@@ -622,7 +657,6 @@
 					
 					noOfBuildings = data.length;
 
-					var maxLen = Math.round(data.length/noOfBuildingGeoSlice)===0?1:Math.round(data.length/noOfBuildingGeoSlice);
 					createBuildingModels(data);
 					showSpinner(false);
 					
