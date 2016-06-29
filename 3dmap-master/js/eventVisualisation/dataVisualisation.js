@@ -198,9 +198,9 @@ function findBuildingByCoords(coordinates){
 function showEventByCoords(coordinates, text,id, type, severity){
 	
 	var utmResult= converter.toUtm({coord: [coordinates.lng, coordinates.lat]});
-    var coordX = utmResult.coord.x-=fCenterX;
+        var coordX = utmResult.coord.x-=fCenterX;
     
-    var coordY = utmResult.coord.y -=fCenterY;
+        var coordY = utmResult.coord.y -=fCenterY;
 	
 	var location = {x:coordX, y:coordY};
 	
@@ -327,7 +327,7 @@ function showEvent(coordinates, text,id, type, severity){
 		text = _getTextFromEventType(type);
 	}
 	//add event to list, so it is possible to remove it later
-	var event = {mesh:sphere, startTween:startTween, bounceTween:bounceTween, text:text, string:string, severity: severity};
+	var event = {mesh:sphere, startTween:startTween, bounceTween:bounceTween, type:type, string:string, severity: severity};
 	eventList[id] = event;
 	//console.log("end of showEvent method!");
 }
@@ -365,8 +365,8 @@ function showEventText(eventId){
 	
 	if(eventId===undefined || event ===undefined)
 		return;
-	console.log(event);
-	var text = event.text+": severity: "+event.severity;
+	console.log(event.type);
+	var text = _getTextFromEventType(event.type)+": severity: "+event.severity;
 	//text geometry - how does it look and feel
 	var textGeom = new THREE.TextGeometry( text, {
 	    font: "helvetiker", // Must be lowercase!

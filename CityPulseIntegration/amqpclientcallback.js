@@ -12,7 +12,7 @@ var WebSocketServer = require('websocket').server;
 var webSocketsServerPort = 8001;
 var clients = new Array();
 
-var secondsToRemoveEvents = 120
+var secondsToRemoveEvents = 60;
 
 // Test Variables
 var testing = true;
@@ -79,12 +79,13 @@ function consumer(conn) {
 							if(numberOfReceivers > 0) {
 								setTimeout(function() {
 									sendToClients(eventId, eventType, -1, lat, long, date);
-									console.log("Deleting events again....");
+									console.log("Deleting events again....id: "+eventId);
 								}, secondsToRemoveEvents*1000);
 							}
 						}
 					}
             	});
+//		ch.ack(msg);
   			}
 		});
   	}
