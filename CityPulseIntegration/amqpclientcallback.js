@@ -60,10 +60,10 @@ function consumer(conn) {
 							severityLevel = eventSeveritySplit[0].split('"')[1];
 															
 							var eventLatSplit = triples[4].object.split('^^');
-							lat = eventLatSplit[0].split('"')[1];
+							lat = parseFloat(eventLatSplit[0].split('"')[1]);
 
 							var eventLongSplit = triples[5].object.split('^^');
-							long = eventLongSplit[0].split('"')[1];
+							long = parseFloat(eventLongSplit[0].split('"')[1]);
 
 							var eventDateSplit = triples[8].object.split('^^');
 							date = eventDateSplit[0].split('"')[1];

@@ -197,20 +197,13 @@ function findBuildingByCoords(coordinates){
 
 function showEventByCoords(coordinates, text,id, type, severity){
 	
-	
 	var utmResult= converter.toUtm({coord: [coordinates.lng, coordinates.lat]});
-	var fCenterX = minX + (maxX-minX)*0.5;
-        console.log("minX: "+minX+" maxX: "+maxX);
-	console.log("minY: "+minY+" maxY: "+maxY);
-	var fCenterY = minY + (maxY-minY)*0.5;
+    var coordX = utmResult.coord.x-=fCenterX;
+    
+    var coordY = utmResult.coord.y -=fCenterY;
 	
-	console.log("fCenterX: "+fCenterX);
-	console.log("fCenterY: "+fCenterY);
-        var coordX = utmResult.coord.x-=fCenterX;
-        console.log("coordX: "+utmResult.coord.x);
-        var coordY = utmResult.coord.y -=fCenterY;
-        console.log("coordY: "+utmResult.coord.y);
 	var location = {x:coordX, y:coordY};
+	
 	//console.log("BEFORE");
 	showEvent(location, text,id, type, severity);
 	//console.log("AFTER");
