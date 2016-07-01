@@ -1,6 +1,6 @@
 var connection = null;
 var subscriptions = new Array();
-var clientId;
+var clientId = -1;
 var eventIds = new Array();
 
 //var waitingForResponse = false;
@@ -38,7 +38,22 @@ function updateDatasources(name, minX, minY, maxX, maxY){
 ///////////////////////////////////////////////////////////////
 // WEBSOCKET PART
 ///////////////////////////////////////////////////////////////
+var delayedEventTime = 1000;
+function handleDelayedEvent() {
+    handleMessage(eventQueue.pop());
+    if(eventQueue.length > 0)
+        setTimeout(handleDelayedEvent, delayedEventTime);
+}
 
+var eventQueue = new Array();
+window.onblur = function() { window.blurred = true; };
+window.onfocus = function() { 
+    if(eventQueue.length > 0)
+    setTimeout(function() {
+        setTimeout(handleDelayedEvent, delayedEventTime);
+    }, delayedEventTime);
+    window.blurred = false; 
+};
 
 function setupSocket() {
 
@@ -55,21 +70,26 @@ function setupSocket() {
 
     // most important part - incoming messages
     connection.onmessage = function (message) {
-    	var msg = JSON.parse(message.data);
+       // console.log(message);
+
+        var msg = JSON.parse(message.data);
+       // console.log(msg);
 
         if(msg.type != null && msg.type == "setup") {
             clientId = msg.id;
         } else {
-            if($.inArray(msg.eventId, eventIds) == -1 && msg.severityLevel != -1) { // If event is new and not to be deleted
-                eventIds.push(msg.eventId);
-                showEventByCoords({lat:msg.lat, lng:msg.long}, "loool", msg.eventId, msg.eventType, msg.severityLevel);
-            }
-            else if($.inArray(msg.eventId, eventIds) != -1 && msg.severityLevel != -1) { // If event is not new and not to be deleted
-                    updateEvent(msg.eventId, msg.severityLevel);
-            } else if($.inArray(msg.eventId, eventIds) != -1 && msg.severityLevel == -1) { // If event is not new and to be deleted
-                    removeEvent(msg.eventId);
+            if(window.blurred) {
+                eventQueue.push(msg);
+            } else {
+		//console.log("will handle message!");
+                handleMessage(msg);
             }
         }
+
+
+        
+    	
+        
     	// switch(msg.type) {
     	// 	case "ENERGY":
     	// 	$.each(msg.data, function(index, building) {
@@ -91,6 +111,27 @@ function setupSocket() {
     	// }
     	
     };
+}
+
+function handleMessage(msg) {
+    //console.log($.inArray(msg.eventId, eventIds))
+    if($.inArray(msg.eventId, eventIds) == -1 && msg.severityLevel != -1) { // If event is new and not to be deleted
+//        console.log(1);
+        eventIds.push(msg.eventId);
+        //console.log("will call showEvent");
+
+	console.log("handleMessage -> lat: "+msg.lat+" long: "+msg.long+" eventId: "+msg.eventId+" eventType: "+msg.eventType+" severity: "+msg.severityLevel);
+
+	var coordinates = {lat:msg.lat, lng:msg.long}; 
+
+	showEventByCoords(coordinates, "loool", msg.eventId, msg.eventType, msg.severityLevel);
+
+    } else if($.inArray(msg.eventId, eventIds) != -1 && msg.severityLevel != -1) { // If event is not new and not to be deleted
+        updateEvent(msg.eventId, msg.severityLevel);
+    } else if($.inArray(msg.eventId, eventIds) != -1 && msg.severityLevel == -1) { // If event is not new and to be deleted
+        removeEvent(msg.eventId);
+    } else {
+    }
 }
 
 

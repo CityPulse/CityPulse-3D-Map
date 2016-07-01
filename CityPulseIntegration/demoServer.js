@@ -102,8 +102,8 @@ function init() {
 			if(client.subscriptions.length > 0) {
 				var eventId = Math.random();
 				var sub = Math.floor(Math.random()*client.subscriptions.length);
-				var lat = Math.random()*(client.maxX-client.minX)+client.minX;
-				var long = Math.random()*(client.maxY-client.minY)+client.minY;
+				var long = Math.random()*(client.maxX-client.minX)+client.minX;
+				var lat = Math.random()*(client.maxY-client.minY)+client.minY;
 				client.conn.sendUTF(JSON.stringify({
 					eventId:eventId, 
 					eventType:client.subscriptions[sub],
@@ -112,6 +112,11 @@ function init() {
 					long: long,
 					date: 0
 				}));
+
+
+				console.log('-------EVENT BEGIN-----------');
+				console.log("eventId: ", eventId, "eventType: ", client.subscriptions[sub], "severityLevel: ", 2, "lat: ", lat, "long: ", long, "date: ", 0);
+				console.log('--------EVENT END------------');
 
 				setTimeout(function() {
 					client.conn.sendUTF(JSON.stringify({

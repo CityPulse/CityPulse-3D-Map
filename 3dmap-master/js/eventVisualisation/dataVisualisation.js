@@ -131,13 +131,16 @@ function demoEventHack(){
 ///////////////////////////////////////////////////////////////
 
 function findBuildingByCoords(coordinates){
-	var utmResult= converter.toUtm({coord: [coordinates.lng, coordinates.lat]});
+
+    var utmResult= converter.toUtm({coord: [coordinates.lng, coordinates.lat]});
 	
+    var fCenterX = minX + (maxX-minX)*0.5;
+    var fCenterY = minY + (maxY-minY)*0.5;
 
     var coordX = utmResult.coord.x-=fCenterX;
     var coordY = utmResult.coord.y -=fCenterY;
-
-    console.log("utm: "+utmResult.coord.y +"  "+fCenterY);
+   
+//    console.log("utm: "+utmResult.coord.y +"  "+fCenterY);
 
 	var origin = new THREE.Vector3(coordX,coordY,0);
 	var direction = new THREE.Vector3(0,1,0);
@@ -193,15 +196,17 @@ function findBuildingByCoords(coordinates){
 ///////////////////////////////////////////////////////////////
 
 function showEventByCoords(coordinates, text,id, type, severity){
-	var utmResult= converter.toUtm({coord: [coordinates.lat, coordinates.lng]});
-	//var fCenterX = minX + (maxX-minX)*0.5;
-    //var fCenterY = minY + (maxY-minY)*0.5;
-
-    var coordX = utmResult.coord.x-=fCenterX;
-    var coordY = utmResult.coord.y -=fCenterY;
-
+	
+	var utmResult= converter.toUtm({coord: [coordinates.lng, coordinates.lat]});
+        var coordX = utmResult.coord.x-=fCenterX;
+    
+        var coordY = utmResult.coord.y -=fCenterY;
+	
 	var location = {x:coordX, y:coordY};
+	
+	//console.log("BEFORE");
 	showEvent(location, text,id, type, severity);
+	//console.log("AFTER");
 }
 
 ///////////////////////////////////////////////////////////////
@@ -215,6 +220,7 @@ function showEventByCoords(coordinates, text,id, type, severity){
 
 function showEvent(coordinates, text,id, type, severity){
 	
+	console.log("SHOW EVENT-> coordX: "+coordinates.x+" coordY: "+coordinates.y+" text: "+text+" id: "+id+" type: "+type+" severity: "+severity);
 	var color = 0xffff00;
 	switch(type){
 		case "PublicParking":
@@ -242,6 +248,7 @@ function showEvent(coordinates, text,id, type, severity){
 	material.transparent = true;
 	material.opacity = 0.60;
 	var sphere = new THREE.Mesh( geometry, material );
+	sphere.castShadow = false;
 	sphere.oldLevel=0;
 	sphere.name = "event-";
 	sphere.eventId = id;
@@ -257,6 +264,7 @@ function showEvent(coordinates, text,id, type, severity){
 	var stringLength = top-2*radius;
 	var stringGeometry = new THREE.CylinderGeometry(radius,1,stringLength,8);
     var string = new THREE.Mesh(stringGeometry, material);
+    string.castShadow = false;
 	string.translateX(coordinates.x);
 	string.translateZ(coordinates.y);
 	string.translateY(-(stringLength/2+2*radius));
@@ -319,9 +327,9 @@ function showEvent(coordinates, text,id, type, severity){
 		text = _getTextFromEventType(type);
 	}
 	//add event to list, so it is possible to remove it later
-	var event = {mesh:sphere, startTween:startTween, bounceTween:bounceTween, text:text, string:string, severity: severity};
+	var event = {mesh:sphere, startTween:startTween, bounceTween:bounceTween, type:type, string:string, severity: severity};
 	eventList[id] = event;
-
+	//console.log("end of showEvent method!");
 }
 
 
@@ -357,8 +365,8 @@ function showEventText(eventId){
 	
 	if(eventId===undefined || event ===undefined)
 		return;
-	console.log(event);
-	var text = event.text+": severity: "+event.severity;
+	console.log(event.type);
+	var text = _getTextFromEventType(event.type)+": severity: "+event.severity;
 	//text geometry - how does it look and feel
 	var textGeom = new THREE.TextGeometry( text, {
 	    font: "helvetiker", // Must be lowercase!
