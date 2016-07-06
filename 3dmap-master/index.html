@@ -135,6 +135,8 @@
 			var fCenterX, fCenterY;
 			var wgsMinX, wgsMinY, wgsMaxX, wgsMaxY;
 
+			var weatherSystem;
+			var weatherAdded = false;
 
 			var cityName = "";
 
@@ -199,7 +201,7 @@
 
 					for(var i = scene.children.length-1; i>=0; i--){
 						var name = scene.children[i].name;
-						if(!name.startsWith("sky") && !name.startsWith("spotlight") && !name.startsWith("hemilight")){
+						if(!name.startsWith("sky") && !name.startsWith("spotlight") && !name.startsWith("hemilight") && !name.startsWith("weather")){
 
 							scene.remove(scene.children[i]);	
 						}
@@ -237,44 +239,9 @@
     			});
 			}
 			
-			var particles, geometry, materials = [], parameters, i, h, color, sprite, size;
 
 		    function setup()
 			{	
-
-				//test of particles
-				/*
-				geometry = new THREE.Geometry();
-				for ( i = 0; i < 20000; i ++ ) {
-					var vertex = new THREE.Vector3();
-					vertex.x = Math.random() * 2000 - 1000;
-					vertex.y = Math.random() * 2000 - 1000;
-					vertex.z = Math.random() * 2000 - 1000;
-					geometry.vertices.push( vertex );
-				}
-				parameters = [
-					[ [1, 1, 0.5], 5 ],
-					[ [0.95, 1, 0.5], 4 ],
-					[ [0.90, 1, 0.5], 3 ],
-					[ [0.85, 1, 0.5], 2 ],
-					[ [0.80, 1, 0.5], 1 ]
-				];
-				for ( i = 0; i < parameters.length; i ++ ) {
-					color = parameters[i][0];
-					size  = parameters[i][1];
-					materials[i] = new THREE.ParticleBasicMaterial( { size: size } );
-					particles = new THREE.PointCloud( geometry, materials[i] );
-					particles.rotation.x = Math.random() * 6;
-					particles.rotation.y = Math.random() * 6;
-					particles.rotation.z = Math.random() * 6;
-					particles.name = "particles";
-					console.log("particles");
-					scene.add( particles );
-				}
-
-
-				*/
-				//end test
 
 			    //set renderbox for development information - remove all this for production
 			    
@@ -340,8 +307,6 @@
 				scene.add( hemiLight );
 				
 				
-                
-                         
 				console.log(new Date()+": End setup/start render");
 				
 				
@@ -368,8 +333,10 @@
 
 				scene.add( sky );
 
+
+				//end test
 			
-				
+				console.log(scene.children);
 				
 		    }
 
@@ -402,7 +369,7 @@
 				plane.geometry.computeBoundingBox();
 
                 scene.add(plane);
-                
+                toggleWeather("rain","middle",true);
 				render();
 		    }
 
@@ -425,6 +392,102 @@
                 }
 		    }
 
+		    ///////////////////////////////////////////////////////////////
+			// Method for adding particle system to simulate weather
+			// type: type of weather: "snow","rain"
+			// amount: amount of precipitation: 'drizzle','middle','heavy'
+			///////////////////////////////////////////////////////////////
+			function toggleWeather(type,amount, addIt){
+
+
+				if(!addIt){
+					scene.remove(weatherSystem);
+					weatherAdded=false;
+				}
+
+				var weatherGeometry;
+				if(weatherAdded){
+					weatherGeometry = weatherSystem.geometry;
+
+					for(var i =0; i<weatherGeometry.vertices.length; i++){
+						var vertex = weatherGeometry.vertices[i];
+						vertex.x = Math.random() * planeX-planeX/2;
+						vertex.y = Math.random() * 2200;
+						vertex.z = Math.random() * planeY-planeY/2;
+						vertex.velocity = new THREE.Vector3(
+						  0,              // x
+						  -Math.random(), // y: random val
+						  0				  // z
+						);
+					}
+					weatherGeometry.verticesNeedUpdate = true;
+
+				}else{
+
+					var typeString;
+					switch(type){
+						case "snow":
+							typeString = "images/snowflake.png";
+							break;
+						case "rain":
+							typeString = "images/raindrop.png";
+							break;
+						default:
+							typeString = "images/particle.png";
+					}
+					var amountCount;
+					switch(amount){
+						case "drizzle":
+							amountCount = 10000;
+							break;
+						case "middle":
+							amountCount = 25000;
+							break;
+						case "heavy":
+							amountCount = 100000;
+							break;
+						default:
+							amountCount = 50000;
+							break;
+					}
+
+
+					 weatherGeometry = new THREE.Geometry();
+					for (var i = 0; i < amountCount; i ++ ) {
+						var vertex = new THREE.Vector3();
+						vertex.x = Math.random() * planeX-planeX/2;
+						vertex.y = Math.random() * 2200;
+						vertex.z = Math.random() * planeY-planeY/2;
+						vertex.velocity = new THREE.Vector3(
+						  0,              // x
+						  -Math.random(), // y: random val
+						  0				  // z
+						);             
+						weatherGeometry.vertices.push( vertex );
+					}
+
+					var color = 0xffffff;
+					var size  = 10;
+					var materials = new THREE.PointCloudMaterial( { 
+						size: size, 
+						color:color,
+						map: THREE.ImageUtils.loadTexture(
+	    					typeString
+	  					),
+	  					blending: THREE.AdditiveBlending,
+	  					transparent: true
+					} );
+
+					weatherSystem = new THREE.PointCloud( weatherGeometry, materials );
+					
+					weatherSystem.name = "weatherSystem";
+					console.log("weatherSystem added");
+
+					scene.add( weatherSystem );
+					weatherAdded = true;
+				}
+			}
+
 		    
 		    ///////////////////////////////////////////////////////////////
 			// Helper methods for testing the height of the buildings
@@ -444,6 +507,7 @@
 			// Rendering function for three.js
 			///////////////////////////////////////////////////////////////
 
+
 		    var cs = 0;
 			function render()
 			{
@@ -451,13 +515,18 @@
 				renderAnimationId = requestAnimationFrame( render );
 				TWEEN.update();		
 
-				if(cs%100==0){
+				if(cs%1000==0){
 
 					//console.log(camera.position);	
 					//console.log(scene.children);
 					cs=0;
 				}
 				cs++;
+
+				if(weatherAdded)
+					renderWeather();
+
+
 				
 				//makes sure camera does not go beyond x-axis of plane
 				if(camera.position.x<plane.geometry.boundingBox.min.x){
@@ -497,6 +566,35 @@
 				renderer.render(scene, camera);
 				rendererStats.update(renderer);
 			};
+
+
+			function renderWeather(){
+				//weather particle system update
+				var particleCount = weatherSystem.geometry.vertices.length;
+				
+				while(particleCount--){
+
+				    // get the particle
+				    var particle = weatherSystem.geometry.vertices[particleCount];
+				    // check if we need to reset
+				    
+				    if (particle.y < 0) {
+				      particle.y = 2200;
+				      particle.velocity.y = 0;
+				    }
+					
+				    // update the velocity with
+				    // a splat of randomniz
+				    particle.velocity.y -= Math.random() * .1;
+				    // and the position
+				    particle.add(particle.velocity);
+
+				}
+				// flag to the particle system
+			  	// that we've changed its vertices.
+			  	weatherSystem.geometry.verticesNeedUpdate = true;
+				//end weather
+			}
 
 
 
@@ -653,9 +751,9 @@
 					//addTestEvents();
 					//return;
 					
-					getTrees();
-					getWater();
-					getRoads();
+					//getTrees();
+					//getWater();
+					//getRoads();
 					
 					
 					noOfBuildings = data.length;
