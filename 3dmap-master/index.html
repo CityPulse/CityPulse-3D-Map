@@ -333,10 +333,13 @@
 
 				scene.add( sky );
 
-
-				//end test
 			
 				console.log(scene.children);
+
+				//test of weather WS
+				weatherClient.setup('Aarhus',weatherHandler); 
+				//weatherClient.close();
+				//end test
 				
 		    }
 
@@ -369,7 +372,7 @@
 				plane.geometry.computeBoundingBox();
 
                 scene.add(plane);
-                toggleWeather("rain","middle",true);
+                //toggleWeather("rain","middle",true);
 				render();
 		    }
 
@@ -397,9 +400,9 @@
 			// type: type of weather: "snow","rain"
 			// amount: amount of precipitation: 'drizzle','middle','heavy'
 			///////////////////////////////////////////////////////////////
-			function toggleWeather(type,amount, addIt){
+			var weatherHandler = function toggleWeather(type,amount, addIt){
 
-
+				console.log(type+"  "+amount);
 				if(!addIt){
 					scene.remove(weatherSystem);
 					weatherAdded=false;

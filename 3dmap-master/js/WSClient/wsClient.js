@@ -2,6 +2,7 @@ var connection = null;
 var subscriptions = new Array();
 var clientId = -1;
 var eventIds = new Array();
+var eventQueue = new Array();
 
 //var waitingForResponse = false;
 
@@ -12,8 +13,9 @@ $(function(){
       if(connection){
         connection.send(JSON.stringify({type:"close", id: clientId}));
         connection.close();
+
       }
-      
+      weatherClient.close();
     });
 });
 
@@ -45,7 +47,7 @@ function handleDelayedEvent() {
         setTimeout(handleDelayedEvent, delayedEventTime);
 }
 
-var eventQueue = new Array();
+
 window.onblur = function() { window.blurred = true; };
 window.onfocus = function() { 
     if(eventQueue.length > 0)
@@ -133,6 +135,52 @@ function handleMessage(msg) {
     } else {
     }
 }
+
+
+console.log("AD");
+
+var weatherClient = (function(){
+    
+    var url = 'ws://127.0.0.1:8002';
+    var connection = new WebSocket(url);
+    var clientId = -1;
+
+    return {
+        setup: function(city, callback){
+            connection.onopen = function() {
+                // Send flagged subscribtions
+                connection.send(JSON.stringify({type: "SETUP", data: {city : city}}));
+            };
+
+            connection.onmessage = function(message) {
+                console.log("got message");
+                var msg = JSON.parse(message.data);
+                if(msg.type=='setup'){
+                    console.log("got new ID: " +msg.id);
+                    clientId = msg.id;    
+                }else{
+                    var weatherType = msg.weatherType;
+                    var weatherSeverity = msg.severityLevel;
+                    if(callback){
+                        var addIt = true;
+                        if(weatherType==='clear')
+                            addIt = false;
+                        callback(weatherType,weatherSeverity,addIt);
+                    }
+                }
+
+            };
+        },
+
+        close: function(){
+            if(connection){
+                connection.send(JSON.stringify({type:"close", id: clientId}));
+                connection.close();
+            }
+        }
+    }
+
+})();
 
 
 
