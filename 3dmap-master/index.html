@@ -21,6 +21,7 @@
 		<script src='js/models/ThreeCSG.js'></script>
 		<script src='js/eventVisualisation/dataVisualisation.js'></script>
 		<script src="js/fonts/helvetiker_regular.typeface.js"></script>
+		<script src="js/weather/weatherVisualiser.js"></script>
 
 	</head>
 	<body>
@@ -135,8 +136,7 @@
 			var fCenterX, fCenterY;
 			var wgsMinX, wgsMinY, wgsMaxX, wgsMaxY;
 
-			var weatherSystem;
-			var weatherAdded = false;
+			
 
 			var cityName = "";
 
@@ -336,10 +336,8 @@
 			
 				console.log(scene.children);
 
-				//test of weather WS
-				weatherClient.setup('Aarhus',weatherHandler); 
-				//weatherClient.close();
-				//end test
+				weatherClient.setup('Aarhus',weatherVisualiser.weatherHandler); 
+				
 				
 		    }
 
@@ -395,101 +393,7 @@
                 }
 		    }
 
-		    ///////////////////////////////////////////////////////////////
-			// Method for adding particle system to simulate weather
-			// type: type of weather: "snow","rain"
-			// amount: amount of precipitation: 'drizzle','middle','heavy'
-			///////////////////////////////////////////////////////////////
-			var weatherHandler = function toggleWeather(type,amount, addIt){
-
-				console.log(type+"  "+amount);
-				if(!addIt){
-					scene.remove(weatherSystem);
-					weatherAdded=false;
-				}
-
-				var weatherGeometry;
-				if(weatherAdded){
-					weatherGeometry = weatherSystem.geometry;
-
-					for(var i =0; i<weatherGeometry.vertices.length; i++){
-						var vertex = weatherGeometry.vertices[i];
-						vertex.x = Math.random() * planeX-planeX/2;
-						vertex.y = Math.random() * 2200;
-						vertex.z = Math.random() * planeY-planeY/2;
-						vertex.velocity = new THREE.Vector3(
-						  0,              // x
-						  -Math.random(), // y: random val
-						  0				  // z
-						);
-					}
-					weatherGeometry.verticesNeedUpdate = true;
-
-				}else{
-
-					var typeString;
-					switch(type){
-						case "snow":
-							typeString = "images/snowflake.png";
-							break;
-						case "rain":
-							typeString = "images/raindrop.png";
-							break;
-						default:
-							typeString = "images/particle.png";
-					}
-					var amountCount;
-					switch(amount){
-						case "drizzle":
-							amountCount = 10000;
-							break;
-						case "middle":
-							amountCount = 25000;
-							break;
-						case "heavy":
-							amountCount = 100000;
-							break;
-						default:
-							amountCount = 50000;
-							break;
-					}
-
-
-					 weatherGeometry = new THREE.Geometry();
-					for (var i = 0; i < amountCount; i ++ ) {
-						var vertex = new THREE.Vector3();
-						vertex.x = Math.random() * planeX-planeX/2;
-						vertex.y = Math.random() * 2200;
-						vertex.z = Math.random() * planeY-planeY/2;
-						vertex.velocity = new THREE.Vector3(
-						  0,              // x
-						  -Math.random(), // y: random val
-						  0				  // z
-						);             
-						weatherGeometry.vertices.push( vertex );
-					}
-
-					var color = 0xffffff;
-					var size  = 10;
-					var materials = new THREE.PointCloudMaterial( { 
-						size: size, 
-						color:color,
-						map: THREE.ImageUtils.loadTexture(
-	    					typeString
-	  					),
-	  					blending: THREE.AdditiveBlending,
-	  					transparent: true
-					} );
-
-					weatherSystem = new THREE.PointCloud( weatherGeometry, materials );
-					
-					weatherSystem.name = "weatherSystem";
-					console.log("weatherSystem added");
-
-					scene.add( weatherSystem );
-					weatherAdded = true;
-				}
-			}
+		    
 
 		    
 		    ///////////////////////////////////////////////////////////////
@@ -527,7 +431,7 @@
 				cs++;
 
 				if(weatherAdded)
-					renderWeather();
+					weatherVisualiser.renderWeather();
 
 
 				
@@ -570,34 +474,6 @@
 				rendererStats.update(renderer);
 			};
 
-
-			function renderWeather(){
-				//weather particle system update
-				var particleCount = weatherSystem.geometry.vertices.length;
-				
-				while(particleCount--){
-
-				    // get the particle
-				    var particle = weatherSystem.geometry.vertices[particleCount];
-				    // check if we need to reset
-				    
-				    if (particle.y < 0) {
-				      particle.y = 2200;
-				      particle.velocity.y = 0;
-				    }
-					
-				    // update the velocity with
-				    // a splat of randomniz
-				    particle.velocity.y -= Math.random() * .1;
-				    // and the position
-				    particle.add(particle.velocity);
-
-				}
-				// flag to the particle system
-			  	// that we've changed its vertices.
-			  	weatherSystem.geometry.verticesNeedUpdate = true;
-				//end weather
-			}
 
 
 

@@ -109,6 +109,7 @@ function init() {
 		clients.forEach(function(client){
 			weatherType = getRandWeather();
 			serverity = getRandWeatherAmount();
+			console.log("sending: "+weatherType+" with: "+serverity);
 			client.conn.sendUTF(JSON.stringify({
 						city:client.city,
 						weatherType: weatherType,

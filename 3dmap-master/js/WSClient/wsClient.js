@@ -137,7 +137,6 @@ function handleMessage(msg) {
 }
 
 
-console.log("AD");
 
 var weatherClient = (function(){
     
@@ -162,10 +161,7 @@ var weatherClient = (function(){
                     var weatherType = msg.weatherType;
                     var weatherSeverity = msg.severityLevel;
                     if(callback){
-                        var addIt = true;
-                        if(weatherType==='clear')
-                            addIt = false;
-                        callback(weatherType,weatherSeverity,addIt);
+                        callback(weatherType,weatherSeverity);
                     }
                 }
 
