@@ -53,13 +53,14 @@ var weatherVisualiser = (function(){
 					break;
 				case "clear":
 					typeString = "clear";
+					break;
 				default:
 					typeString = "images/particle.png";
 			}
-
+			console.log(typeString);
 			var amountCount;
 			switch(amount){
-				case "drizzle":
+				case "light":
 					amountCount = 10000;
 					break;
 				case "middle":
@@ -83,26 +84,11 @@ var weatherVisualiser = (function(){
 					weatherAmountChanged = true;
 				}
 
-				/*
-				weatherSystem.material.map = THREE.ImageUtils.loadTexture(typeString);
-
-				weatherGeometry = weatherSystem.geometry;
-
-				for(var i =0; i<weatherGeometry.vertices.length; i++){
-					var vertex = weatherGeometry.vertices[i];
-					vertex.x = Math.random() * planeX-planeX/2;
-					vertex.y = Math.random() * 2200;
-					vertex.z = Math.random() * planeY-planeY/2;
-					vertex.velocity = new THREE.Vector3(
-					  0,              // x
-					  -Math.random(), // y: random val
-					  0				  // z
-					);
-				}
-				weatherGeometry.verticesNeedUpdate = true;
-				*/
 			}else{
-	
+				//if type is clear, dont add particle system
+				if(typeString==='clear')
+					return;
+
 				weatherGeometry = new THREE.Geometry();
 				for (var i = 0; i < amountCount; i ++ ) {
 					var vertex = new THREE.Vector3();
@@ -141,7 +127,7 @@ var weatherVisualiser = (function(){
 			weatherSystem.typeString= typeString;
 			weatherSystem.amountCount = amountCount;
 
-			console.log(weatherSystem);
+			//console.log(weatherSystem);
 		},
 
 
@@ -184,7 +170,7 @@ var weatherVisualiser = (function(){
 				    }					
 				    // update the velocity with
 				    // a splat of randomniz
-				    particle.velocity.y -= Math.random() * .1;
+				    particle.velocity.y -= Math.random() * particleAccerleration;
 				    // and the position
 				    particle.add(particle.velocity);
 

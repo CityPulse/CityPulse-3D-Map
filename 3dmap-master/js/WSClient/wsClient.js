@@ -87,30 +87,6 @@ function setupSocket() {
                 handleMessage(msg);
             }
         }
-
-
-        
-    	
-        
-    	// switch(msg.type) {
-    	// 	case "ENERGY":
-    	// 	$.each(msg.data, function(index, building) {
-     //            changeBuilding(building.value, building.id, false);  
-     //        });
-    	// 	break;
-    	// 	case "HISTORYRESP":
-    	// 	if(msg.data.value != -1) {
-    	// 		var chartData = [];
-    	// 		for(var i = 0; i < msg.data.value.length; i++) {
-    	// 			chartData.push({index: i, value: msg.data.value[i]});
-    	// 		}
-    	// 		setupInfoBox(chartData);
-    	// 	} else {
-    	// 		$("#infoBox").append("<p>No historical data for this building.</p>")
-    	// 	}
-    	// 	//waitingForResponse = false;
-    	// 	break;
-    	// }
     	
     };
 }
@@ -141,31 +117,35 @@ function handleMessage(msg) {
 var weatherClient = (function(){
     
     var url = 'ws://127.0.0.1:8002';
-    var connection = new WebSocket(url);
+    //var connection;
     var clientId = -1;
+    var connection = new WebSocket(url);
+    var callbackFunc;        
+    connection.onmessage = function(message) {
+        console.log("got message");
+        var msg = JSON.parse(message.data);
+        console.log(msg);
+        if(msg.type=='setup'){
+            console.log("got new ID: " +msg.id);
+            clientId = msg.id;
+            
+        }else{
+            console.log("receiving weather data for: "+msg.city+": "+msg.weatherType+" of severity:"+msg.severityLevel);
+            var weatherType = msg.weatherType;
+            var weatherSeverity = msg.severityLevel;
+            if(callbackFunc){
+                callbackFunc(weatherType,weatherSeverity);
+            }
+        }
+
+    };
+
 
     return {
         setup: function(city, callback){
-            connection.onopen = function() {
-                // Send flagged subscribtions
-                connection.send(JSON.stringify({type: "SETUP", data: {city : city}}));
-            };
-
-            connection.onmessage = function(message) {
-                console.log("got message");
-                var msg = JSON.parse(message.data);
-                if(msg.type=='setup'){
-                    console.log("got new ID: " +msg.id);
-                    clientId = msg.id;    
-                }else{
-                    var weatherType = msg.weatherType;
-                    var weatherSeverity = msg.severityLevel;
-                    if(callback){
-                        callback(weatherType,weatherSeverity);
-                    }
-                }
-
-            };
+            callbackFunc = callback;
+            connection.send(JSON.stringify({type: "SETUP", data: {city : city},id:clientId}));    
+            
         },
 
         close: function(){

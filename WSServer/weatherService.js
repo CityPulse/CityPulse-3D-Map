@@ -1,8 +1,20 @@
 // WebSocket Variables
 var http = require('http');
+const request = require('request');
 var WebSocketServer = require('websocket').server;
 var webSocketsServerPort = 8002;
 var clients = new Array();
+
+var cities = {};
+cities['8k']     = {}, cities['8k'].id = 2624652;
+cities['Cph']    = {}, cities['Cph'].id = 2618425;
+cities['Ry']     = {}, cities['Ry'].id = 2614387;
+cities['Odense'] = {}, cities['Odense'].id = 2615876;
+
+var lightType = ['drizzle','light'];
+var heavyType = ['heavy','shower','extreme','freezing','ragged'];
+
+var openweathermapAPIKey = "a3db4cff42becb040d3673f6ef1e3e1b";
 
 
 function setupWSServer() {
@@ -25,31 +37,25 @@ function setupWSServer() {
 
 	// WebSocket server
 	wsServer.on('request', function(request) {
-	    console.log((new Date()) + ' Connection from origin ' + request.origin + '.');
+	    console.log((new Date()) + ' Connection from origin ' + request.origin);
 	    var conn = request.accept(null, request.origin);
 
 	    conn.on('message', function(message) {
 	    	obj = JSON.parse(message.utf8Data);
 	    	console.log(obj);
 	        // if (message.type === 'utf8') {
-        	if(obj.type == "setup") {
+        	if(obj.type == "SETUP") {
 	        	clients.forEach(function(client){
 	        		
 	        		if(client.id == obj.id) {
-	        			client.subscriptions = new Array();
-	        			obj.subscriptions.forEach(function(sub) {
-	        				client.subscriptions.push(sub);
-	        			});
-	        			
-			            client.minX = obj.minX;
-			            client.minY = obj.minY;
-			            client.maxX = obj.maxX;
-			            client.maxY = obj.maxY;
+	        			console.log("setting city value of client");
+	        			client.city = obj.data.city;
+	        			sendWeatherDataToClient(client);
 
-			            console.log("Client with id = " + client.id + " is now subscribing to " + client.subscriptions + " in the area of " + client.minX +","+ client.minY + " - " + client.maxX + "," + client.maxY);
 	        		}
 		        	
 	        	});
+
 	        } else if(obj.type == "close") {
 	        	var index = -1;
 	        	clients.forEach(function(client) {
@@ -80,12 +86,52 @@ function setupWSServer() {
 	    var client = {
 	    	conn:conn,
 	    	id:id,
-	    	city:"aarhus"
+	    	city:null
 	    }
 	    clients.push(client);
 
 	    console.log("clients length = " + clients.length + " and has id = " + id);
 	});
+}
+
+
+function getCurrentWeatherForCity(city){
+	
+	var id = cities[city]['id'];
+	var url = "http://api.openweathermap.org/data/2.5/weather?id="+id+"&units=metric&appid=" + openweathermapAPIKey;
+	
+	request(url, (error, response, body)=> {
+	  	if (!error && response.statusCode === 200) {
+	    	const fbResponse = JSON.parse(body);
+	    	//atm we only support rain and snow, so we only look for that. could be expanded at a later time based on: http://openweathermap.org/weather-conditions
+	    	const weather = fbResponse.weather;
+	    	//console.log("Got weather for "+city+":");
+	    	//console.log(weather);
+	    	var newWeatherType = extrapolateWeatherType(weather);
+	    	var newWeatherSeverity = extrapolateWeatherSeverity(weather);
+	    	var cityObj = cities[city];
+	    	if((!cityObj.weatherType || cityObj.weatherType!==newWeatherType) || (!cityObj.weatherSeverity || cityObj.weatherSeverity!==newWeatherSeverity)){
+	    		cityObj.weatherType = newWeatherType;
+	    		cityObj.weatherSeverity = newWeatherSeverity;
+	    		//send update to relevant clients
+	    		clients.forEach(function(client){
+	    			if(client.city===city){
+	    				sendWeatherDataToClient(client);
+	    			}
+	    		});
+	    	}
+	    	//console.log("Got a response: ", fbResponse.weather[0])
+
+	  	} else {
+	    	console.log("Got an error: ", error, ", status code: ")
+	  	}
+	});
+}
+
+function getWeatherForAllCities(){
+	for(var city in cities){
+		getCurrentWeatherForCity(city);
+	}
 }
 
 function getRandWeather(){
@@ -95,30 +141,91 @@ function getRandWeather(){
 }
 
 function getRandWeatherAmount(){
-	var types = ["drizzle","middle","heavy"];
+	var types = ["light","middle","heavy"];
 	var type = types[Math.floor(Math.random() * 3)];
 	return type;
 }
 
+
+/*
+* based on this list:http://openweathermap.org/weather-conditions
+* we try and extrapolate a weather feature to be shown.
+* at the moment, the clients only support rain and snow, so we only look for statues prefixed with 3xx (drizzle), 
+* 5xx (rain) and 6xx (snow)
+*/
+function extrapolateWeatherType(weather){
+
+	var weatherId = weather[0].id;
+
+	var drizzleRegExp = /^3[0-9].*$/
+	var rainRegExp = /^5[0-9].*$/
+	var snowRegExp = /^6[0-9].*$/
+
+	var weatherType;
+	if(rainRegExp.test(weatherId)){
+		weatherType = "rain";
+
+	}else if(snowRegExp.test(weatherId)){
+		weatherType = "snow";
+	}else if(drizzleRegExp.test(weatherId)){
+		weatherType = "rain";
+	}else{
+		weatherType = "clear";
+	}
+
+	return weatherType;
+}
+
+
+function extrapolateWeatherSeverity(weather){
+	var weatherDescription = weather[0].description;
+	
+	var serverity = "middle"
+	for(var i =0; i<lightType.length; i++){
+		if(weatherDescription.indexOf(lightType[i])!=-1){
+			serverity = "light";
+			break;
+		}
+	}
+
+	for(var i =0; i<heavyType.length; i++){
+		if(weatherDescription.indexOf(heavyType[i])!=-1){
+			serverity = "heavy";
+			break;
+		}
+	}
+
+	return serverity;
+}
+
+function sendWeatherDataToClient(client){
+	
+	var weatherType = cities[client.city].weatherType;
+	var weatherSeverity = cities[client.city].weatherSeverity;
+
+	//no weather data to send
+	if(!weatherType || !weatherSeverity){
+		return;
+	}
+	console.log("sending: "+weatherType+" with: "+weatherSeverity+" for city: ",client.city);
+	client.conn.sendUTF(JSON.stringify({
+		city:client.city,
+		weatherType: weatherType,
+		severityLevel: weatherSeverity
+	}));
+}
+
+
 function init() {
+	getWeatherForAllCities();
+
+	//update weather every 30 minutes	
+	setInterval(function(){
+		getWeatherForAllCities();
+	},1800000);
 
 	setupWSServer();
-	setInterval(function() {
-		weatherType = getRandWeather();
-		if(clients.length == 0) return;
-		clients.forEach(function(client){
-			weatherType = getRandWeather();
-			serverity = getRandWeatherAmount();
-			console.log("sending: "+weatherType+" with: "+serverity);
-			client.conn.sendUTF(JSON.stringify({
-						city:client.city,
-						weatherType: weatherType,
-						severityLevel: serverity
-			}));
-		});
-		
-	},5000);
-
+	
 }
 
 init();
