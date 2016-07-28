@@ -22,6 +22,8 @@
 		<script src='js/eventVisualisation/dataVisualisation.js'></script>
 		<script src="js/fonts/helvetiker_regular.typeface.js"></script>
 		<script src="js/weather/weatherVisualiser.js"></script>
+		<script type='text/javascript' src='js/gui/DAT.GUI.js'></script>
+
 
 	</head>
 	<body>
@@ -42,6 +44,8 @@
 
 		<div id='holder'></div>
 
+		<div id='guiHolder'></div>
+
 		<input type="button" data-jq-dropdown="#jq-dropdown-1" value="Choose city" id='cityChooser'>
 		<div id="jq-dropdown-1" class="jq-dropdown jq-dropdown-tip dropdown-city">
 		    <ul class="jq-dropdown-menu">
@@ -57,7 +61,7 @@
 		<input type="button" value="add event" id='eventAdd'>
 
 		<input type="button" data-jq-dropdown="#jq-dropdown-2" value="Choose data source" id='dataSourceChooser'>
-		<div id="jq-dropdown-2" class="jq-dropdown jq-dropdown-tip jq-dropdown-anchor-right dropdown-data">
+		<div id="jq-dropdown-2" class="jq-dropdown jq-dropdown-tip jq-dropdown-anchor-left dropdown-data">
 		    <ul class="jq-dropdown-menu">
 		    	<li><input type="checkbox" name="datasource" value="PublicParking">Public Parking</li>
 		    	<li class="jq-dropdown-divider"></li>
@@ -108,6 +112,9 @@
 			"use strict";
 			//Set this to true to see coloring of buildings based on their geometry
 			var debugGridSort = false;
+			//Set this to true to see GUI to control parameters
+			var addGUI = true;
+			var guiParams = null;
 
 			var buildingUrl = "";
 			var roadUrl = "";
@@ -120,7 +127,9 @@
 		    var renderAnimationId = null;
 		    var scene = new THREE.Scene();
 		    var camera=null;
+		    var spotLight = null;
 		    var initCameraPosition = null;
+		    var initSpotLightPosition = null;
 			var controls= null;
 			var raycaster = null;
             var mouse =  null;
@@ -215,7 +224,10 @@
 					populateMap(this.id);
 					weatherClient.setup(this.id,weatherVisualiser.weatherHandler); 
 					document.title = this.name;
-
+					//show GUI to handle test paramters
+					if(addGUI){
+						$("#guiHolder").show();
+					}
 
 				});
 
@@ -235,6 +247,16 @@
 							camera.position.z=initCameraPosition.z;
 							camera.lookAt(new THREE.Vector3(0,0,0));
 						}
+					}else if(e.keyCode==67){
+						if(spotLight){
+							spotLight.position.x=initSpotLightPosition.x;
+							spotLight.position.y=initSpotLightPosition.y;
+							spotLight.position.z=initSpotLightPosition.z;
+							guiParams.xPos=initSpotLightPosition.x;
+							guiParams.yPos = initSpotLightPosition.y;
+							guiParams.zPos = initSpotLightPosition.z;
+
+						}
 					}
         			
     			});
@@ -243,7 +265,7 @@
 
 		    function setup()
 			{	
-
+				
 			    //set renderbox for development information - remove all this for production
 			    
 				rendererStats.setMode( 0 ); // 0: fps, 1: ms, 2: mb
@@ -285,12 +307,12 @@
             
             
                 // add spotlight for the shadows
-                var spotLight = new THREE.SpotLight(0xffffff);
+                spotLight = new THREE.SpotLight(0xffffff);
                 spotLight.name = "spotlight";
                 //var spotLight = new THREE.SpotLight(0xffffff, 0.9, 100000, Math.PI/2, 10, 1);
                 spotLight.position.set(-0.75*planeX, 2500, 500);
                 spotLight.castShadow = true;
-				//spotLight.shadowCameraVisible = true;
+				spotLight.shadowCameraVisible = true;
 				spotLight.shadowCameraNear = planeX/2.5;
 				spotLight.shadowCameraFar = 1.5*planeX;
 				spotLight.shadowCameraFov = 50;
@@ -298,6 +320,9 @@
 				spotLight.shadowMapWidth = SHADOW_MAP_WIDTH/2;
 				spotLight.shadowMapHeight = SHADOW_MAP_HEIGHT/2;
                 scene.add(spotLight);
+                if(!initSpotLightPosition){
+                	initSpotLightPosition = {x:spotLight.position.x, y:spotLight.position.y, z:spotLight.position.z};
+                }
 				
 				
 				var hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.2);
@@ -334,8 +359,41 @@
 
 				scene.add( sky );
 
-			
-				console.log(scene.children);
+		
+				//add GUI element
+				var gui = new dat.GUI({
+					    height : 3 * 32 - 1,
+					    autoPlace: false
+					});
+
+
+				guiParams = {
+					intensity: 1,
+					hour: 12,
+					color: 0xffffff,
+					xPos:-0.75*planeX,
+					yPos:2500,
+					zPos:500
+					
+				};
+				$("#guiHolder").append(gui.domElement);
+				$("#guiHolder").hide();
+
+				gui.add(guiParams, 'intensity',0, 2).onChange(guiChanged);
+				gui.add(guiParams, 'hour',1.0,24.0).step(1).onChange(guiChanged);
+				gui.add(guiParams, 'xPos',-0.75*planeX,0.75*planeX).step(1).listen().onChange(guiChanged);
+				gui.add(guiParams, 'yPos',0,5000).step(1).listen().onChange(guiChanged);
+				gui.add(guiParams, 'zPos',-1000,2000).step(1).listen().onChange(guiChanged);
+				gui.addColor(guiParams, 'color').onChange(guiChanged);
+				//gui.close();
+				
+
+				function guiChanged(){
+					spotLight.intensity  = guiParams.intensity;
+					var colorObj = new THREE.Color( guiParams.color );
+					spotLight.color = colorObj;
+					spotLight.position.set(guiParams.xPos,guiParams.yPos,guiParams.zPos);
+				}
 								
 		    }
 
@@ -432,7 +490,7 @@
 					weatherVisualiser.renderWeather();
 
 
-				
+				/*
 				//makes sure camera does not go beyond x-axis of plane
 				if(camera.position.x<plane.geometry.boundingBox.min.x){
 					camera.position.x=plane.geometry.boundingBox.min.x;
@@ -459,7 +517,7 @@
 					var pov = new THREE.Vector3(0-camera.position.x, 0-camera.position.y,0-camera.position.z);
 					camera.lookAt(pov);
 				}
-				
+				*/
 				/*
 				scene.updateMatrixWorld();
 				scene.traverse(function(obj){

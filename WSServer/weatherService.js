@@ -105,8 +105,8 @@ function getCurrentWeatherForCity(city){
 	    	const fbResponse = JSON.parse(body);
 	    	//atm we only support rain and snow, so we only look for that. could be expanded at a later time based on: http://openweathermap.org/weather-conditions
 	    	const weather = fbResponse.weather;
-	    	//console.log("Got weather for "+city+":");
-	    	//console.log(weather);
+	    	console.log(new Date()+": Got weather for "+city+":");
+	    	console.log(weather);
 	    	var newWeatherType = extrapolateWeatherType(weather);
 	    	var newWeatherSeverity = extrapolateWeatherSeverity(weather);
 	    	var cityObj = cities[city];

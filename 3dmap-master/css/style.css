@@ -20,7 +20,7 @@ canvas {
 	top:40px;
 	z-index:100;
 	text-align: center;
-	font-size: 40px;
+	font-size: 20px;
 	min-width:100px;
 	color: #333333;
 	font-family: verdana, arial;
@@ -32,7 +32,7 @@ canvas {
 	top:5px;
 	z-index:100;
 	text-align: center;
-	font-size: 40px;
+	font-size: 20px;
 	min-width:100px;
 	color: #333333;
 	font-family: verdana, arial;
@@ -40,11 +40,11 @@ canvas {
 
 #datasourceChooser{
 	position:absolute;
-	right:10px;
-	top:5px;
+	left:10px;
+	top:75px;
 	z-index:100;
 	text-align: center;
-	font-size: 40px;
+	font-size: 20px;
 	min-width:100px;
 	color: #333333;
 	font-family: verdana, arial;	
@@ -73,7 +73,6 @@ canvas {
 
 
 #infoBox{
-
 	visibility: hidden;
 	position: absolute;
 	z-index: 1;
@@ -85,6 +84,12 @@ canvas {
 	border-style: groove;
 	border-color: #00CCFF;
 	border-width: 15px;
+}
+
+#guiHolder{
+	position: absolute;
+	top:5px;
+	right:10px;
 }
 
 

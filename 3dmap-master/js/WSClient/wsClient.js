@@ -143,9 +143,11 @@ var weatherClient = (function(){
 
     return {
         setup: function(city, callback){
-            callbackFunc = callback;
-            connection.send(JSON.stringify({type: "SETUP", data: {city : city},id:clientId}));    
-            
+            if(connection && connection.readyState==1){
+                console.log(connection);
+                callbackFunc = callback;
+                connection.send(JSON.stringify({type: "SETUP", data: {city : city},id:clientId}));        
+            }
         },
 
         close: function(){
