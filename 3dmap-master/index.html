@@ -128,6 +128,8 @@
 		    var scene = new THREE.Scene();
 		    var camera=null;
 		    var spotLight = null;
+		    var spotLightRadius = null;
+		    var sun = null;
 		    var initCameraPosition = null;
 		    var initSpotLightPosition = null;
 			var controls= null;
@@ -181,6 +183,10 @@
 			});
 
 
+			var now = new Date(1471201067*1000);
+			console.log(now);
+
+
 			function addMenuHandler(){
 
 
@@ -210,7 +216,7 @@
 
 					for(var i = scene.children.length-1; i>=0; i--){
 						var name = scene.children[i].name;
-						if(!name.startsWith("sky") && !name.startsWith("spotlight") && !name.startsWith("hemilight") && !name.startsWith("weather")){
+						if(!name.startsWith("sky") && !name.startsWith("spotlight") && !name.startsWith("hemilight") && !name.startsWith("weather") && !name.startsWith("SUN")){
 
 							scene.remove(scene.children[i]);	
 						}
@@ -255,6 +261,7 @@
 							guiParams.xPos=initSpotLightPosition.x;
 							guiParams.yPos = initSpotLightPosition.y;
 							guiParams.zPos = initSpotLightPosition.z;
+							spotLightRadius = Math.sqrt(Math.pow(spotLight.position.x,2)+Math.pow(spotLight.position.y,2)+Math.pow(spotLight.position.z,2));
 
 						}
 					}
@@ -305,12 +312,24 @@
 				controls.dampingFactor = 0.25;
 				controls.enableZoom = true;
             
-            
+
+            	var sunGeometry = new THREE.SphereGeometry( 40, 32, 32 );
+				var sunMaterial = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+				sun = new THREE.Mesh( sunGeometry, sunMaterial );
+				sun.name = "SUN";
+				sun.position.set(-0.75*planeX, 2500, 500);
+				scene.add( sun );
+
+
                 // add spotlight for the shadows
                 spotLight = new THREE.SpotLight(0xffffff);
                 spotLight.name = "spotlight";
                 //var spotLight = new THREE.SpotLight(0xffffff, 0.9, 100000, Math.PI/2, 10, 1);
                 spotLight.position.set(-0.75*planeX, 2500, 500);
+                
+
+                spotLightRadius = Math.sqrt(Math.pow(spotLight.position.x,2)+Math.pow(spotLight.position.y,2)+Math.pow(spotLight.position.z,2));
+                
                 spotLight.castShadow = true;
 				spotLight.shadowCameraVisible = true;
 				spotLight.shadowCameraNear = planeX/2.5;
@@ -393,6 +412,7 @@
 					var colorObj = new THREE.Color( guiParams.color );
 					spotLight.color = colorObj;
 					spotLight.position.set(guiParams.xPos,guiParams.yPos,guiParams.zPos);
+					//sun.set(new THREE.Vector3(guiParams.xPos,guiParams.yPos,guiParams.zPos),20);
 				}
 								
 		    }
@@ -466,20 +486,39 @@
 		    }
 
 
+		    var t = 0;
+		    
+		    function moveSun(){
+		    	//float x = r*cos(t) + h;
+				//float y = r*sin(t) + k;
+
+				console.log(spotLightRadius+"  "+t);
+				let zPos = spotLight.position.z;
+				let xPos = spotLightRadius*Math.cos(t);
+				let yPos = spotLightRadius*Math.sin(t);
+				t+=0.1;
+				if(t>Math.PI)
+					t=0;
+				spotLight.position.set(xPos,yPos,zPos);
+
+		    }
+
+
 			///////////////////////////////////////////////////////////////
 			// Rendering function for three.js
 			///////////////////////////////////////////////////////////////
-
 
 		    var cs = 0;
 			function render()
 			{
 
+				
 				renderAnimationId = requestAnimationFrame( render );
 				TWEEN.update();		
 
-				if(cs%1000==0){
-
+				if(cs%100==0){
+					
+					moveSun();
 					//console.log(camera.position);	
 					//console.log(scene.children);
 					cs=0;

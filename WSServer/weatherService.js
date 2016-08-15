@@ -51,9 +51,7 @@ function setupWSServer() {
 	        			console.log("setting city value of client");
 	        			client.city = obj.data.city;
 	        			sendWeatherDataToClient(client);
-
 	        		}
-		        	
 	        	});
 
 	        } else if(obj.type == "close") {
@@ -103,10 +101,11 @@ function getCurrentWeatherForCity(city){
 	request(url, (error, response, body)=> {
 	  	if (!error && response.statusCode === 200) {
 	    	const fbResponse = JSON.parse(body);
+	    	console.log(fbResponse);
 	    	//atm we only support rain and snow, so we only look for that. could be expanded at a later time based on: http://openweathermap.org/weather-conditions
 	    	const weather = fbResponse.weather;
 	    	console.log(new Date()+": Got weather for "+city+":");
-	    	console.log(weather);
+	    	//console.log(weather);
 	    	var newWeatherType = extrapolateWeatherType(weather);
 	    	var newWeatherSeverity = extrapolateWeatherSeverity(weather);
 	    	var cityObj = cities[city];
