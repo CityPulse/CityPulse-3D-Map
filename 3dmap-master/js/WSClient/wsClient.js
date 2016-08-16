@@ -38,6 +38,11 @@ function updateDatasources(name, minX, minY, maxX, maxY){
 ///////////////////////////////////////////////////////////////
 // WEBSOCKET PART
 ///////////////////////////////////////////////////////////////
+
+// If window is not in focus, it stores all incoming events untill window has focus again
+// When window gets focus, it calls "handleDelayedEvent" and pops the first event in the
+// queue, until no more events are in the queue.
+
 var delayedEventTime = 1000;
 function handleDelayedEvent() {
     if(window.blurred == true) return;
