@@ -40,6 +40,7 @@ function updateDatasources(name, minX, minY, maxX, maxY){
 ///////////////////////////////////////////////////////////////
 var delayedEventTime = 1000;
 function handleDelayedEvent() {
+    if(window.blurred == true) return;
     handleMessage(eventQueue.pop());
     if(eventQueue.length > 0)
         setTimeout(handleDelayedEvent, delayedEventTime);
