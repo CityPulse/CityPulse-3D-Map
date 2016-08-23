@@ -51,6 +51,7 @@ function setupWSServer() {
 	        			console.log("setting city value of client");
 	        			client.city = obj.data.city;
 	        			sendWeatherDataToClient(client);
+	        			sendTimeDataToClient(client);
 	        		}
 	        	});
 
@@ -104,18 +105,25 @@ function getCurrentWeatherForCity(city){
 	    	console.log(fbResponse);
 	    	//atm we only support rain and snow, so we only look for that. could be expanded at a later time based on: http://openweathermap.org/weather-conditions
 	    	const weather = fbResponse.weather;
+	    	if(weather == undefined)
+	    		return;
 	    	console.log(new Date()+": Got weather for "+city+":");
 	    	//console.log(weather);
-	    	var newWeatherType = extrapolateWeatherType(weather);
-	    	var newWeatherSeverity = extrapolateWeatherSeverity(weather);
-	    	var cityObj = cities[city];
-	    	if((!cityObj.weatherType || cityObj.weatherType!==newWeatherType) || (!cityObj.weatherSeverity || cityObj.weatherSeverity!==newWeatherSeverity)){
+	    	let newWeatherType = extrapolateWeatherType(weather);
+	    	let newWeatherSeverity = extrapolateWeatherSeverity(weather);
+	    	let timeInfo = extrapolateTimeInfo(fbResponse);
+
+	    	let cityObj = cities[city];
+	    	if((!cityObj.weatherType || cityObj.weatherType!==newWeatherType) || (!cityObj.weatherSeverity || cityObj.weatherSeverity!==newWeatherSeverity) || (!cityObj.timeInfo || cityObj.timeInfo!==timeInfo)){
 	    		cityObj.weatherType = newWeatherType;
 	    		cityObj.weatherSeverity = newWeatherSeverity;
+	    		cityObj.timeInfo = timeInfo;
 	    		//send update to relevant clients
 	    		clients.forEach(function(client){
 	    			if(client.city===city){
 	    				sendWeatherDataToClient(client);
+	    				console.log("Sending..");
+	    				sendTimeDataToClient(client);
 	    			}
 	    		});
 	    	}
@@ -197,6 +205,14 @@ function extrapolateWeatherSeverity(weather){
 	return serverity;
 }
 
+function extrapolateTimeInfo(data){
+	let currentTime = data['dt'];
+	let sunrise = data['sys']['sunrise'];
+	let sunset = data['sys']['sunset'];
+	let timeInfo = {sunrise:sunrise,sunset:sunset,currentTime:currentTime};
+	return timeInfo;
+}
+
 function sendWeatherDataToClient(client){
 	
 	var weatherType = cities[client.city].weatherType;
@@ -212,6 +228,15 @@ function sendWeatherDataToClient(client){
 		weatherType: weatherType,
 		severityLevel: weatherSeverity
 	}));
+}
+
+
+
+function sendTimeDataToClient(client){
+	let timeInfo = cities[client.city].timeInfo;
+	console.log("sending time info: "+JSON.stringify(timeInfo)+" for city: "+client.city);
+	timeInfo['type']='timeInfo';
+	client.conn.sendUTF(JSON.stringify(timeInfo));
 }
 
 

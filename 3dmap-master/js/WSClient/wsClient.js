@@ -120,21 +120,29 @@ var weatherClient = (function(){
     //var connection;
     var clientId = -1;
     var connection = new WebSocket(url);
-    var callbackFunc;        
+    var weatherCallbackFunc;
+    var timeCallbackFunc;        
     connection.onmessage = function(message) {
         console.log("got message");
         var msg = JSON.parse(message.data);
         console.log(msg);
         if(msg.type=='setup'){
             console.log("got new ID: " +msg.id);
+            
             clientId = msg.id;
             
+        }else if(msg.type=='timeInfo'){
+            console.log("got time info");
+            if(timeCallbackFunc){
+                timeCallbackFunc(msg);
+            }
+
         }else{
             console.log("receiving weather data for: "+msg.city+": "+msg.weatherType+" of severity:"+msg.severityLevel);
             var weatherType = msg.weatherType;
             var weatherSeverity = msg.severityLevel;
-            if(callbackFunc){
-                callbackFunc(weatherType,weatherSeverity);
+            if(weatherCallbackFunc){
+                weatherCallbackFunc(weatherType,weatherSeverity);
             }
         }
 
@@ -142,10 +150,11 @@ var weatherClient = (function(){
 
 
     return {
-        setup: function(city, callback){
+        setup: function(city, weatherCallback, timeCallback){
             if(connection && connection.readyState==1){
                 console.log(connection);
-                callbackFunc = callback;
+                weatherCallbackFunc = weatherCallback;
+                timeCallbackFunc = timeCallback;
                 connection.send(JSON.stringify({type: "SETUP", data: {city : city},id:clientId}));        
             }
         },

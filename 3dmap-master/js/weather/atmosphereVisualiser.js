@@ -2,6 +2,29 @@ var weatherSystem;
 var weatherAdded = false;
 var weatherTypeChanged = false;
 var weatherAmountChanged = false;
+var sunrise = null;
+var sunset = null;
+var timeFromServer = null;
+
+var timeOfDayVisualiser = (function(){
+
+	return{
+		timeHandler: function(timeInfo){
+			let sunrise = timeInfo['sunrise'];
+			let currentTime = timeInfo['currentTime'];
+			let sunset = timeInfo['sunset'];
+
+			let isDay = true;
+			if(currentTime>sunset || currentTime<sunrise){
+				currentTime = currentTime-sunset+sunrise;
+				isDay=false;
+			}
+
+			let position = currentTime.map(sunrise, sunset, 0, Math.PI);
+			moveSun(position, isDay);
+		}
+	}
+})();
 
 var weatherVisualiser = (function(){
 

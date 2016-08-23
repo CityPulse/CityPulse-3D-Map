@@ -21,7 +21,7 @@
 		<script src='js/models/ThreeCSG.js'></script>
 		<script src='js/eventVisualisation/dataVisualisation.js'></script>
 		<script src="js/fonts/helvetiker_regular.typeface.js"></script>
-		<script src="js/weather/weatherVisualiser.js"></script>
+		<script src="js/weather/atmosphereVisualiser.js"></script>
 		<script type='text/javascript' src='js/gui/DAT.GUI.js'></script>
 
 
@@ -113,7 +113,7 @@
 			//Set this to true to see coloring of buildings based on their geometry
 			var debugGridSort = false;
 			//Set this to true to see GUI to control parameters
-			var addGUI = true;
+			var addGUI = false;
 			var guiParams = null;
 
 			var buildingUrl = "";
@@ -183,10 +183,6 @@
 			});
 
 
-			var now = new Date(1471201067*1000);
-			console.log(now);
-
-
 			function addMenuHandler(){
 
 
@@ -228,7 +224,7 @@
 
 					e.preventDefault();
 					populateMap(this.id);
-					weatherClient.setup(this.id,weatherVisualiser.weatherHandler); 
+					weatherClient.setup(this.id,weatherVisualiser.weatherHandler, timeOfDayVisualiser.timeHandler); 
 					document.title = this.name;
 					//show GUI to handle test paramters
 					if(addGUI){
@@ -313,7 +309,7 @@
 				controls.enableZoom = true;
             
 
-            	var sunGeometry = new THREE.SphereGeometry( 40, 32, 32 );
+            	var sunGeometry = new THREE.SphereGeometry( 400, 32, 32 );
 				var sunMaterial = new THREE.MeshBasicMaterial( {color: 0xffff00} );
 				sun = new THREE.Mesh( sunGeometry, sunMaterial );
 				sun.name = "SUN";
@@ -331,7 +327,7 @@
                 spotLightRadius = Math.sqrt(Math.pow(spotLight.position.x,2)+Math.pow(spotLight.position.y,2)+Math.pow(spotLight.position.z,2));
                 
                 spotLight.castShadow = true;
-				spotLight.shadowCameraVisible = true;
+				spotLight.shadowCameraVisible = false;
 				spotLight.shadowCameraNear = planeX/2.5;
 				spotLight.shadowCameraFar = 1.5*planeX;
 				spotLight.shadowCameraFov = 50;
@@ -411,7 +407,7 @@
 					spotLight.intensity  = guiParams.intensity;
 					var colorObj = new THREE.Color( guiParams.color );
 					spotLight.color = colorObj;
-					spotLight.position.set(guiParams.xPos,guiParams.yPos,guiParams.zPos);
+					//spotLight.position.set(guiParams.xPos,guiParams.yPos,guiParams.zPos);
 					//sun.set(new THREE.Vector3(guiParams.xPos,guiParams.yPos,guiParams.zPos),20);
 				}
 								
@@ -486,20 +482,37 @@
 		    }
 
 
-		    var t = 0;
-		    
-		    function moveSun(){
-		    	//float x = r*cos(t) + h;
-				//float y = r*sin(t) + k;
 
-				console.log(spotLightRadius+"  "+t);
+
+			var raycaster = new THREE.Raycaster();		    
+		    function moveSun(time, isDay){
+		    	let intensity = 1;
+		    	if(!isDay){
+		    		intensity = 0.2;
+		    		let nightMaterial = new THREE.MeshBasicMaterial( {color: 0xE1E1D6} );
+		    		sun.material = nightMaterial;
+		    	}else{
+		    		let dayMaterial = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+		    		sun.material = dayMaterial;
+		    	}
+
+		    	spotLight.intensity = intensity;
+
 				let zPos = spotLight.position.z;
-				let xPos = spotLightRadius*Math.cos(t);
-				let yPos = spotLightRadius*Math.sin(t);
-				t+=0.1;
-				if(t>Math.PI)
-					t=0;
+				let xPos = spotLightRadius*Math.cos(time);
+				let yPos = spotLightRadius*Math.sin(time);
 				spotLight.position.set(xPos,yPos,zPos);
+				//visualize sun/moon on sky
+				raycaster.set(new THREE.Vector3(0,0,0),spotLight.position);
+				var intersects = raycaster.intersectObjects(scene.children);
+				for(var i =0; i < intersects.length; i++){
+					if(intersects[i].object.name==='sky'){
+						let point = intersects[i].point;
+						sun.position.set(point.x,point.y,point.z);
+						break;	
+					}
+					
+				}
 
 		    }
 
@@ -518,7 +531,6 @@
 
 				if(cs%100==0){
 					
-					moveSun();
 					//console.log(camera.position);	
 					//console.log(scene.children);
 					cs=0;
@@ -529,7 +541,7 @@
 					weatherVisualiser.renderWeather();
 
 
-				/*
+				
 				//makes sure camera does not go beyond x-axis of plane
 				if(camera.position.x<plane.geometry.boundingBox.min.x){
 					camera.position.x=plane.geometry.boundingBox.min.x;
@@ -556,7 +568,7 @@
 					var pov = new THREE.Vector3(0-camera.position.x, 0-camera.position.y,0-camera.position.z);
 					camera.lookAt(pov);
 				}
-				*/
+				
 				/*
 				scene.updateMatrixWorld();
 				scene.traverse(function(obj){
