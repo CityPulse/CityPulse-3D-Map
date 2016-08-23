@@ -2,6 +2,7 @@ var connection = null;
 var subscriptions = new Array();
 var clientId = -1;
 var eventIds = new Array();
+var eventQueue = new Array();
 
 //var waitingForResponse = false;
 
@@ -12,8 +13,9 @@ $(function(){
       if(connection){
         connection.send(JSON.stringify({type:"close", id: clientId}));
         connection.close();
+
       }
-      
+      weatherClient.close();
     });
 });
 
@@ -51,7 +53,7 @@ function handleDelayedEvent() {
         setTimeout(handleDelayedEvent, delayedEventTime);
 }
 
-var eventQueue = new Array();
+
 window.onblur = function() { window.blurred = true; };
 window.onfocus = function() { 
     if(eventQueue.length > 0)
@@ -91,30 +93,6 @@ function setupSocket() {
                 handleMessage(msg);
             }
         }
-
-
-        
-    	
-        
-    	// switch(msg.type) {
-    	// 	case "ENERGY":
-    	// 	$.each(msg.data, function(index, building) {
-     //            changeBuilding(building.value, building.id, false);  
-     //        });
-    	// 	break;
-    	// 	case "HISTORYRESP":
-    	// 	if(msg.data.value != -1) {
-    	// 		var chartData = [];
-    	// 		for(var i = 0; i < msg.data.value.length; i++) {
-    	// 			chartData.push({index: i, value: msg.data.value[i]});
-    	// 		}
-    	// 		setupInfoBox(chartData);
-    	// 	} else {
-    	// 		$("#infoBox").append("<p>No historical data for this building.</p>")
-    	// 	}
-    	// 	//waitingForResponse = false;
-    	// 	break;
-    	// }
     	
     };
 }
@@ -139,6 +117,63 @@ function handleMessage(msg) {
     } else {
     }
 }
+
+
+
+var weatherClient = (function(){
+    
+    var url = 'ws://127.0.0.1:8002';
+    //var connection;
+    var clientId = -1;
+    var connection = new WebSocket(url);
+    var weatherCallbackFunc;
+    var timeCallbackFunc;        
+    connection.onmessage = function(message) {
+        console.log("got message");
+        var msg = JSON.parse(message.data);
+        console.log(msg);
+        if(msg.type=='setup'){
+            console.log("got new ID: " +msg.id);
+            
+            clientId = msg.id;
+            
+        }else if(msg.type=='timeInfo'){
+            console.log("got time info");
+            if(timeCallbackFunc){
+                timeCallbackFunc(msg);
+            }
+
+        }else{
+            console.log("receiving weather data for: "+msg.city+": "+msg.weatherType+" of severity:"+msg.severityLevel);
+            var weatherType = msg.weatherType;
+            var weatherSeverity = msg.severityLevel;
+            if(weatherCallbackFunc){
+                weatherCallbackFunc(weatherType,weatherSeverity);
+            }
+        }
+
+    };
+
+
+    return {
+        setup: function(city, weatherCallback, timeCallback){
+            if(connection && connection.readyState==1){
+                console.log(connection);
+                weatherCallbackFunc = weatherCallback;
+                timeCallbackFunc = timeCallback;
+                connection.send(JSON.stringify({type: "SETUP", data: {city : city},id:clientId}));        
+            }
+        },
+
+        close: function(){
+            if(connection){
+                connection.send(JSON.stringify({type:"close", id: clientId}));
+                connection.close();
+            }
+        }
+    }
+
+})();
 
 
 
