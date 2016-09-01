@@ -58,7 +58,8 @@
 			<li><a id='Ry' name="Ry City" href="#4">Ry</a></li> 
 		    </ul>
 		</div>
-		<input type="button" value="add event" id='eventAdd'>
+		<input type="button" value="Add event" id='eventAdd'>
+		<input type="button" value="Toggle Auto cam (a)" id='toggleAutoCam'>
 
 		<input type="button" data-jq-dropdown="#jq-dropdown-2" value="Choose data source" id='dataSourceChooser'>
 		<div id="jq-dropdown-2" class="jq-dropdown jq-dropdown-tip jq-dropdown-anchor-left dropdown-data">
@@ -115,6 +116,8 @@
 			//Set this to true to see GUI to control parameters
 			var addGUI = false;
 			var guiParams = null;
+			//Flag for setting is camara should be animated
+			var autoCamAnimation = false;
 
 			var buildingUrl = "";
 			var roadUrl = "";
@@ -127,6 +130,7 @@
 		    var renderAnimationId = null;
 		    var scene = new THREE.Scene();
 		    var camera=null;
+		    var pathCamera = null;
 		    var spotLight = null;
 		    var spotLightRadius = null;
 		    var sun = null;
@@ -189,6 +193,10 @@
 				$("#eventAdd").on('click',function(e){
 					addTestEvent();
 				});
+
+				$("#toggleAutoCam").on('click',function(e){
+					autoCamAnimation =!autoCamAnimation;
+				});
 				
 				//handler for city select
 				$(".dropdown-city > ul > li > a").on('click', function(e){
@@ -212,7 +220,7 @@
 
 					for(var i = scene.children.length-1; i>=0; i--){
 						var name = scene.children[i].name;
-						if(!name.startsWith("sky") && !name.startsWith("spotlight") && !name.startsWith("hemilight") && !name.startsWith("weather") && !name.startsWith("SUN")){
+						if(!name.startsWith("sky") && !name.startsWith("spotlight") && !name.startsWith("hemilight") && !name.startsWith("weather") && !name.startsWith("SUN") && !name.startsWith("cam")){
 
 							scene.remove(scene.children[i]);	
 						}
@@ -242,6 +250,7 @@
 
 				//add key handler to reset camera view
 				$(document).keydown(function(e) {
+					console.log(e.keyCode);
 					if(e.keyCode===82){//'r' pressed
 						if(camera){
 							camera.position.x=initCameraPosition.x;
@@ -260,6 +269,8 @@
 							spotLightRadius = Math.sqrt(Math.pow(spotLight.position.x,2)+Math.pow(spotLight.position.y,2)+Math.pow(spotLight.position.z,2));
 
 						}
+					}else if(e.keyCode===65){//'a' pressed{
+						autoCamAnimation=!autoCamAnimation;
 					}
         			
     			});
@@ -296,9 +307,11 @@
 
                 addMouseHandling();
 
+                
                 camera.position.z = 965;
                 camera.position.x = 1435;
                 camera.position.y = 1415;
+
 				if(!initCameraPosition){
 					initCameraPosition = {x:camera.position.x, y:camera.position.y, z:camera.position.z};
 				}
@@ -374,6 +387,7 @@
 
 				scene.add( sky );
 
+				addCameraPath();
 		
 				//add GUI element
 				var gui = new dat.GUI({
@@ -411,6 +425,43 @@
 					//sun.set(new THREE.Vector3(guiParams.xPos,guiParams.yPos,guiParams.zPos),20);
 				}
 								
+		    }
+
+		    function addCameraPath(){
+		    	console.log(camera.position);
+		    	
+		    	let x = camera.position.x;
+		    	let y = camera.position.y;
+		    	let z = camera.position.z;
+
+
+		    	//test spline path
+				pathCamera = new THREE.ClosedSplineCurve3( [
+
+						initCameraPosition,
+						new THREE.Vector3( -x, y, z),
+						new THREE.Vector3( -x, y, -z),
+						new THREE.Vector3( x, y, -z),
+						new THREE.Vector3( 400, 200, 400 ),
+						new THREE.Vector3( -400, 200, 400 ),
+						new THREE.Vector3( -400, 200, -400 ),
+						new THREE.Vector3( 400, 200, -400 ),
+						//new THREE.Vector3( x-50, y-20, z-50),		
+						//initCameraPosition
+				] );
+
+				console.log(pathCamera);
+
+				let tubeGeo = new THREE.TubeGeometry(pathCamera);
+				let tubeMat = new THREE.MeshBasicMaterial({
+					color: 0x000000,
+					opacity: 0.3,
+					wireframe: true,
+					transparent: false
+				});
+				let tubeMesh = new THREE.Mesh(tubeGeo, tubeMat);
+				tubeMesh.name="cam";
+				//scene.add(tubeMesh);
 		    }
 
 		    ///////////////////////////////////////////////////////////////
@@ -541,7 +592,19 @@
 					weatherVisualiser.renderWeather();
 
 
-				
+				//animate camera
+				if(pathCamera && autoCamAnimation){
+					let time = Date.now()
+					let loopTime = 20* 1000;
+					let t = (time%loopTime)/loopTime;
+
+					let camPosition = pathCamera.getPointAt(t);
+					camera.position.copy(camPosition);
+					camera.lookAt(new THREE.Vector3(0,0,0));
+					
+				}
+
+				/*
 				//makes sure camera does not go beyond x-axis of plane
 				if(camera.position.x<plane.geometry.boundingBox.min.x){
 					camera.position.x=plane.geometry.boundingBox.min.x;
@@ -568,7 +631,7 @@
 					var pov = new THREE.Vector3(0-camera.position.x, 0-camera.position.y,0-camera.position.z);
 					camera.lookAt(pov);
 				}
-				
+				*/
 				/*
 				scene.updateMatrixWorld();
 				scene.traverse(function(obj){
@@ -738,13 +801,13 @@
 					//return;
 					
 					//getTrees();
-					//getWater();
+					getWater();
 					//getRoads();
 					
 					
 					noOfBuildings = data.length;
 
-					createBuildingModels(data);
+					//createBuildingModels(data);
 					showSpinner(false);
 					
 				});
@@ -858,7 +921,7 @@
 							//console.log(kml);
 							//debugger;
 							var data = toGeoJSON.kml(kml);
-							//console.log(data);
+							console.log(data);
 							//return;
 							createWaterModels(data.features);
 							console.log(new Date()+": water loaded");
