@@ -9,7 +9,7 @@ canvas {
 
 
 /*holder of the scene*/
-#holder{
+#renderStatsHolder{
 	display: none;
 }
 

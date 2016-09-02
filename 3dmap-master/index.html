@@ -23,7 +23,7 @@
 		<script src="js/fonts/helvetiker_regular.typeface.js"></script>
 		<script src="js/weather/atmosphereVisualiser.js"></script>
 		<script src='js/gui/DAT.GUI.js'></script>
-		<script src='js/tests/testFunctions.js'></script>
+		<script src='js/mapData/dataLoader.js'></script>
 
 
 	</head>
@@ -243,7 +243,7 @@
 					resetPlaneSize();
 
 					e.preventDefault();
-					populateMap(this.id);
+					mapData.populateMap(this.id);
 					weatherClient.setup(this.id,weatherVisualiser.weatherHandler, timeOfDayVisualiser.timeHandler); 
 					document.title = this.name;
 					//show GUI to handle test paramters
@@ -262,7 +262,6 @@
 
 				//add key handler to reset camera view
 				$(document).keydown(function(e) {
-					console.log(e.keyCode);
 					if(e.keyCode===82){//'r' pressed
 						if(camera){
 							camera.position.x=initCameraPosition.x;
@@ -293,33 +292,35 @@
 			{	
 				
 			    //set renderbox for development information - remove all this for production
-			    
 				rendererStats.setMode( 0 ); // 0: fps, 1: ms, 2: mb
 			    rendererStats.domElement.style.position   = 'absolute'
 				rendererStats.domElement.style.left  = '0px'
 				rendererStats.domElement.style.bottom    = '0px'
 				//document.body.appendChild( rendererStats.domElement );
 				$("#renderStatsHolder").append(rendererStats.domElement);
-				
 				//end stats
-		        
+		        //adding camera
                 camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 5, 10000 );
 				raycaster = new THREE.Raycaster();
 				mouse = new THREE.Vector2();
 				mouse.x = -1;
 				mouse.y = 1;
 				
+				//setting up render
                 renderer = new THREE.WebGLRenderer({ antialias: true });
                 renderer.setSize( window.innerWidth, window.innerHeight );
                 renderer.setClearColor(0xdddddd);
 				renderer.shadowMapEnabled = true;
 				renderer.shadowMapType = THREE.PCFSoftShadowMap;
-                //document.body.appendChild( renderer.domElement );
+                
                 $("#renderStatsHolder").append(renderer.domElement);
 
+                //adding mouse handling
                 addMouseHandling();
 
                 
+
+                //setting camera properties - also used to reset camera position
                 camera.position.z = 965;
                 camera.position.x = 1435;
                 camera.position.y = 1415;
@@ -333,7 +334,7 @@
 				controls.dampingFactor = 0.25;
 				controls.enableZoom = true;
             
-
+				//adding sun/moon object
             	var sunGeometry = new THREE.SphereGeometry( 400, 32, 32 );
 				var sunMaterial = new THREE.MeshBasicMaterial( {color: 0xffff00} );
 				sun = new THREE.Mesh( sunGeometry, sunMaterial );
@@ -347,10 +348,7 @@
                 spotLight.name = "spotlight";
                 //var spotLight = new THREE.SpotLight(0xffffff, 0.9, 100000, Math.PI/2, 10, 1);
                 spotLight.position.set(-0.75*planeX, 2500, 500);
-                
-
                 spotLightRadius = Math.sqrt(Math.pow(spotLight.position.x,2)+Math.pow(spotLight.position.y,2)+Math.pow(spotLight.position.z,2));
-                
                 spotLight.castShadow = true;
 				spotLight.shadowCameraVisible = false;
 				spotLight.shadowCameraNear = planeX/2.5;
@@ -360,6 +358,7 @@
 				spotLight.shadowMapWidth = SHADOW_MAP_WIDTH/2;
 				spotLight.shadowMapHeight = SHADOW_MAP_HEIGHT/2;
                 scene.add(spotLight);
+                //for debugging light source position
                 if(!initSpotLightPosition){
                 	initSpotLightPosition = {x:spotLight.position.x, y:spotLight.position.y, z:spotLight.position.z};
                 }
@@ -373,12 +372,7 @@
 				scene.add( hemiLight );
 				
 				
-				console.log(new Date()+": End setup/start render");
-				
-				
-				
 				// SKYDOME
-
 				var vertexShader = document.getElementById( 'vertexShader' ).textContent;
 				var fragmentShader = document.getElementById( 'fragmentShader' ).textContent;
 				var uniforms = {
@@ -400,6 +394,8 @@
 				scene.add( sky );
 
 				addCameraPath();
+
+				console.log(new Date()+": End setup/start render");
 		
 				//add GUI element
 				var gui = new dat.GUI({
@@ -478,7 +474,7 @@
 
 		    ///////////////////////////////////////////////////////////////
 			// Helper methods for setting up the scene with different cities
-			///////////////////////////////////////////////////////////////
+			/////////////////////////////////////////////////////////x$//////
 
 
 			function resetPlaneSize(){
@@ -721,180 +717,6 @@
 
 			
 			
-			/*****************************/
-			/*                           */
-			/*         Geo data          */	
-			/*                           */
-			/*****************************/
-			
-		
-
-			function populateMap(city){
-				console.log(new Date()+": start");
-				buildingUrl = "data/kml/"+city+"/sortedbuildings.kml";
-				//buildingUrl = "data/kml/"+city+"/buildings.kml";
-				roadUrl = "data/kml/"+city+"/roads.kml";
-				treeUrl = "data/kml/"+city+"/trees.kml";
-				waterUrl = "data/kml/"+city+"/water.kml";
-
-				//waterUrl = "data/kml/"+city+"/waterTest.kml";
-				
-				
-				getBuildings();
-				//for testing of all sorts
-				//tests.testRun();
-
-			}
-
-			
-
-
-			///////////////////////////////////////////////////////////////
-			// Getting building data from server
-			///////////////////////////////////////////////////////////////
-
-			function getBuildings(){
-
-				///////////////////////////////////////////////////////////////
-				// Decide if we use local dummy data or try to connect to server via WebSockets
-				///////////////////////////////////////////////////////////////
-				var usingServer = true;
-
-				
-				showText("retrieving building data from server for "+cityName);
-				
-				$.get(buildingUrl, function(kml)
-				{
-					showText("Building data loaded from server..");
-					
-					console.log(new Date()+":got building kml");
-					
-					var data = toGeoJSON.kml(kml).features;
-					
-					calculatePlaneBounds(data);
-					setPlane();
-
-					noOfBuildings = data.length;
-					
-					setTimeout(function(){
-						showText("Creating building models");
-						setTimeout(function(){
-							createBuildingModels(data);
-							showText("Building models created");
-							setTimeout(function(){	
-								console.log(new Date()+": buildings loaded");
-								//hide spinner as system is ready
-								showSpinner(false);
-							},50)
-							getTrees();
-						},50);
-						getWater();
-					},50);
-					getRoads();
-
-					setupSocket();
-					//for testing events - can be removed when done
-					//addTestEvent();
-					
-					/*
-					//test for showing building height change;
-					if(!usingServer)
-						var t=setInterval(setLevels,1000/4);
-					else
-						setupBuildingEnergySocket(noOfBuildings);
-					*/
-				});
-			}
-
-
-			///////////////////////////////////////////////////////////////
-			// Getting road data from server
-			///////////////////////////////////////////////////////////////
-
-			function getRoads(){
-				//$.get('data/kml/roadtest.kml', function(kml)
-				showText("Loading roads");
-				//$.get('data/kml/aarhusByMidteVeje.kml', function(kml)
-				$.get(roadUrl, function(kml)
-				{
-					console.log(new Date()+": got road kml");
-					showText("Road data loaded from server");
-					var data = toGeoJSON.kml(kml);
-					
-					createRoadModels(data.features);
-					console.log(new Date()+": roads loaded");
-				});
-			}
-
-
-
-
-
-			///////////////////////////////////////////////////////////////
-			// Getting water data from server
-			///////////////////////////////////////////////////////////////
-
-			function getWater(){
-				//check to see if tree model is available
-				$.ajax({
-					url:waterUrl,
-					type:"HEAD",
-					success:function(){
-						showText("Loading water");
-						$.get(waterUrl, function(kml)
-						{
-							console.log(new Date()+": got water kml");
-							showText("Water data loaded from server");
-							//console.log(kml);
-							//debugger;
-							var data = toGeoJSON.kml(kml);
-							console.log(data);
-							//return;
-							createWaterModels(data.features);
-							console.log(new Date()+": water loaded");
-						});
-					},
-					error: function(){
-						console.log("no water models available - continue with just buildings and roads");
-					}
-				});
-				
-				
-			}
-
-
-
-
-			///////////////////////////////////////////////////////////////
-			// Getting tree data from server
-			///////////////////////////////////////////////////////////////
-
-			function getTrees(){
-				//check to see if tree model is available
-				$.ajax({
-					url:treeUrl,
-					type:"HEAD",
-					success:function(){
-						showText("Loading trees");
-						$.get(treeUrl, function(kml)
-						{
-							console.log(new Date()+": got tree kml");
-							showText("Tree data loaded from server");
-
-							var data = toGeoJSON.kml(kml);
-
-							createTreesModels(data.features);
-							console.log(new Date()+": trees loaded");
-						});
-					},
-					error: function(){
-						console.log("no tree models available - continue with just buildings and roads");
-					}
-				});
-				
-				
-			}
-
 
 			///////////////////////////////////////////////////////////////
 			// Show overlay text when loading scenes
