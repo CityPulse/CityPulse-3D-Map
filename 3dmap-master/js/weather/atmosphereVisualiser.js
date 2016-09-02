@@ -21,7 +21,7 @@ var timeOfDayVisualiser = (function(){
 			}
 
 			let position = currentTime.map(sunrise, sunset, 0, Math.PI);
-			moveSun(position, isDay);
+			objectAnimations.moveSun(position, isDay);
 		}
 	}
 })();

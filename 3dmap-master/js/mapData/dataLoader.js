@@ -8,6 +8,32 @@
 var mapData = (function(){
 
 	///////////////////////////////////////////////////////////////
+	// Setting plane size based on building positions
+	///////////////////////////////////////////////////////////////
+
+	function setPlane(){
+    	var planeGeo =  new THREE.PlaneBufferGeometry(planeX, planeY,32, 32 );// new THREE.PlaneGeometry(2000,2000);
+        var planeMat = new THREE.MeshLambertMaterial("rgb(128, 128, 128)");
+        plane = new THREE.Mesh(planeGeo, planeMat);
+			
+        // rotate it to correct position
+        plane.rotation.x = -Math.PI/2;
+		plane.castShadow = false;
+		plane.receiveShadow = true;
+		plane.name = "ground";
+
+		plane.matrixAutoUpdate = false;
+		plane.updateMatrix();
+
+		//calculate bounding box for limiting camera position
+		plane.geometry.computeBoundingBox();
+
+        scene.add(plane);
+        //toggleWeather("rain","middle",true);
+		render();
+    }
+
+	///////////////////////////////////////////////////////////////
 	// Getting building data from server
 	///////////////////////////////////////////////////////////////
 
