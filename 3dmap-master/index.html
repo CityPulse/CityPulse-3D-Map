@@ -22,7 +22,8 @@
 		<script src='js/eventVisualisation/dataVisualisation.js'></script>
 		<script src="js/fonts/helvetiker_regular.typeface.js"></script>
 		<script src="js/weather/atmosphereVisualiser.js"></script>
-		<script type='text/javascript' src='js/gui/DAT.GUI.js'></script>
+		<script src='js/gui/DAT.GUI.js'></script>
+		<script src='js/tests/testFunctions.js'></script>
 
 
 	</head>
@@ -42,10 +43,10 @@
 			<div class="spinner-text" id='infoText'>waiting for city choosing</div>
 		</div>
 
-		<div id='holder'></div>
+		<div id='renderStatsHolder'></div>
 
 		<div id='guiHolder'></div>
-
+		<!-- Buttons for user interaction -->
 		<input type="button" data-jq-dropdown="#jq-dropdown-1" value="Choose city" id='cityChooser'>
 		<div id="jq-dropdown-1" class="jq-dropdown jq-dropdown-tip dropdown-city">
 		    <ul class="jq-dropdown-menu">
@@ -58,6 +59,7 @@
 			<li><a id='Ry' name="Ry City" href="#4">Ry</a></li> 
 		    </ul>
 		</div>
+
 		<input type="button" value="Add event" id='eventAdd'>
 		<input type="button" value="Toggle Auto cam (a)" id='toggleAutoCam'>
 
@@ -74,6 +76,7 @@
 		    </ul>
 		</div>
 	
+		<!-- shaders -->
 		<script type="x-shader/x-vertex" id="vertexShader">
 
 			varying vec3 vWorldPosition;
@@ -108,7 +111,7 @@
 		</script>
 
 
-	
+		<!-- main script -->
 		<script>
 			"use strict";
 			//Set this to true to see coloring of buildings based on their geometry
@@ -118,29 +121,39 @@
 			var guiParams = null;
 			//Flag for setting is camara should be animated
 			var autoCamAnimation = false;
-
+			//URLs used to load the KML files for each city. Is set in the populateMap function
 			var buildingUrl = "";
 			var roadUrl = "";
 			var treeUrl = "";
 			var waterUrl = "";
 
+			//Object used as associative array for holding the building meshes needed for resizing according to energy consumption
 		    var buildingObjects={};		    
 		    
+		    //three.js specific variables 
 		    var renderer=null;
 		    var renderAnimationId = null;
 		    var scene = new THREE.Scene();
 		    var camera=null;
-		    var pathCamera = null;
+		    
 		    var spotLight = null;
 		    var spotLightRadius = null;
-		    var sun = null;
-		    var initCameraPosition = null;
-		    var initSpotLightPosition = null;
 			var controls= null;
 			var raycaster = null;
             var mouse =  null;
 			var plane = null;
+			var SHADOW_MAP_WIDTH = 1024;
+			var SHADOW_MAP_HEIGHT = 1024;
 
+			//the path that the camera follows if set to auto
+			var pathCamera = null;
+			//sphere for simulating sun/moon
+		    var sun = null;
+		    //the initial camera position for resetting camera
+		    var initCameraPosition = null;
+		    //used for debugging of light source position and movement
+		    var initSpotLightPosition = null;
+			//default values for the plane size. Will be set according to the postions of buildings in each KML file
 			var planeX = 10000;
 			var planeY = 10000;
 			
@@ -148,23 +161,22 @@
 			var minY = 10000000;
 			var maxX = -100000.0;
 			var maxY = -100000.0;
+			//used for calculating position of buildings in the 3d model.
 			var fCenterX, fCenterY;
 			var wgsMinX, wgsMinY, wgsMaxX, wgsMaxY;
 
 			
-
 			var cityName = "";
-
+			var chosenCityId = null;
+			//the total number of buildings in a given city. Used for resizing of buildings
 			var noOfBuildings = null;
+			//the number of buildings in each mesh. Used for optimization when resizing a single building
 			var noOfBuildingGeoSlice = 30;
 
 			var originalBuildingColor = 0x00ffff;
 			
-			
-			var SHADOW_MAP_WIDTH = 1024, SHADOW_MAP_HEIGHT = 1024;
-		    
+		
 			//mapping used to make sure that building height do not reach infinity
-			//TODO: needs to be fitted with correct numbers
 			var maxEnergyLevel = 10;
 			var minEnergyLevel = 0.1;
 			var maxScale = 10;
@@ -176,12 +188,12 @@
  				 return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 			}
 
-			var chosenCityId = null;
+			
 
 			$(function(){
 				//start setting up the basics before a anything else happens
 				setup();
-				
+				//add the menu handlers for user interaction
 				addMenuHandler();
 
 			});
@@ -287,7 +299,7 @@
 				rendererStats.domElement.style.left  = '0px'
 				rendererStats.domElement.style.bottom    = '0px'
 				//document.body.appendChild( rendererStats.domElement );
-				$("#holder").append(rendererStats.domElement);
+				$("#renderStatsHolder").append(rendererStats.domElement);
 				
 				//end stats
 		        
@@ -303,7 +315,7 @@
 				renderer.shadowMapEnabled = true;
 				renderer.shadowMapType = THREE.PCFSoftShadowMap;
                 //document.body.appendChild( renderer.domElement );
-                $("#holder").append(renderer.domElement);
+                $("#renderStatsHolder").append(renderer.domElement);
 
                 addMouseHandling();
 
@@ -534,8 +546,6 @@
 
 
 
-
-			var raycaster = new THREE.Raycaster();		    
 		    function moveSun(time, isDay){
 		    	let intensity = 1;
 		    	if(!isDay){
@@ -709,10 +719,6 @@
 
 
 
-
-			
-            
-
 			
 			
 			/*****************************/
@@ -736,82 +742,11 @@
 				
 				getBuildings();
 				//for testing of all sorts
-				//testRun();
+				//tests.testRun();
 
 			}
 
-			function addTestEvents(){
-				for(var i=0; i<300;i++){
-					addTestEvent();	
-				}
-			}
-
-			var id = 0;
-			//solely for testing events. Can be removed when finished
-			function addTestEvent(){
-
-				//var testPos = {lat:12.566725889453012,lng:55.68321681457061};
-				var testPos = {lat:10.21, lng:56.15};
-				var x = Math.floor(Math.random() * planeX)-planeX/2;
-				var y = Math.floor(Math.random() * planeY)-planeY/2;
-				var planePos = {x:x,y:y};
-				console.log("planeX: "+planeX+" planeY: "+planeY);
-				console.log("planePos.x: "+planePos.x+" planePos.y: "+planePos.y);
-				var type = Math.floor(Math.random() * 4);
-				var types = [];
-				types.push("PublicParking");
-				types.push("TrafficJam");
-				types.push("AarhusPollution");
-				types.push("AarhusNoise");
-				var type = types[Math.floor(Math.random() * 4)];
-
-				var serverity = Math.floor(Math.random() * 3);
-				showEvent(planePos, undefined ,id, type, serverity);
-				
-
-				// type: PublicParking(0), TrafficJam(1), AarhusPollution(2), AarhusNoise(3)
-				// serverity: {0,1,2}
-				if(id==Number.MAX_VALUE-1){
-					id=0;
-				}
-				id++;
-			}
-
-
-			function testRun(){
-
-				$.get(buildingUrl, function(kml)
-				{
-					
-					console.log(new Date()+":got building kml");
-					
-					var data = toGeoJSON.kml(kml).features;
-					
-					calculatePlaneBounds(data);
-					setPlane();
-
-					
-					//showSpinner(false);
-					//addTestEvents();
-					//return;
-					
-					//getTrees();
-					
-					//addTestEvents();
-					//return;
-					
-					//getTrees();
-					getWater();
-					//getRoads();
-					
-					
-					noOfBuildings = data.length;
-
-					//createBuildingModels(data);
-					showSpinner(false);
-					
-				});
-			}
+			
 
 
 			///////////////////////////////////////////////////////////////
@@ -827,8 +762,7 @@
 
 				
 				showText("retrieving building data from server for "+cityName);
-				//$.get('data/kml/aarhusByMidte.kml', function(kml)
-				//$.get('data/kml/test.kml', function(kml)
+				
 				$.get(buildingUrl, function(kml)
 				{
 					showText("Building data loaded from server..");
@@ -840,15 +774,8 @@
 					calculatePlaneBounds(data);
 					setPlane();
 
-					//getWater();
-					//TEST: adding tests events to screen
-					
-					//showSpinner(false);
-					//return;
 					noOfBuildings = data.length;
-
-					var maxLen = Math.round(data.length/noOfBuildingGeoSlice)===0?1:Math.round(data.length/noOfBuildingGeoSlice);
-					//
+					
 					setTimeout(function(){
 						showText("Creating building models");
 						setTimeout(function(){
@@ -988,11 +915,11 @@
 			
 			function showSpinner(showSpinner){
 				if(showSpinner){
-					$("#holder").hide();
+					$("#renderStatsHolder").hide();
 					$(".spinner-holder").show();
 				}else{
 					console.log("show scene");
-					$("#holder").show();
+					$("#renderStatsHolder").show();
 					$(".spinner-holder").hide();
 				}
 			}

@@ -278,7 +278,7 @@ function createWaterModels(data){
 
             });
         }else{
-            
+            console.log("else");
             water = _createConcreteWaterModels(item.geometry.coordinates[0]);
             
             if(item.geometry.boundaryType==="innerBoundaryIs"){
@@ -317,7 +317,7 @@ function _createConcreteWaterModels(data){
     var height=0.1;
     
     $.each(data, function(k, coordinate){
-
+        console.log(coordinate);
         var utmResult= converter.toUtm({coord: [coordinate[0], coordinate[1]]});
         
         if (k==0)
