@@ -62,19 +62,20 @@
 		    </ul>
 		</div>
 
-		<input type="button" value="Add event" id='eventAdd'>
 		<input type="button" value="Toggle Auto cam (a)" id='toggleAutoCam'>
 
 		<input type="button" data-jq-dropdown="#jq-dropdown-2" value="Choose data source" id='dataSourceChooser'>
 		<div id="jq-dropdown-2" class="jq-dropdown jq-dropdown-tip jq-dropdown-anchor-left dropdown-data">
 		    <ul class="jq-dropdown-menu">
-		    	<li><input type="checkbox" name="datasource" value="PublicParking">Public Parking</li>
+		    	<li><input type="checkbox" name="datasource" value="publicParking">Public Parking</li>
 		    	<li class="jq-dropdown-divider"></li>
-		    	<li><input type="checkbox" name="datasource" value="TrafficJam">Traffic Jam</li>
+		    	<li><input type="checkbox" name="datasource" value="trafficJam">Traffic Jam</li>
 		    	<li class="jq-dropdown-divider"></li>
-		    	<li><input type="checkbox" name="datasource" value="AarhusPollution">Aarhus Pollution</li>
+		    	<li><input type="checkbox" name="datasource" value="aarhusPollution">Pollution</li>
 		    	<li class="jq-dropdown-divider"></li>
-		    	<li><input type="checkbox" name="datasource" value="AarhusNoiseLevel">Aarhus Noise</li>
+		    	<li><input type="checkbox" name="datasource" value="aarhusNoiseLevel">Noise</li>
+		    	<li class="jq-dropdown-divider"></li>
+		    	<li><input type="checkbox" name="datasource" value="buildingEnergy">Building Energy</li>
 		    </ul>
 		</div>
 	
@@ -177,12 +178,6 @@
 
 			var originalBuildingColor = 0x00ffff;
 			
-		
-			//mapping used to make sure that building height do not reach infinity
-			var maxEnergyLevel = 10;
-			var minEnergyLevel = 0.1;
-			var maxScale = 10;
-			var minScale = 0.5;
 
 			var rendererStats = new Stats();
 

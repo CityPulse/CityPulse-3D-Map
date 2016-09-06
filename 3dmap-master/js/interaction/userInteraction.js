@@ -3,12 +3,14 @@ var interaction = (function(){
 
 	var selectedObject=null;
 
+	function resetPlaneSize(){
+		minY = minX = 10000000;
+		maxY = maxX = -100000.0;
+	}
+
+
 	return{
 		addMenuHandler: function(){
-
-			$("#eventAdd").on('click',function(e){
-				addTestEvent();
-			});
 
 			$("#toggleAutoCam").on('click',function(e){
 				autoCamAnimation =!autoCamAnimation;
@@ -111,7 +113,7 @@ var interaction = (function(){
 				if($("#infoBox").is(':visible')){
 					$("#infoBox").css('visibility', 'hidden');
 				}
-				removeEventTexts();
+				dataVisualisation.removeEventTexts();
 
 				
 				raycaster.setFromCamera( mouse, camera );
@@ -122,31 +124,33 @@ var interaction = (function(){
 				{
 					//console.log(intersects[i].object);
 					if(intersects[i].object.name.startsWith("buildings") && intersects[i].face.readingId !== selectedObject){
-						selectedObject = intersects[i].face.readingId; // Assign new selected object							
+						selectedObject = intersects[i].face.readingId; // Assign new selected object
+						console.log("wtf "+selectedObject);
+						dataVisualisation.changeBuild(3,selectedObject);							
 						break;
 					}else if(intersects[i].object.name.startsWith("event")){
 		        		var eventId = intersects[i].object.eventId;
 		        		var serverity = Math.floor(Math.random() * 3);
 		        		//updateEvent(eventId, serverity);
-		        		showEventText(eventId);
+		        		dataVisualisation.showEventText(eventId);
 		        		//removeEvent(eventId);
 		        		//demoEventHack();
 		        		break;
 					}else if(intersects[i].object.name.startsWith("text")){
-						removeEventTexts();
+						dataVisualisation.removeEventTexts();
 					}
 					
 					selectedObject = null;
 		        }
 
-				
+				/*
 		        if(selectedObject !== null && connection!==null) {
 		        	//waitingForResponse = true;
-					buildingEnergyConnection.send(JSON.stringify({type: "HISTORYREQ", data: {value : selectedObject}}));
+					connection.send(JSON.stringify({type: "HISTORYREQ", data: {value : selectedObject}}));
 					$('#infoBox').html("Now showing data for building: " + selectedObject + "\n");
 		        	$("#infoBox").css('visibility', 'visible');
 		        }
-					
+				*/	
 			});
 			
 		}

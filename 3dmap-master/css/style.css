@@ -13,18 +13,6 @@ canvas {
 	display: none;
 }
 
-/* eventAdd is just for testing events. Can be removed at will */
-#eventAdd{
-	position:absolute;
-	left:10px;
-	top:40px;
-	z-index:100;
-	text-align: center;
-	font-size: 20px;
-	min-width:100px;
-	color: #333333;
-	font-family: verdana, arial;
-}
 
 #cityChooser{
 	position:absolute;
@@ -41,7 +29,7 @@ canvas {
 #datasourceChooser{
 	position:absolute;
 	left:10px;
-	top:75px;
+	top:40px;
 	z-index:100;
 	text-align: center;
 	font-size: 20px;
@@ -53,7 +41,7 @@ canvas {
 #toggleAutoCam{
 	position:absolute;
 	left:10px;
-	top:110px;
+	top:75px;
 	z-index:100;
 	text-align: center;
 	font-size: 20px;

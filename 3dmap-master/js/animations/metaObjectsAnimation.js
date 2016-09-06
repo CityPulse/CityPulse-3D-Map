@@ -33,7 +33,6 @@ var objectAnimations = (function(){
 		},
 
 		addCameraPath:function(){
-			console.log(camera.position);
 			
 			let x = camera.position.x;
 			let y = camera.position.y;
@@ -51,11 +50,8 @@ var objectAnimations = (function(){
 					new THREE.Vector3( -400, 200, 400 ),
 					new THREE.Vector3( -400, 200, -400 ),
 					new THREE.Vector3( 400, 200, -400 ),
-					//new THREE.Vector3( x-50, y-20, z-50),		
-					//initCameraPosition
 			] );
 
-			console.log(pathCamera);
 
 			let tubeGeo = new THREE.TubeGeometry(pathCamera);
 			let tubeMat = new THREE.MeshBasicMaterial({

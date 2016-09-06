@@ -98,23 +98,35 @@ function setupSocket() {
 }
 
 function handleMessage(msg) {
-    //console.log($.inArray(msg.eventId, eventIds))
+    
+    let coordinates = {lat:msg.lat, lng:msg.long};
     if($.inArray(msg.eventId, eventIds) == -1 && msg.severityLevel != -1) { // If event is new and not to be deleted
-//        console.log(1);
         eventIds.push(msg.eventId);
-        //console.log("will call showEvent");
+        
+    	console.log("handleMessage -> lat: "+msg.lat+" long: "+msg.long+" eventId: "+msg.eventId+" eventType: "+msg.eventType+" severity: "+msg.severityLevel);
 
-	console.log("handleMessage -> lat: "+msg.lat+" long: "+msg.long+" eventId: "+msg.eventId+" eventType: "+msg.eventType+" severity: "+msg.severityLevel);
-
-	var coordinates = {lat:msg.lat, lng:msg.long}; 
-
-	showEventByCoords(coordinates, "loool", msg.eventId, msg.eventType, msg.severityLevel);
+    	 
+        if(msg.eventType==='buildingEnergy'){
+            dataVisualisation.showBuildingEnergy(coordinates, msg.severityLevel);
+        }else{
+            dataVisualisation.showEventByCoords(coordinates, msg.eventId, msg.eventType, msg.severityLevel);    
+        }
+    	
 
     } else if($.inArray(msg.eventId, eventIds) != -1 && msg.severityLevel != -1) { // If event is not new and not to be deleted
-        updateEvent(msg.eventId, msg.severityLevel);
+        if(msg.eventType==='buildingEnergy'){
+            dataVisualisation.showBuildingEnergy(coordinates, msg.severityLevel);
+        }else{
+            dataVisualisation.updateEvent(msg.eventId, msg.severityLevel);    
+        }
+        
     } else if($.inArray(msg.eventId, eventIds) != -1 && msg.severityLevel == -1) { // If event is not new and to be deleted
-        removeEvent(msg.eventId);
-    } else {
+        if(msg.eventType==='buildingEnergy'){
+            dataVisualisation.resetBuildingEnergy(coordinates);
+        }else{
+            dataVisualisation.removeEvent(msg.eventId);    
+        }
+        
     }
 }
 

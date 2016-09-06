@@ -132,7 +132,7 @@ var mapData = (function(){
 					//console.log(kml);
 					//debugger;
 					var data = toGeoJSON.kml(kml);
-					console.log(data);
+					//console.log(data);
 					//return;
 					createWaterModels(data.features);
 					console.log(new Date()+": water loaded");
@@ -210,7 +210,7 @@ var mapData = (function(){
 		var type = types[Math.floor(Math.random() * 4)];
 
 		var serverity = Math.floor(Math.random() * 3);
-		showEvent(planePos, undefined ,testId, type, serverity);
+		showEvent(planePos, testId, type, serverity);
 		
 
 		// type: PublicParking(0), TrafficJam(1), AarhusPollution(2), AarhusNoise(3)

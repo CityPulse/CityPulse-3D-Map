@@ -80,7 +80,8 @@ function createBuildingModels(data)
         if(item.geometry.type==='GeometryCollection'){
             
             $.each(item.geometry.geometries, function(k, geometry){
-                building = _createConcreteBuildingModels(geometry.coordinates[0],i);
+                building = _createConcreteBuildingModels(geometry.coordinates[0]);
+                building.geoKey = geoKey;
                 buildingObjects[i] = building;
 
                 geometryList[geoKey].merge(building.geometry, building.matrix);
@@ -89,6 +90,7 @@ function createBuildingModels(data)
         }else{
             
             building = _createConcreteBuildingModels(item.geometry.coordinates[0],i);
+            building.geoKey = geoKey;
             buildingObjects[i] = building;
             geometryList[geoKey].merge(building.geometry, building.matrix);
 
@@ -158,6 +160,7 @@ function _createConcreteBuildingModels(data, buildingId){
    
    for( var k = 0; k < building.geometry.faces.length; k++ ) 
     {
+        
         building.geometry.faces[k].readingId = buildingId;
     }
 
@@ -278,7 +281,6 @@ function createWaterModels(data){
 
             });
         }else{
-            console.log("else");
             water = _createConcreteWaterModels(item.geometry.coordinates[0]);
             
             if(item.geometry.boundaryType==="innerBoundaryIs"){
@@ -317,7 +319,7 @@ function _createConcreteWaterModels(data){
     var height=0.1;
     
     $.each(data, function(k, coordinate){
-        console.log(coordinate);
+        //console.log(coordinate);
         var utmResult= converter.toUtm({coord: [coordinate[0], coordinate[1]]});
         
         if (k==0)
