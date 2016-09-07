@@ -1,5 +1,8 @@
 #3DMap Smart City Data Visualisation 
 
+
+![alt tag](https://github.com/CityPulse/3DMap/blob/master/3DMap.png)
+
 This application uses data from CityPulse components and is developed with the core goal to provide a 3D visualisation and experience to the users. By using it the users can “fly” around this 3D model of a city and visualise the effect of real-time data in the model. 
 
 When starting the application the user can select on the top-left corner from different cities to be visualised (currently Danish cities of Aarhus, Copenhagen, Odense and Ry). After loading the model the user can on the top-right corner select the different data sources to be visualised in the map. The current version of the map is supporting visualisation of events of type parking, traffic, noise and pollution for the city of Aarhus. These events are detected by the CityPulse middleware in the background and then further displayed in the map in form of geo-localised pins. 
