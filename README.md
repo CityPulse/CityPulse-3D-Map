@@ -1,4 +1,4 @@
-#3DMap smart City Data Visualisation 
+#3DMap Smart City Data Visualisation 
 
 This application uses data from CityPulse components and is developed with the core goal to provide a 3D visualisation and experience to the users. By using it the users can “fly” around this 3D model of a city and visualise the effect of real-time data in the model. 
 
