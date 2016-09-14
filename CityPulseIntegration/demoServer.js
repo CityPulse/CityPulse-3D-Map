@@ -36,9 +36,14 @@ function setupWSServer() {
 		        	clients.forEach(function(client){
 		        		
 		        		if(client.id == obj.id) {
+		        			console.log("cs: "+obj.noOfBuildings);
 		        			client.subscriptions = new Array();
 		        			obj.subscriptions.forEach(function(sub) {
 		        				client.subscriptions.push(sub);
+
+		        				if(sub==='buildingEnergy'){
+		        					client.noOfBuildings = obj.noOfBuildings;
+		        				}
 		        			});
 		        			
 				            client.minX = obj.minX;
@@ -104,18 +109,26 @@ function init() {
 				var sub = Math.floor(Math.random()*client.subscriptions.length);
 				var long = Math.random()*(client.maxX-client.minX)+client.minX;
 				var lat = Math.random()*(client.maxY-client.minY)+client.minY;
+
+				let subscription = client.subscriptions[sub];
+				var targetBuildingId = null;
+				if(subscription==='buildingEnergy'){
+					targetBuildingId = Math.floor(Math.random()*client.noOfBuildings);
+				}
+
 				client.conn.sendUTF(JSON.stringify({
 					eventId:eventId, 
 					eventType:client.subscriptions[sub],
 					severityLevel: 2,
 					lat: lat,
 					long: long,
-					date: 0
+					date: 2,
+					targetBuildingId: targetBuildingId
 				}));
 
 
 				console.log('-------EVENT BEGIN-----------');
-				console.log("eventId: ", eventId, "eventType: ", client.subscriptions[sub], "severityLevel: ", 2, "lat: ", lat, "long: ", long, "date: ", 0);
+				console.log("eventId: ", eventId, "eventType: ", client.subscriptions[sub], "severityLevel: ", 2, "lat: ", lat, "long: ", long, "date: ", 0, "targetBuildingId",targetBuildingId);
 				console.log('--------EVENT END------------');
 
 				setTimeout(function() {
@@ -125,7 +138,8 @@ function init() {
 						severityLevel: 1,
 						lat: lat,
 						long: long,
-						date: 0
+						date: 1,
+						targetBuildingId: targetBuildingId
 					}));
 
 					setTimeout(function() {
@@ -135,7 +149,8 @@ function init() {
 						severityLevel: -1,
 						lat: lat,
 						long: long,
-						date: 0
+						date: -1,
+						targetBuildingId: targetBuildingId
 					}));
 					}, secondsToRemoveEvents*1000);
 				}, 20*1000);

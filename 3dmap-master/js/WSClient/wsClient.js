@@ -28,12 +28,24 @@ $(function(){
 function updateDatasources(name, minX, minY, maxX, maxY){
     if($.inArray(name, subscriptions) == -1) {
         subscriptions.push(name);
-        connection.send(JSON.stringify({id: clientId, type:'setup', subscriptions: subscriptions, minX:minX, minY:minY, maxX: maxX, maxY:maxY}))
+        connection.send(JSON.stringify({id: clientId, type:'setup', subscriptions: subscriptions, minX:minX, minY:minY, maxX: maxX, maxY:maxY, noOfBuildings: noOfBuildings}))
     } else {
         subscriptions.splice($.inArray(name, subscriptions), 1);
-        connection.send(JSON.stringify({id: clientId, type:'setup', subscriptions: subscriptions, minX:minX, minY:minY, maxX: maxX, maxY:maxY}))
+        connection.send(JSON.stringify({id: clientId, type:'setup', subscriptions: subscriptions, minX:minX, minY:minY, maxX: maxX, maxY:maxY, noOfBuildings: noOfBuildings}))
+        //remove events from screen
+        if(name=="buildingEnergy"){
+            setTimeout(function(){
+                dataVisualisation.resetAllBuildings();    
+            }, 5000);
+            
+        }else{
+            setTimeout(function(){
+                dataVisualisation.removeAllTypedEvents(name);    
+            }, 5000);
+            
+        }
     }
-    console.log(JSON.stringify({type:"setup", id: clientId, subscriptions: subscriptions, minX:minX, minY:minY, maxX: maxX, maxY:maxY}));
+    console.log(JSON.stringify({type:"setup", id: clientId, subscriptions: subscriptions, minX:minX, minY:minY, maxX: maxX, maxY:maxY, noOfBuildings: noOfBuildings}));
 
 }
 
@@ -81,6 +93,9 @@ function setupSocket() {
        // console.log(message);
 
         var msg = JSON.parse(message.data);
+        if(msg.eventType===undefined){
+            console.log(message);
+        }
        // console.log(msg);
 
         if(msg.type != null && msg.type == "setup") {
@@ -100,6 +115,7 @@ function setupSocket() {
 function handleMessage(msg) {
     
     let coordinates = {lat:msg.lat, lng:msg.long};
+
     if($.inArray(msg.eventId, eventIds) == -1 && msg.severityLevel != -1) { // If event is new and not to be deleted
         eventIds.push(msg.eventId);
         
@@ -107,7 +123,9 @@ function handleMessage(msg) {
 
     	 
         if(msg.eventType==='buildingEnergy'){
-            dataVisualisation.showBuildingEnergy(coordinates, msg.severityLevel);
+            //dataVisualisation.showBuildingEnergy(coordinates, msg.severityLevel);
+            //using demoServer, we need this hack
+            dataVisualisation.changeBuild(msg.severityLevel,msg.targetBuildingId);
         }else{
             dataVisualisation.showEventByCoords(coordinates, msg.eventId, msg.eventType, msg.severityLevel);    
         }
@@ -115,15 +133,20 @@ function handleMessage(msg) {
 
     } else if($.inArray(msg.eventId, eventIds) != -1 && msg.severityLevel != -1) { // If event is not new and not to be deleted
         if(msg.eventType==='buildingEnergy'){
-            dataVisualisation.showBuildingEnergy(coordinates, msg.severityLevel);
+            //dataVisualisation.showBuildingEnergy(coordinates, msg.severityLevel);
+            //using demoServer, we need this hack
+            dataVisualisation.changeBuild(msg.severityLevel,msg.targetBuildingId);
         }else{
             dataVisualisation.updateEvent(msg.eventId, msg.severityLevel);    
         }
         
     } else if($.inArray(msg.eventId, eventIds) != -1 && msg.severityLevel == -1) { // If event is not new and to be deleted
         if(msg.eventType==='buildingEnergy'){
-            dataVisualisation.resetBuildingEnergy(coordinates);
+            //dataVisualisation.resetBuildingEnergy(coordinates);
+            //using demoServer, we need this hack
+            dataVisualisation.changeBuild(1,msg.targetBuildingId);
         }else{
+            console.log(msg.eventType);
             dataVisualisation.removeEvent(msg.eventId);    
         }
         
@@ -141,9 +164,7 @@ var weatherClient = (function(){
     var weatherCallbackFunc;
     var timeCallbackFunc;        
     connection.onmessage = function(message) {
-        console.log("got message");
         var msg = JSON.parse(message.data);
-        console.log(msg);
         if(msg.type=='setup'){
             console.log("got new ID: " +msg.id);
             

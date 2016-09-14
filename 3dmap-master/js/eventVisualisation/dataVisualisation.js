@@ -2,10 +2,21 @@
 var dataVisualisation = (function(){
 
 	//mapping used to make sure that building height do not reach infinity
-	var maxEnergyLevel = 3;
-	var minEnergyLevel = -1;
-	var maxScale = 10;
-	var minScale = 0.5;
+	var maxEnergyLevel = 2;
+	var minEnergyLevel = 0;
+	var maxScale = 6;
+	var minScale = 1;
+
+	//global variables for events
+	var eventList = {};
+	var shownTextList = [];
+	//vars for buildings
+	var changedBuildingIds = [];
+
+	///////////////////////////////////////////////////////////////
+	// reset all buildings
+	///////////////////////////////////////////////////////////////
+
 
 	///////////////////////////////////////////////////////////////
 	// Changing the height of buildings based on the energi level used
@@ -14,18 +25,27 @@ var dataVisualisation = (function(){
 	function changeBuilding(energyLevel, buildingId, reset){
 		if(maxEnergyLevel<energyLevel)
 			maxEnergyLevel = energyLevel;
+		var buidlingColor = 0xffffff;
+		if(!reset){
+			switch(energyLevel){
+				case 1:
+					buidlingColor = 0x0000ff;
+					break;
+				case 2:
+					buidlingColor = 0xff0000;
+					break;
+			}
+		}
 
 		energyLevel = energyLevel.map(minEnergyLevel, maxEnergyLevel, minScale, maxScale);
 		
 		var timeout = 1500;
-
-		
 		
 		let buildingMesh = buildingObjects[buildingId];
 		//the building is not found.
 		if(buildingMesh==undefined || buildingMesh.geoKey==undefined)
 			return;
-		
+		changedBuildingIds.push(buildingId);
 		
 		let name = "buildings-"+buildingMesh.geoKey;
 		
@@ -38,18 +58,16 @@ var dataVisualisation = (function(){
 				
 				var verticeColor = function(random, mesh){
 
+					/*
 					var r = Math.random();
 					var b = Math.random();
 					var g = Math.random();
-
+					*/
 					var meshFaces = mesh.geometry.faces;
-
+					let newColor = random? buidlingColor:0xffffff;
+					console.log(newColor.toString(16));
 					for(var j = 0; j<meshFaces.length;j++){
-						if(random){
-							meshFaces[j].color.setRGB(r,g,b);	
-						}else{
-							meshFaces[j].color.setHex(0xffffff);
-						}
+						meshFaces[j].color.setHex(newColor);
 					}
 
 					child.geometry.colorsNeedUpdate = true;
@@ -85,50 +103,26 @@ var dataVisualisation = (function(){
 
 						buildingMesh.oldLevel = 1/this.scale;
 						child.geometry.verticesNeedUpdate = true;
+
 						
 
 					})
 					.onComplete(function(){
 						
 						TWEEN.remove(tween);
-						
 					})
 					.start();
 
 				verticeColor(true, buildingMesh);
-				setTimeout(verticeColor,timeout+500, false, buildingMesh);
+				//setTimeout(verticeColor,timeout+500, false, buildingMesh);
 				
 
 				break;
 			}
 		}
-		//HACK: to give the feeling of dynamically created/deleted events
-		//demoEventHack();
 	}
 
-	//global variables for events
-	var eventList = {};
-	var shownTextList = [];
 
-
-	//just for testing
-	var counter = 0;
-	function demoEventHack(){
-		counter++;
-		if(counter%5!=0){
-			return;
-		}
-		var key = null;
-		if(Object.keys(eventList).length>=30){
-			for(key in eventList){
-				removeEvent(key);
-				break;
-			}
-		}
-
-		addTestEvent();
-		console.log("no of events: "+Object.keys(eventList).length);
-	}
 
 	///////////////////////////////////////////////////////////////
 	// find the correct building id based on lat/long coordinates
@@ -180,7 +174,7 @@ var dataVisualisation = (function(){
 			case "aarhusPollution":
 				ret = "Pollution";
 				break;
-			case "aarhusNoise":
+			case "aarhusNoiseLevel":
 				ret = "Noise";
 				break;
 		}
@@ -236,6 +230,12 @@ var dataVisualisation = (function(){
 			if(buildingId===undefined)
 				return;
 			changeBuilding(1,buildingId,true);
+		},
+
+		resetAllBuildings:function(){
+			changedBuildingIds.forEach(function(id){
+				changeBuilding(1,id,true);
+			});
 		},
 
 		///////////////////////////////////////////////////////////////
@@ -503,6 +503,23 @@ var dataVisualisation = (function(){
 			
 		},
 
+		///////////////////////////////////////////////////////////////
+		// helper: remove all events from the scene
+		// 
+		///////////////////////////////////////////////////////////////
+
+		removeAllTypedEvents:function(type){
+
+			$.each(eventList, function(i, event){
+				//safety to hinder crash
+				if(event===undefined || event.type!=type)
+					return;
+				console.log(i);
+				dataVisualisation.removeEvent(i);
+				
+			});
+		},
+
 
 		///////////////////////////////////////////////////////////////
 		// helper: remove all events from the scene
@@ -543,7 +560,7 @@ var dataVisualisation = (function(){
 			var newHeight = _visualizeSeverity(severity);
 			var diff = newHeight-currentHeight;
 			
-			console.log(newHeight+" - "+currentHeight+" = "+diff);
+			//console.log(newHeight+" - "+currentHeight+" = "+diff);
 			if(diff===0)
 				return;
 

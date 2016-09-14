@@ -125,7 +125,7 @@ var interaction = (function(){
 					//console.log(intersects[i].object);
 					if(intersects[i].object.name.startsWith("buildings") && intersects[i].face.readingId !== selectedObject){
 						selectedObject = intersects[i].face.readingId; // Assign new selected object
-						console.log("wtf "+selectedObject);
+						//console.log(intersects[i]);
 						dataVisualisation.changeBuild(3,selectedObject);							
 						break;
 					}else if(intersects[i].object.name.startsWith("event")){
