@@ -26,6 +26,8 @@ var interaction = (function(){
 
 				chosenCityId = this.id;
 				showSpinner(true);
+				//show 'Loading Text'
+				$("#loading").css('opacity','1.0');
 
 				//set name on button
 				cityName = this.name;

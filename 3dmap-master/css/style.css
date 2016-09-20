@@ -155,6 +155,10 @@ canvas {
 	font-size: 20px;
 }
 
+#loading{
+	opacity:0;
+}
+
 
 
 .bar {
