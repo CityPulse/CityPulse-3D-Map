@@ -1,6 +1,6 @@
 {
   "name": "citypulseintegration",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "real-time events information for the city of Aarhus the 3D map is connecting to the CityPulse Message Bus",
   "main": "amqpclientcallback.js",
   "scripts": {
@@ -14,6 +14,7 @@
   "author": "Thomas Gilbert",
   "dependencies": {
     "amqplib": "^0.4.2",
+    "bail": "^1.0.1",
     "n3": "^0.7.0",
     "websocket": "^1.0.23"
   }

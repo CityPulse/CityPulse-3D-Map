@@ -1,4 +1,5 @@
 //VARIABLES
+var bail = require('bail');
 var queueName = '3dmapqueue-ttl';
 var exchange = 'events';
 var routingKey = '#';
