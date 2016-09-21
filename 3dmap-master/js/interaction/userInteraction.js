@@ -38,13 +38,14 @@ var interaction = (function(){
 					cancelAnimationFrame(renderAnimationId);
 				}
 
+
 				for(var i = scene.children.length-1; i>=0; i--){
 					var name = scene.children[i].name;
 					if(!name.startsWith("sky") && !name.startsWith("spotlight") && !name.startsWith("hemilight") && !name.startsWith("weather") && !name.startsWith("SUN") && !name.startsWith("cam")){
-
 						scene.remove(scene.children[i]);	
 					}
 				}
+				
 				//remove any animation tweens in memory
 				TWEEN.removeAll();
 				//reset plane size to acommodate new models
@@ -56,6 +57,7 @@ var interaction = (function(){
 				document.title = this.name;
 				//show GUI to handle test paramters
 				if(addGUI){
+					//playground.addGUI();
 					$("#guiHolder").show();
 				}
 
@@ -72,6 +74,7 @@ var interaction = (function(){
 		addKeyboardHandling:function(){
 			//add key handler to reset camera view
 			$(document).keydown(function(e) {
+				console.log(e.keyCode);
 				if(e.keyCode===82){//'r' pressed
 					if(camera){
 						camera.position.x=initCameraPosition.x;
@@ -92,6 +95,13 @@ var interaction = (function(){
 					}
 				}else if(e.keyCode===65){//'a' pressed{
 					autoCamAnimation=!autoCamAnimation;
+				}else if(e.keyCode===66){//'b' pressed
+					console.log("reset buildings");
+					playground.resetAllBuildings();
+				}else if(e.keyCode===87){//'w' pressed
+					//let buildingId = Math.floor(Math.random()*10);
+					buildingId = 1100;
+					playground.visualiseBuildingChanges(2, buildingId,false);
 				}
 				
 			});
@@ -128,7 +138,8 @@ var interaction = (function(){
 					if(intersects[i].object.name.startsWith("buildings") && intersects[i].face.readingId !== selectedObject){
 						selectedObject = intersects[i].face.readingId; // Assign new selected object
 						//console.log(intersects[i]);
-						dataVisualisation.changeBuild(3,selectedObject);							
+						dataVisualisation.changeBuild(3,selectedObject);
+						console.log(selectedObject);							
 						break;
 					}else if(intersects[i].object.name.startsWith("event")){
 		        		var eventId = intersects[i].object.eventId;

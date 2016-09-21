@@ -111,7 +111,6 @@ function createBuildingModels(data)
         combinedMesh.push(new THREE.Mesh(geometryList[o], faceColorMaterial));
     }
 
-    
     addMeshes(combinedMesh, "buildings");
   
     
@@ -202,7 +201,6 @@ function _cleanCoordinate(coordinate, roadGeometry) {
 
 
 function createRoadModels(data){
-    
     var roadMeshes = [];
 
 
@@ -234,8 +232,9 @@ function createRoadModels(data){
     });
 
     roadGeometry.computeVertexNormals();
-    var roadLine = new THREE.Line(roadGeometry, material, THREE.LinePieces);
-    
+
+    var roadLine = new THREE.LineSegments(roadGeometry, material);
+
     roadLine.rotation.x += -3.1415*0.5;
     roadLine.updateMatrix();
     roadMeshes.push(roadLine);

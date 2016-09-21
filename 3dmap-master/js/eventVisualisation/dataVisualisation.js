@@ -65,7 +65,7 @@ var dataVisualisation = (function(){
 					*/
 					var meshFaces = mesh.geometry.faces;
 					let newColor = random? buidlingColor:0xffffff;
-					console.log(newColor.toString(16));
+					//console.log(newColor.toString(16));
 					for(var j = 0; j<meshFaces.length;j++){
 						meshFaces[j].color.setHex(newColor);
 					}
@@ -388,6 +388,8 @@ var dataVisualisation = (function(){
 		///////////////////////////////////////////////////////////////
 
 		showEventText:function(eventId){
+			//TODO: Determine if we should use this again
+			return;
 			var event = eventList[eventId];
 			
 			if(eventId===undefined || event ===undefined)
@@ -396,7 +398,7 @@ var dataVisualisation = (function(){
 			var text = _getTextFromEventType(event.type)+": severity: "+event.severity;
 			//text geometry - how does it look and feel
 			var textGeom = new THREE.TextGeometry( text, {
-			    font: "helvetiker", // Must be lowercase!
+			    //font: "helvetiker", // Must be lowercase!
 			    size: 45,
 			    height:20
 			});

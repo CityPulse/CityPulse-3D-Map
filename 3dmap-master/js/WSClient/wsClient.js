@@ -35,7 +35,7 @@ function updateDatasources(name, minX, minY, maxX, maxY){
         //remove events from screen
         if(name=="buildingEnergy"){
             setTimeout(function(){
-                dataVisualisation.resetAllBuildings();    
+                playground.resetAllBuildings();
             }, 5000);
             
         }else{
@@ -125,7 +125,8 @@ function handleMessage(msg) {
         if(msg.eventType==='buildingEnergy'){
             //dataVisualisation.showBuildingEnergy(coordinates, msg.severityLevel);
             //using demoServer, we need this hack
-            dataVisualisation.changeBuild(msg.severityLevel,msg.targetBuildingId);
+            //dataVisualisation.changeBuild(msg.severityLevel,msg.targetBuildingId);
+            playground.visualiseBuildingChanges(msg.severityLevel,msg.targetBuildingId);
         }else{
             dataVisualisation.showEventByCoords(coordinates, msg.eventId, msg.eventType, msg.severityLevel);    
         }
@@ -135,7 +136,8 @@ function handleMessage(msg) {
         if(msg.eventType==='buildingEnergy'){
             //dataVisualisation.showBuildingEnergy(coordinates, msg.severityLevel);
             //using demoServer, we need this hack
-            dataVisualisation.changeBuild(msg.severityLevel,msg.targetBuildingId);
+            //dataVisualisation.changeBuild(msg.severityLevel,msg.targetBuildingId);
+            playground.visualiseBuildingChanges(msg.severityLevel,msg.targetBuildingId);
         }else{
             dataVisualisation.updateEvent(msg.eventId, msg.severityLevel);    
         }
@@ -144,7 +146,8 @@ function handleMessage(msg) {
         if(msg.eventType==='buildingEnergy'){
             //dataVisualisation.resetBuildingEnergy(coordinates);
             //using demoServer, we need this hack
-            dataVisualisation.changeBuild(1,msg.targetBuildingId);
+            //dataVisualisation.changeBuild(1,msg.targetBuildingId);
+            playground.resetABuilding(msg.targetBuildingId);
         }else{
             console.log(msg.eventType);
             dataVisualisation.removeEvent(msg.eventId);    
@@ -191,7 +194,6 @@ var weatherClient = (function(){
     return {
         setup: function(city, weatherCallback, timeCallback){
             if(connection && connection.readyState==1){
-                console.log(connection);
                 weatherCallbackFunc = weatherCallback;
                 timeCallbackFunc = timeCallback;
                 connection.send(JSON.stringify({type: "SETUP", data: {city : city},id:clientId}));        

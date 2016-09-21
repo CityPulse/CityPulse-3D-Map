@@ -20,10 +20,11 @@
 		<script src='js/models/modelsCreator.js'></script>
 		<script src='js/models/ThreeCSG.js'></script>
 		<script src='js/eventVisualisation/dataVisualisation.js'></script>
-		<script src="js/fonts/helvetiker_regular.typeface.js"></script>
+		
 		<script src="js/weather/atmosphereVisualiser.js"></script>
 		<script src='js/gui/DAT.GUI.js'></script>
 		<script src='js/mapData/dataLoader.js'></script>
+		<script src='js/playground/caseVisualisation.js'></script>
 		<script src='js/interaction/userInteraction.js'></script>
 		<script src='js/animations/metaObjectsAnimation.js'></script>
 
@@ -120,7 +121,8 @@
 			//Set this to true to see coloring of buildings based on their geometry
 			var debugGridSort = false;
 			//Set this to true to see GUI to control parameters
-			var addGUI = false;
+			var addGUI = true;
+			
 			var guiParams = null;
 			//Flag for setting is camara should be animated
 			var autoCamAnimation = false;
@@ -225,8 +227,10 @@
                 renderer = new THREE.WebGLRenderer({ antialias: true });
                 renderer.setSize( window.innerWidth, window.innerHeight );
                 renderer.setClearColor(0xdddddd);
-				renderer.shadowMapEnabled = true;
-				renderer.shadowMapType = THREE.PCFSoftShadowMap;
+				//renderer.shadowMapEnabled = true;
+				renderer.shadowMap.enabled;
+				//renderer.shadowMapType = THREE.PCFSoftShadowMap;
+				renderer.shadowMap.type = THREE.PCFSoftShadowMap;
                 
                 $("#renderStatsHolder").append(renderer.domElement);
 
@@ -264,13 +268,23 @@
                 spotLight.position.set(-0.75*planeX, 2500, 500);
                 spotLightRadius = Math.sqrt(Math.pow(spotLight.position.x,2)+Math.pow(spotLight.position.y,2)+Math.pow(spotLight.position.z,2));
                 spotLight.castShadow = true;
-				spotLight.shadowCameraVisible = false;
+                //TODO: watch!
+				//spotLight.shadowCameraVisible = false;
+				/*
 				spotLight.shadowCameraNear = planeX/2.5;
 				spotLight.shadowCameraFar = 1.5*planeX;
 				spotLight.shadowCameraFov = 50;
 				spotLight.shadowBias = 0.00001;
 				spotLight.shadowMapWidth = SHADOW_MAP_WIDTH/2;
 				spotLight.shadowMapHeight = SHADOW_MAP_HEIGHT/2;
+				*/
+				spotLight.shadow.camera.near = planeX/2.5;
+				spotLight.shadow.camera.far = 1.5*planeX;
+				spotLight.shadow.camera.fov = 50;
+				spotLight.shadow.bias = 0.00001;
+				spotLight.shadow.mapSize.width = SHADOW_MAP_WIDTH/2;
+				spotLight.shadow.mapSize.height = SHADOW_MAP_HEIGHT/2;
+
                 scene.add(spotLight);
                 //for debugging light source position
                 if(!initSpotLightPosition){
@@ -280,8 +294,8 @@
 				
 				var hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.2);
 				hemiLight.name="hemilight";
-				hemiLight.color.setHSL( 0.6, 1, 0.6 );
-				hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
+				hemiLight.color.setHex(0x3385FF);
+				hemiLight.groundColor.setHex(0xD3D3D3);
 				hemiLight.position.set( 0, 500, 0 );
 				scene.add( hemiLight );
 				
@@ -311,42 +325,9 @@
 
 				console.log(new Date()+": End setup/start render");
 		
-				//add GUI element
-				var gui = new dat.GUI({
-					    height : 3 * 32 - 1,
-					    autoPlace: false
-					});
-
-
-				guiParams = {
-					intensity: 1,
-					hour: 12,
-					color: 0xffffff,
-					xPos:-0.75*planeX,
-					yPos:2500,
-					zPos:500
-					
-				};
-				$("#guiHolder").append(gui.domElement);
-				$("#guiHolder").hide();
-
-				gui.add(guiParams, 'intensity',0, 2).onChange(guiChanged);
-				gui.add(guiParams, 'hour',1.0,24.0).step(1).onChange(guiChanged);
-				gui.add(guiParams, 'xPos',-0.75*planeX,0.75*planeX).step(1).listen().onChange(guiChanged);
-				gui.add(guiParams, 'yPos',0,5000).step(1).listen().onChange(guiChanged);
-				gui.add(guiParams, 'zPos',-1000,2000).step(1).listen().onChange(guiChanged);
-				gui.addColor(guiParams, 'color').onChange(guiChanged);
-				//gui.close();
 				
-
-				function guiChanged(){
-					spotLight.intensity  = guiParams.intensity;
-					var colorObj = new THREE.Color( guiParams.color );
-					spotLight.color = colorObj;
-					//spotLight.position.set(guiParams.xPos,guiParams.yPos,guiParams.zPos);
-					//sun.set(new THREE.Vector3(guiParams.xPos,guiParams.yPos,guiParams.zPos),20);
-				}
-								
+				playground.addGUI();
+							
 		    }
 
 
