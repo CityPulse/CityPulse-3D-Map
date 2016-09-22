@@ -97,9 +97,12 @@ function createBuildingModels(data)
         } 
     });
 
+    originalBuildingColor = 0xffffff;
+    var faceColorMaterial = new THREE.MeshLambertMaterial( { color: originalBuildingColor, transparent:true, opacity:1, vertexColors: THREE.VertexColors } );
+    //var faceColorMaterial = new THREE.MeshLambertMaterial( );
+    //faceColorMaterial.transparent = true;
 
-    var faceColorMaterial = new THREE.MeshLambertMaterial( { color: originalBuildingColor, vertexColors: THREE.VertexColors } );
-    //var faceColorMaterial = new THREE.MeshBasicMaterial( { color: originalBuildingColor, vertexColors: THREE.VertexColors } );
+    
 
     var geoColor = parseInt(Math.floor(Math.random()*16777215).toString(16),16);
     for(var o =0; o<geometryList.length; o++){

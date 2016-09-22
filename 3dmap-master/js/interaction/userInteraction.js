@@ -11,7 +11,7 @@ var interaction = (function(){
 
 	return{
 		addMenuHandler: function(){
-			mapData.populateMap("Ry");
+			
 			$("#toggleAutoCam").on('click',function(e){
 				autoCamAnimation =!autoCamAnimation;
 			});
@@ -101,7 +101,7 @@ var interaction = (function(){
 				}else if(e.keyCode===87){//'w' pressed
 					let buildingId = Math.floor(Math.random()*10);
 					//buildingId = 8;
-					playground.visualiseBuildingChanges(2, buildingId,false);
+					playground.visualiseBuildingChanges(1w, buildingId,false);
 				}else if(e.keyCode===81){
 					playground.resetAllBuildings();
 				}
@@ -158,14 +158,6 @@ var interaction = (function(){
 					selectedObject = null;
 		        }
 
-				/*
-		        if(selectedObject !== null && connection!==null) {
-		        	//waitingForResponse = true;
-					connection.send(JSON.stringify({type: "HISTORYREQ", data: {value : selectedObject}}));
-					$('#infoBox').html("Now showing data for building: " + selectedObject + "\n");
-		        	$("#infoBox").css('visibility', 'visible');
-		        }
-				*/	
 			});
 			
 		}

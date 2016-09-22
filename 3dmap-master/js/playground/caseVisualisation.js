@@ -1,6 +1,7 @@
 var playground = (function(){
 
-	var changedBuildingIds = [];
+	var changedBuildingIds = {};
+	var activeVisualisers = {};
 	var maxEnergyLevel = 2;
 	var minEnergyLevel = 0;
 	
@@ -14,57 +15,121 @@ var playground = (function(){
 
 	var guiParams = {
 
-		colorActive:false,
+		colorActive:true,
 		color: 0xffffff,
 
-		heightActive:false,
+		heightActive:true,
 		heightScalar:1,
 
 		widthActive:false,
 		widthScalar:1,
-
-		neighborsActive:true,
-		neighborsRadius:250
-
 		
 	};
 
+
+	function _populateActiveVisualisers(){
+		//always hold a list of the active visualisers for data from server
+		activeVisualisers = {};
+		for(let param in guiParams){
+			if(param.indexOf("Active")!==-1 && guiParams[param]){
+				switch(param){
+					case "colorActive":
+						 activeVisualisers["colorActive"] = visualiseColors;
+						break;
+					case "heightActive":
+						activeVisualisers["heightActive"] = visualiseHeight;
+						
+						break;
+					case "widthActive":
+						activeVisualisers["widthActive"] = visualiseWidth;
+						
+						break;
+				}
+			}
+			
+		}
+	}
+
 	function activationChanged(){
-		playground.resetAllBuildings();
+		
+		let newValue = !this.__prev;
+		let property = this.property;
+
+		_populateActiveVisualisers();
+
+		let newVisualiser = {};
+
+		switch(property){
+			case "colorActive":
+				newVisualiser["colorActive"] = visualiseColors;
+				break;
+			case "heightActive":
+				newVisualiser["heightActive"] = visualiseHeight;
+				break;
+			case "widthActive":
+				newVisualiser["widthActive"] = visualiseWidth;
+				break;
+		}
+
+		for(let buildingId in changedBuildingIds){
+			let buildingMesh = buildingObjects[buildingId];
+			if(buildingMesh==undefined || buildingMesh.geoKey==undefined)
+				return;
+
+			updateBuildings(buildingMesh,changedBuildingIds[buildingId],!newValue,newVisualiser);
+		}
+
 	}
 
-	function heightChanged(){
-		console.log("heightChanged");
+
+	function attributeChanged(){
+		let property = this.property;
+		if(property.indexOf("color")!==-1){
+			property +="Active";
+		}else{
+			let sIndex = property.indexOf("Scalar");
+			property = property.substring(0,sIndex)+"Active";
+		}
+		
+
+		
+		if(activeVisualisers[property]===undefined)
+			return;
+
+
+		let changedVisualiser = {};
+		changedVisualiser[property] = activeVisualisers[property];
+
+		for(let buildingId in changedBuildingIds){
+			let buildingMesh = buildingObjects[buildingId];
+			if(buildingMesh==undefined || buildingMesh.geoKey==undefined)
+				return;
+			updateBuildings(buildingMesh,changedBuildingIds[buildingId],false,changedVisualiser);
+		}
 	}
 
-	function widthChanged(){
-		console.log("widthChanged");
-	}
-
-	function colorChanged(){
-		console.log("colorChanged");
-	}
-
-	function neighborsChanged(){
-		console.log("neighborsChanged");
-	}
 
 
-	function visualiseColors(buildingMesh, level, reset){
+	function visualiseColors(buildingMesh, level, reset, child){
+		var maxHex = 16777215;
 		var meshFaces = buildingMesh.geometry.faces;
 
 		var buidlingColor = 0xffffff;
 		if(!reset){
-			//todo: Still needs some work to get correct color scheme
 			let color = guiParams.color;
-			console.log(color);
-			buidlingColor = level.map(minEnergyLevel,maxEnergyLevel,color,0).toString(16);
+			buidlingColor = Math.round((level.map(minEnergyLevel,maxEnergyLevel,maxHex,0)+color)%maxHex);
+			//console.log(buidlingColor);
+			buidlingColor = "0x"+buidlingColor.toString(16);
 		}
 		console.log(buidlingColor);
-		//console.log(newColor.toString(16));
+		
 		for(var j = 0; j<meshFaces.length;j++){
 			meshFaces[j].color.setHex(buidlingColor);
 		}
+		
+		
+		console.log(buildingMesh);
+		child.geometry.colorsNeedUpdate = true;
 	}
 
 
@@ -73,7 +138,6 @@ var playground = (function(){
 		
 		let scalar = guiParams.heightScalar;
 		let energyLevel = level.map(minEnergyLevel, maxEnergyLevel, minScale, maxScale)*scalar;
-		console.log(energyLevel);
 		buildingMesh.rotation.set(0,0,0);
 		buildingMesh.updateMatrix();
 		
@@ -114,7 +178,7 @@ var playground = (function(){
 				
 				
 				var bbox = new THREE.BoxHelper(buildingMesh);
-				scene.add(bbox);
+				//scene.add(bbox);
 
 			})
 			.start();
@@ -160,7 +224,7 @@ var playground = (function(){
 				geometry.translate(vecToCenter.x,vecToCenter.y,vecToCenter.z);
 				//show changes
 				child.geometry.verticesNeedUpdate = true;
-				console.log(geometry.boundingSphere);
+				
 				
 
 			})
@@ -168,28 +232,33 @@ var playground = (function(){
 				
 				TWEEN.remove(tween);
 				
-				buildingMesh.geometry.computeBoundingBox();
-				buildingMesh.geometry.computeBoundingSphere();
-				console.log(buildingMesh);
-				
 			})
 			.start();
 			
 	}
 
 
-	function _getDistance(mesh1, mesh2) {
+	function updateBuildings(buildingMesh,level,reset,functions){
+		let name = "buildings-"+buildingMesh.geoKey;
 		
-		mesh2.geometry.computeBoundingSphere();
-		let center1 = mesh1.geometry.boundingSphere.center;
-		let center2 = mesh2.geometry.boundingSphere.center;
+		for(var i=0; i<scene.children.length;i++){
 
-		var dx = center1.x - center2.x;
-		var dy = center1.y - center2.y;
-	  	var dz = center1.z - center2.z;
-	  	
-	  	return Math.sqrt(dx*dx+dy*dy+dz*dz);
+			if(scene.children[i].name.indexOf(name) !=-1){
+
+				var child = scene.children[i];
+				for(let key in functions){
+					let visualiser = functions[key];
+					
+					visualiser(buildingMesh,level,reset,child);
+				}
+
+				//found a match. Don't care about the rest
+				break;
+
+			}
+		}
 	}
+
 
 
 
@@ -198,126 +267,58 @@ var playground = (function(){
 			
 			let heightFolder = gui.addFolder("Height");
 			heightFolder.add(guiParams, 'heightActive').onChange(activationChanged);
-			heightFolder.add(guiParams,'heightScalar',0,10).onChange(heightChanged);
+			heightFolder.add(guiParams,'heightScalar',0.01,10).onChange(attributeChanged);
 
 			let widthFolder = gui.addFolder("Width");
 			widthFolder.add(guiParams, 'widthActive').onChange(activationChanged);
-			widthFolder.add(guiParams,'widthScalar',0,2).onChange(widthChanged);
+			widthFolder.add(guiParams,'widthScalar',0.01,2).onChange(attributeChanged);
 
 			let colorFolder = gui.addFolder("Color");
 			colorFolder.add(guiParams, 'colorActive').onChange(activationChanged);
-			colorFolder.addColor(guiParams,'color').onChange(colorChanged);
-
-			//didn't have time for this
-			//let neighborsFolder = gui.addFolder("Neighbors");
-			//neighborsFolder.add(guiParams, 'neighborsActive').onChange(activationChanged);
-			//neighborsFolder.add(guiParams,'neighborsRadius',0,250).onChange(neighborsChanged);
-
+			colorFolder.addColor(guiParams,'color').onChange(attributeChanged);
 
 			$("#guiHolder").append(gui.domElement);
 			$("#guiHolder").show();
 		},
 
 		resetAllBuildings:function(){
-			/*
-			changedBuildingIds.forEach(function(id){
-				console.log(id);
-				playground.resetABuilding(id);
-			});
-			*/
-			while(changedBuildingIds.length>0){
-				let id = changedBuildingIds.pop();
-				playground.resetABuilding(id);
+			
+			for(let key in changedBuildingIds){
+				console.log('info');
+				playground.resetABuilding(key);
+				console.log("af ino");
+				delete changedBuildingIds[key];
 			}
+
+			
 		},
 
 		resetABuilding:function(buildingId){
-			playground.visualiseBuildingChanges(1,buildingId,true);
-			//remove id from list
-			if($.inArray(name, subscriptions) !== -1) {
-				changedBuildingIds.splice($.inArray(buildingId, changedBuildingIds), 1);
-			}
+			
+			
+			let buildingMesh = buildingObjects[buildingId];
+			if(buildingMesh==undefined || buildingMesh.geoKey==undefined)
+				return;
+			updateBuildings(buildingMesh,1,true,activeVisualisers);
 			
 			
 		},
 
 		visualiseBuildingChanges:function(serverityLevel, buildingId,reset){
+
+			//just to make sure that we have a updated list, the first time it is started
+			_populateActiveVisualisers();
 			
-
-
-
 			let buildingMesh = buildingObjects[buildingId];
 			if(buildingMesh==undefined || buildingMesh.geoKey==undefined)
 				return;
 
 			
 			if($.inArray(buildingId, changedBuildingIds)== -1 && !reset){
-				changedBuildingIds.push(buildingId);
-				//console.log(changedBuildingIds);
+				changedBuildingIds[buildingId] = serverityLevel;
+
 			}
-
-			let name = "buildings-"+buildingMesh.geoKey;
-			for(var i=0; i<scene.children.length;i++){
-
-				if(scene.children[i].name.indexOf(name) !=-1){
-
-					var child = scene.children[i];
-
-					if(guiParams.colorActive || reset){
-						//visualiseColors(buildingMesh, serverityLevel,reset);
-						child.geometry.colorsNeedUpdate = true;
-					}
-
-					if(guiParams.heightActive || reset){
-						visualiseHeight(buildingMesh,serverityLevel,reset,child);
-
-					}
-
-					if(guiParams.widthActive || reset){
-						visualiseWidth(buildingMesh,serverityLevel,reset,child);
-					}
-
-					/*
-					*didn't have time for this
-					if(guiParams.neighborsActive){
-						buildingMesh.geometry.computeBoundingSphere();
-
-						var keyStart = buildingId-200;
-						if(keyStart<0)
-							keyStart=0;
-						
-						let targets = [];
-
-						for(var k=keyStart; k<Object.keys(buildingObjects).length; k++){
-
-							let distance = _getDistance(buildingMesh,buildingObjects[k]);
-							if(distance>guiParams.neighborsRadius)
-								continue;
-
-							var level = distance.map(0, guiParams.neighborsRadius, 2, 0);
-							var building = buildingObjects[k];
-							building.kLevel = level;
-							targets.push(building);
-							//visualiseHeight(building,level,false,child);
-							
-							if(k>buildingId+200)
-								break;
-						}
-						while(targets.length>0){
-							target = targets.pop();
-							setTimeout(function(){
-								visualiseHeight(target,target.kLevel,false,child);
-							},100);
-							
-						}
-						
-					}
-					*/
-					//found a match. Don't care about the rest
-					break;
-
-				}
-			}
+			updateBuildings(buildingMesh,serverityLevel,reset,activeVisualisers);
 		}
 	}
 
