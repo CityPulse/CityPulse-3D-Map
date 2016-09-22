@@ -22,8 +22,13 @@ Moreover, and in order to be modular this component is providing a websocket con
 #Running the application
 
     deploy the 3D map into a web server container
-    Open a terminal and browse the folder “CityPulseIntegration”. Run the amqpclientcallback.js by using the command
-        node amqpclientcallback.js
+    Open a terminal and browse the folder “CityPulseIntegration”. Run the amqpclientcallback.js by using the command*
+        node amqpclientcallback.js &
+    Afterwards type cd../WSServer and run the atmosphereService.js to visualise the weather and sun/moon position:
+    	node atmosphereService &
+
+    *If you would rather use dummy data for testing:
+    Instead of starting the amqpclientcallback.js, start demoServer.js and you will be supplied with dummy data in all event types
     Open your browser and browse e.g. http://localhost/3dmap-master/3dmap-master/index.html
 
 #Contributors
