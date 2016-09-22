@@ -239,9 +239,9 @@
                 
 
                 //setting camera properties - also used to reset camera position
-                camera.position.z = 965;
-                camera.position.x = 1435;
-                camera.position.y = 1415;
+                camera.position.z = 419;
+                camera.position.x = -1773;
+                camera.position.y = 1254;
 
 				if(!initCameraPosition){
 					initCameraPosition = {x:camera.position.x, y:camera.position.y, z:camera.position.z};
@@ -268,17 +268,7 @@
                 spotLight.position.set(-0.75*planeX, 2500, 500);
                 spotLightRadius = Math.sqrt(Math.pow(spotLight.position.x,2)+Math.pow(spotLight.position.y,2)+Math.pow(spotLight.position.z,2));
                 spotLight.castShadow = true;
-                //TODO: watch!
-				//spotLight.shadowCameraVisible = false;
-				/*
-				spotLight.shadowCameraNear = planeX/2.5;
-				spotLight.shadowCameraFar = 1.5*planeX;
-				spotLight.shadowCameraFov = 50;
-				spotLight.shadowBias = 0.00001;
-				spotLight.shadowMapWidth = SHADOW_MAP_WIDTH/2;
-				spotLight.shadowMapHeight = SHADOW_MAP_HEIGHT/2;
-				*/
-				spotLight.shadow.camera.near = planeX/2.5;
+  				spotLight.shadow.camera.near = planeX/2.5;
 				spotLight.shadow.camera.far = 1.5*planeX;
 				spotLight.shadow.camera.fov = 50;
 				spotLight.shadow.bias = 0.00001;

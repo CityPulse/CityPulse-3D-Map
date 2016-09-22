@@ -104,6 +104,7 @@ var interaction = (function(){
 					playground.visualiseBuildingChanges(1, buildingId,false);
 				}else if(e.keyCode===81){
 					playground.resetAllBuildings();
+					
 				}
 				
 			});

@@ -2,7 +2,7 @@ var objectAnimations = (function(){
 
 	return{
 		moveSun:function(time, isDay){
-			let intensity = 1;
+			let intensity = 0.8;
 			if(!isDay){
 				intensity = 0.2;
 				let nightMaterial = new THREE.MeshBasicMaterial( {color: 0xE1E1D6} );
