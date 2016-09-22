@@ -101,7 +101,7 @@ var interaction = (function(){
 				}else if(e.keyCode===87){//'w' pressed
 					let buildingId = Math.floor(Math.random()*10);
 					//buildingId = 8;
-					playground.visualiseBuildingChanges(1w, buildingId,false);
+					playground.visualiseBuildingChanges(1, buildingId,false);
 				}else if(e.keyCode===81){
 					playground.resetAllBuildings();
 				}

@@ -278,7 +278,7 @@ var playground = (function(){
 			colorFolder.addColor(guiParams,'color').onChange(attributeChanged);
 
 			$("#guiHolder").append(gui.domElement);
-			$("#guiHolder").show();
+			
 		},
 
 		resetAllBuildings:function(){
