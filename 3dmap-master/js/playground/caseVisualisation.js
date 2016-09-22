@@ -21,7 +21,7 @@ var playground = (function(){
 		heightActive:true,
 		heightScalar:1,
 
-		widthActive:false,
+		widthActive:true,
 		widthScalar:1,
 		
 	};
@@ -267,15 +267,19 @@ var playground = (function(){
 			
 			let heightFolder = gui.addFolder("Height");
 			heightFolder.add(guiParams, 'heightActive').onChange(activationChanged);
-			heightFolder.add(guiParams,'heightScalar',0.01,10).onChange(attributeChanged);
+			heightFolder.add(guiParams,'heightScalar',0.01,5).onChange(attributeChanged);
 
 			let widthFolder = gui.addFolder("Width");
 			widthFolder.add(guiParams, 'widthActive').onChange(activationChanged);
-			widthFolder.add(guiParams,'widthScalar',0.01,2).onChange(attributeChanged);
+			widthFolder.add(guiParams,'widthScalar',0.01,5).onChange(attributeChanged);
 
 			let colorFolder = gui.addFolder("Color");
 			colorFolder.add(guiParams, 'colorActive').onChange(activationChanged);
 			colorFolder.addColor(guiParams,'color').onChange(attributeChanged);
+
+			colorFolder.open();
+			widthFolder.open();
+			heightFolder.open();
 
 			$("#guiHolder").append(gui.domElement);
 			
