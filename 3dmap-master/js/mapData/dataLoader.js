@@ -230,8 +230,8 @@ var mapData = (function(){
 		populateMap: function(city){
 			console.log(new Date()+": start");
 			//sortedbuildings.kml means that the original kml have been sorted according to location by sort.py
-			buildingUrl = "data/kml/"+city+"/sortedBuildings.kml";
-			//buildingUrl = "data/kml/"+city+"/test.kml";
+			//buildingUrl = "data/kml/"+city+"/sortedBuildings.kml";
+			buildingUrl = "data/kml/"+city+"/test.kml";
 			roadUrl = "data/kml/"+city+"/roads1.kml";
 			treeUrl = "data/kml/"+city+"/trees2.kml";
 			waterUrl = "data/kml/"+city+"/water3.kml";

@@ -11,7 +11,7 @@ var interaction = (function(){
 
 	return{
 		addMenuHandler: function(){
-
+			mapData.populateMap("Ry");
 			$("#toggleAutoCam").on('click',function(e){
 				autoCamAnimation =!autoCamAnimation;
 			});
@@ -99,9 +99,11 @@ var interaction = (function(){
 					console.log("reset buildings");
 					playground.resetAllBuildings();
 				}else if(e.keyCode===87){//'w' pressed
-					//let buildingId = Math.floor(Math.random()*10);
-					buildingId = 1100;
+					let buildingId = Math.floor(Math.random()*10);
+					//buildingId = 8;
 					playground.visualiseBuildingChanges(2, buildingId,false);
+				}else if(e.keyCode===81){
+					playground.resetAllBuildings();
 				}
 				
 			});
