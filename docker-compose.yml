@@ -4,11 +4,34 @@ services:
     image: docker.alexandra.dk/3dmapweb:latest
     ports:
      - "80:80"
+    restart: always
+    depends_on:
+     - 3dmapcityintegration
+     - 3dmapservice
+    logging:
+      driver: json-file
+      options:
+         max-size: "1g"
+         max-file: "5"
+
   3dmapcityintegration:
     image: docker.alexandra.dk/3dmapcityintegration:latest
     ports:
      - "8001:8001"
+    restart: always
+    logging:
+      driver: json-file
+      options:
+         max-size: "1g"
+         max-file: "5"
   3dmapservice:
     image: docker.alexandra.dk/3dmapservice:latest
     ports:
      - "8002:8002"
+    restart: always
+    logging:
+      driver: json-file
+      options:
+         max-size: "1g"
+         max-file: "5"
+
