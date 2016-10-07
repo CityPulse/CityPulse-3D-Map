@@ -35,14 +35,14 @@ function updateDatasources(name, minX, minY, maxX, maxY){
         //remove events from screen
         if(name=="buildingEnergy"){
             setTimeout(function(){
-                dataVisualisation.resetAllBuildings();    
+                dataVisualisation.resetAllBuildings();
             }, 5000);
-            
+
         }else{
             setTimeout(function(){
-                dataVisualisation.removeAllTypedEvents(name);    
+                dataVisualisation.removeAllTypedEvents(name);
             }, 5000);
-            
+
         }
     }
     console.log(JSON.stringify({type:"setup", id: clientId, subscriptions: subscriptions, minX:minX, minY:minY, maxX: maxX, maxY:maxY, noOfBuildings: noOfBuildings}));
@@ -67,21 +67,24 @@ function handleDelayedEvent() {
 
 
 window.onblur = function() { window.blurred = true; };
-window.onfocus = function() { 
+window.onfocus = function() {
     if(eventQueue.length > 0)
     setTimeout(function() {
         setTimeout(handleDelayedEvent, delayedEventTime);
     }, delayedEventTime);
-    window.blurred = false; 
+    window.blurred = false;
 };
 
 function setupSocket() {
 
     // if user is running mozilla then use it's built-in WebSocket
-	window.WebSocket = window.WebSocket || window.MozWebSocket;
+	  window.WebSocket = window.WebSocket || window.MozWebSocket;
 
     // open connection
-    connection = new WebSocket('ws://127.0.0.1:8001');
+    var hostname = window.location.hostname;
+    hostname = hostname.replace('3dmap.','3dmap-server.');
+    var url = 'ws://'+ hostname + ':8001';
+    connection = new WebSocket(url);
 
     connection.onopen = function () {
         // Send flagged subscribtions
@@ -108,28 +111,28 @@ function setupSocket() {
                 handleMessage(msg);
             }
         }
-    	
+
     };
 }
 
 function handleMessage(msg) {
-    
+
     let coordinates = {lat:msg.lat, lng:msg.long};
 
     if($.inArray(msg.eventId, eventIds) == -1 && msg.severityLevel != -1) { // If event is new and not to be deleted
         eventIds.push(msg.eventId);
-        
+
     	console.log("handleMessage -> lat: "+msg.lat+" long: "+msg.long+" eventId: "+msg.eventId+" eventType: "+msg.eventType+" severity: "+msg.severityLevel);
 
-    	 
+
         if(msg.eventType==='buildingEnergy'){
             //dataVisualisation.showBuildingEnergy(coordinates, msg.severityLevel);
             //using demoServer, we need this hack
             dataVisualisation.changeBuild(msg.severityLevel,msg.targetBuildingId);
         }else{
-            dataVisualisation.showEventByCoords(coordinates, msg.eventId, msg.eventType, msg.severityLevel);    
+            dataVisualisation.showEventByCoords(coordinates, msg.eventId, msg.eventType, msg.severityLevel);
         }
-    	
+
 
     } else if($.inArray(msg.eventId, eventIds) != -1 && msg.severityLevel != -1) { // If event is not new and not to be deleted
         if(msg.eventType==='buildingEnergy'){
@@ -137,9 +140,9 @@ function handleMessage(msg) {
             //using demoServer, we need this hack
             dataVisualisation.changeBuild(msg.severityLevel,msg.targetBuildingId);
         }else{
-            dataVisualisation.updateEvent(msg.eventId, msg.severityLevel);    
+            dataVisualisation.updateEvent(msg.eventId, msg.severityLevel);
         }
-        
+
     } else if($.inArray(msg.eventId, eventIds) != -1 && msg.severityLevel == -1) { // If event is not new and to be deleted
         if(msg.eventType==='buildingEnergy'){
             //dataVisualisation.resetBuildingEnergy(coordinates);
@@ -147,29 +150,30 @@ function handleMessage(msg) {
             dataVisualisation.changeBuild(1,msg.targetBuildingId);
         }else{
             console.log(msg.eventType);
-            dataVisualisation.removeEvent(msg.eventId);    
+            dataVisualisation.removeEvent(msg.eventId);
         }
-        
+
     }
 }
 
 
 
 var weatherClient = (function(){
-    
-    var url = 'ws://127.0.0.1:8002';
+    var hostname = window.location.hostname;
+    hostname = hostname.replace('3dmap.','3dmap-server.');
+    var url = 'ws://'+ hostname + ':8002';
     //var connection;
     var clientId = -1;
     var connection = new WebSocket(url);
     var weatherCallbackFunc;
-    var timeCallbackFunc;        
+    var timeCallbackFunc;
     connection.onmessage = function(message) {
         var msg = JSON.parse(message.data);
         if(msg.type=='setup'){
             console.log("got new ID: " +msg.id);
-            
+
             clientId = msg.id;
-            
+
         }else if(msg.type=='timeInfo'){
             console.log("got time info");
             if(timeCallbackFunc){
@@ -194,7 +198,7 @@ var weatherClient = (function(){
                 console.log(connection);
                 weatherCallbackFunc = weatherCallback;
                 timeCallbackFunc = timeCallback;
-                connection.send(JSON.stringify({type: "SETUP", data: {city : city},id:clientId}));        
+                connection.send(JSON.stringify({type: "SETUP", data: {city : city},id:clientId}));
             }
         },
 
@@ -207,6 +211,3 @@ var weatherClient = (function(){
     }
 
 })();
-
-
-

@@ -1,15 +1,11 @@
 {
   "name": "citypulseintegration",
   "version": "1.0.1",
-  "description": "real-time events information for the city of Aarhus the 3D map is connecting to the CityPulse Message Bus",
+  "description": "CityPulse Message Bus connection for 3dmap",
   "main": "amqpclientcallback.js",
   "scripts": {
     "start": "node ./amqpclientcallback.js",
     "test": "node -v"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://bitbucket.alexandra.dk/scm/rttdm/3dmap-master.git"
   },
   "author": "Thomas Gilbert",
   "dependencies": {

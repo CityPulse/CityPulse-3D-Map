@@ -1,0 +1,14 @@
+version: '2'
+services:
+  3dmapweb:
+    image: docker.alexandra.dk/3dmapweb:latest
+    ports:
+     - "80:80"
+  3dmapcityintegration:
+    image: docker.alexandra.dk/3dmapcityintegration:latest
+    ports:
+     - "8001:8001"
+  3dmapservice:
+    image: docker.alexandra.dk/3dmapservice:latest
+    ports:
+     - "8002:8002"

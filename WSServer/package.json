@@ -1,0 +1,19 @@
+{
+  "name": "3dmapservice",
+  "version": "1.0.2",
+  "description": "Service behind the 3dmap",
+  "main": "atmosphereService.js",
+  "scripts": {
+    "start": "node ./atmosphereService.js",
+    "test": "node -v"
+  },
+  "author": "Thomas Gilbert",
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^0.4.2",
+    "bail": "^1.0.1",
+    "n3": "^0.7.0",
+    "request": "^2.75.0",
+    "websocket": "^1.0.23"
+  }
+}
