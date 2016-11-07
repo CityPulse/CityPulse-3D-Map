@@ -16,6 +16,7 @@
 		<script src='js/d3graphs/infobox.js'></script>
 		<script src='js/renderstats/stats.min.js'></script>
 		<script src='js/tween/tween.js'></script>
+		<script src='js/socketio/socket.io.min.js'></script>
 		<script src='js/WSClient/wsClient.js'></script>
 		<script src='js/models/modelsCreator.js'></script>
 		<script src='js/models/ThreeCSG.js'></script>
@@ -43,7 +44,7 @@
 		  		
 			</div>
 			<div class="spinner-text" id='loading'>LOADING</div>
-			<div class="spinner-text" id='infoText'>waiting for you to Choose city</div>
+			<div class="spinner-text" id='infoText'>please choose a city</div>
 		</div>
 
 		<div id='renderStatsHolder'></div>
@@ -58,14 +59,16 @@
 		        <li><a id='Cph' name="Copenhagen City" href="#2">Copenhagen</a></li>
 		        <li class="jq-dropdown-divider"></li>
 		        <li><a id='Odense' name="Odense City" href="#3">Odense</a></li>
-			<li class="jq-dropdown-divider"></li>
-			<li><a id='Ry' name="Ry City" href="#4">Ry</a></li> 
+				<li class="jq-dropdown-divider"></li>
+				<li><a id='Ry' name="Ry City" href="#4">Ry</a></li> 
+				<li class="jq-dropdown-divider"></li>
+				<li><a id='Ringe' name="Ringe City" href="#4">Ringe</a></li> 
 		    </ul>
 		</div>
 
-		<input type="button" value="Toggle Auto cam (a)" id='toggleAutoCam'>
+		
 
-		<input type="button" data-jq-dropdown="#jq-dropdown-2" value="Choose data source" id='dataSourceChooser'>
+		<input type="button" data-jq-dropdown="#jq-dropdown-2" value="Choose data source" id='dataSourceChooser' disabled>
 		<div id="jq-dropdown-2" class="jq-dropdown jq-dropdown-tip jq-dropdown-anchor-left dropdown-data">
 		    <ul class="jq-dropdown-menu">
 		    	<li><input type="checkbox" name="datasource" value="publicParking">Public Parking</li>
@@ -79,6 +82,8 @@
 		    	<li><input type="checkbox" name="datasource" value="buildingEnergy">Building Energy</li>
 		    </ul>
 		</div>
+
+		<input type="button" value="Toggle Auto cam (a)" id='toggleAutoCam' disabled>
 	
 		<!-- shaders -->
 		<script type="x-shader/x-vertex" id="vertexShader">
@@ -199,6 +204,8 @@
 				//adding mouse handling
                 interaction.addMouseHandling();
 
+                //wifiVisualizationClient.setup('Ringe');
+                //showSpinner(false); 
 			});
 
 

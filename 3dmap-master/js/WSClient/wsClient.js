@@ -75,11 +75,10 @@ window.onfocus = function() {
     window.blurred = false; 
 };
 
-function setupSocket() {
+function setupVanillaSocket() {
 
     // if user is running mozilla then use it's built-in WebSocket
 	window.WebSocket = window.WebSocket || window.MozWebSocket;
-
     // open connection
     connection = new WebSocket('ws://127.0.0.1:8001');
 
@@ -157,7 +156,6 @@ function handleMessage(msg) {
 }
 
 
-
 var weatherClient = (function(){
     
     var url = 'ws://127.0.0.1:8002';
@@ -207,6 +205,84 @@ var weatherClient = (function(){
             }
         }
     }
+
+})();
+
+
+var wifiVisualizationClient = (function(){
+    var url = 'http://localhost:5000/wifi';
+    var socket = undefined;
+    var dataPoints = undefined;
+    // Event handler for new connections.
+    // The callback function is invoked when a connection with the
+    // server is established.
+    function addEventHandlers(){
+        socket.on('connect', function() {
+            console.log("connect");
+            
+            //socket.emit('my_event', {data: 'I\'m connected!'});
+        });
+
+        socket.on("error",function(object){
+            console.log("error on socket: ");
+            console.log(object);
+        });
+
+
+
+        // Receiving the datapoint for where to place the sensor on map
+        socket.on("datapoints", function(msg){
+            console.log(msg);
+            dataPoints = msg;
+            
+        });
+
+         socket.on('measurements', function(msg) {
+            
+            //$('#log').append('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
+            if(dataPoints === undefined){
+                //data points not received from server - cannot use measurements for anything, so discarding
+                console.log("data points not set. discarding measurements");
+                return false;
+            }
+            console.log(msg);
+            if(msg.device_id===undefined){
+                return;
+            }
+            
+            //let val = Math.floor(Math.random() * 10) + 1;
+            let val = msg.count
+            
+            //let point = Math.floor(Math.random() * dataPoints.length);
+            let point = msg.device_id-1;
+            console.log(val+"  "+point )
+            
+            dataPoints[point][2]=val;
+   
+        });
+    }
+    
+
+
+     return {
+        setup: function(city){
+            socket = io.connect(url);
+            console.log(city);
+            addEventHandlers();
+            
+            if(socket!=null){
+                socket.emit('join',{room:city});
+            }
+        },
+
+        end: function(){
+            if(socket!=null){
+                socket.emit('leave',{room:city});
+                io.disconnect();
+            }
+        }
+
+     }
 
 })();
 

@@ -71,6 +71,7 @@ var mapData = (function(){
 						console.log(new Date()+": buildings loaded");
 						//hide spinner as system is ready
 						showSpinner(false);
+						interaction.activateButtons();
 					},50)
 					//issues with trees after upgrading Three.js v81. Not used until its fixed
 					//getTrees();
@@ -79,7 +80,12 @@ var mapData = (function(){
 			},50);
 			getRoads();
 			//setting up a websocket to event server
-			setupSocket();
+			if(cityName=="ringe"){
+				console.log('ringe');
+			}else{
+				console.log('der');
+			}
+			setupVanillaSocket();
 			//for testing events - can be removed when done
 			//addTestEvent();
 			
