@@ -35,7 +35,8 @@ function updateDatasources(name, minX, minY, maxX, maxY){
         //remove events from screen
         if(name=="buildingEnergy"){
             setTimeout(function(){
-                dataVisualisation.resetAllBuildings();
+
+                playground.resetAllBuildings();
             }, 5000);
 
         }else{
@@ -75,10 +76,10 @@ window.onfocus = function() {
     window.blurred = false;
 };
 
-function setupSocket() {
+function setupVanillaSocket() {
 
     // if user is running mozilla then use it's built-in WebSocket
-	  window.WebSocket = window.WebSocket || window.MozWebSocket;
+	window.WebSocket = window.WebSocket || window.MozWebSocket;
 
     // open connection
     var hostname = window.location.hostname;
@@ -128,7 +129,8 @@ function handleMessage(msg) {
         if(msg.eventType==='buildingEnergy'){
             //dataVisualisation.showBuildingEnergy(coordinates, msg.severityLevel);
             //using demoServer, we need this hack
-            dataVisualisation.changeBuild(msg.severityLevel,msg.targetBuildingId);
+            //dataVisualisation.changeBuild(msg.severityLevel,msg.targetBuildingId);
+            playground.visualiseBuildingChanges(msg.severityLevel,msg.targetBuildingId);
         }else{
             dataVisualisation.showEventByCoords(coordinates, msg.eventId, msg.eventType, msg.severityLevel);
         }
@@ -138,7 +140,8 @@ function handleMessage(msg) {
         if(msg.eventType==='buildingEnergy'){
             //dataVisualisation.showBuildingEnergy(coordinates, msg.severityLevel);
             //using demoServer, we need this hack
-            dataVisualisation.changeBuild(msg.severityLevel,msg.targetBuildingId);
+            //dataVisualisation.changeBuild(msg.severityLevel,msg.targetBuildingId);
+            playground.visualiseBuildingChanges(msg.severityLevel,msg.targetBuildingId);
         }else{
             dataVisualisation.updateEvent(msg.eventId, msg.severityLevel);
         }
@@ -147,7 +150,8 @@ function handleMessage(msg) {
         if(msg.eventType==='buildingEnergy'){
             //dataVisualisation.resetBuildingEnergy(coordinates);
             //using demoServer, we need this hack
-            dataVisualisation.changeBuild(1,msg.targetBuildingId);
+            //dataVisualisation.changeBuild(1,msg.targetBuildingId);
+            playground.resetABuilding(msg.targetBuildingId);
         }else{
             console.log(msg.eventType);
             dataVisualisation.removeEvent(msg.eventId);
@@ -155,7 +159,6 @@ function handleMessage(msg) {
 
     }
 }
-
 
 
 var weatherClient = (function(){
@@ -195,7 +198,6 @@ var weatherClient = (function(){
     return {
         setup: function(city, weatherCallback, timeCallback){
             if(connection && connection.readyState==1){
-                console.log(connection);
                 weatherCallbackFunc = weatherCallback;
                 timeCallbackFunc = timeCallback;
                 connection.send(JSON.stringify({type: "SETUP", data: {city : city},id:clientId}));
@@ -211,3 +213,82 @@ var weatherClient = (function(){
     }
 
 })();
+
+
+var wifiVisualizationClient = (function(){
+    var url = 'http://localhost:5000/wifi';
+    var socket = undefined;
+    var dataPoints = undefined;
+    // Event handler for new connections.
+    // The callback function is invoked when a connection with the
+    // server is established.
+    function addEventHandlers(){
+        socket.on('connect', function() {
+            console.log("connect");
+            
+            //socket.emit('my_event', {data: 'I\'m connected!'});
+        });
+
+        socket.on("error",function(object){
+            console.log("error on socket: ");
+            console.log(object);
+        });
+
+
+
+        // Receiving the datapoint for where to place the sensor on map
+        socket.on("datapoints", function(msg){
+            console.log(msg);
+            dataPoints = msg;
+            
+        });
+
+         socket.on('measurements', function(msg) {
+            
+            //$('#log').append('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
+            if(dataPoints === undefined){
+                //data points not received from server - cannot use measurements for anything, so discarding
+                console.log("data points not set. discarding measurements");
+                return false;
+            }
+            console.log(msg);
+            if(msg.device_id===undefined){
+                return;
+            }
+            
+            //let val = Math.floor(Math.random() * 10) + 1;
+            let val = msg.count
+            
+            //let point = Math.floor(Math.random() * dataPoints.length);
+            let point = msg.device_id-1;
+            console.log(val+"  "+point )
+            
+            dataPoints[point][2]=val;
+   
+        });
+    }
+    
+
+
+     return {
+        setup: function(city){
+            socket = io.connect(url);
+            console.log(city);
+            addEventHandlers();
+            
+            if(socket!=null){
+                socket.emit('join',{room:city});
+            }
+        },
+
+        end: function(){
+            if(socket!=null){
+                socket.emit('leave',{room:city});
+                io.disconnect();
+            }
+        }
+
+     }
+
+})();
+

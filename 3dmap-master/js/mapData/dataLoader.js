@@ -13,9 +13,11 @@ var mapData = (function(){
 
 	function setPlane(){
     	var planeGeo =  new THREE.PlaneBufferGeometry(planeX, planeY,32, 32 );// new THREE.PlaneGeometry(2000,2000);
-        var planeMat = new THREE.MeshLambertMaterial("rgb(128, 128, 128)");
+    	
+        var planeMat = new THREE.MeshLambertMaterial({color:0xffffff});
+        
         plane = new THREE.Mesh(planeGeo, planeMat);
-			
+		
         // rotate it to correct position
         plane.rotation.x = -Math.PI/2;
 		plane.castShadow = false;
@@ -69,14 +71,21 @@ var mapData = (function(){
 						console.log(new Date()+": buildings loaded");
 						//hide spinner as system is ready
 						showSpinner(false);
+						interaction.activateButtons();
 					},50)
-					getTrees();
+					//issues with trees after upgrading Three.js v81. Not used until its fixed
+					//getTrees();
 				},50);
 				getWater();
 			},50);
 			getRoads();
 			//setting up a websocket to event server
-			setupSocket();
+			if(cityName=="ringe"){
+				console.log('ringe');
+			}else{
+				console.log('der');
+			}
+			setupVanillaSocket();
 			//for testing events - can be removed when done
 			//addTestEvent();
 			
@@ -227,7 +236,8 @@ var mapData = (function(){
 		populateMap: function(city){
 			console.log(new Date()+": start");
 			//sortedbuildings.kml means that the original kml have been sorted according to location by sort.py
-			buildingUrl = "data/kml/"+city+"/sortedbuildings.kml";
+			buildingUrl = "data/kml/"+city+"/sortedBuildings.kml";
+			//buildingUrl = "data/kml/"+city+"/test.kml";
 			roadUrl = "data/kml/"+city+"/roads.kml";
 			treeUrl = "data/kml/"+city+"/trees.kml";
 			waterUrl = "data/kml/"+city+"/water.kml";

@@ -97,9 +97,12 @@ function createBuildingModels(data)
         } 
     });
 
+    originalBuildingColor = 0xffffff;
+    var faceColorMaterial = new THREE.MeshLambertMaterial( { color: originalBuildingColor, transparent:true, opacity:1, vertexColors: THREE.VertexColors } );
+    //var faceColorMaterial = new THREE.MeshLambertMaterial( );
+    //faceColorMaterial.transparent = true;
 
-    var faceColorMaterial = new THREE.MeshLambertMaterial( { color: originalBuildingColor, vertexColors: THREE.VertexColors } );
-    //var faceColorMaterial = new THREE.MeshBasicMaterial( { color: originalBuildingColor, vertexColors: THREE.VertexColors } );
+    
 
     var geoColor = parseInt(Math.floor(Math.random()*16777215).toString(16),16);
     for(var o =0; o<geometryList.length; o++){
@@ -111,7 +114,6 @@ function createBuildingModels(data)
         combinedMesh.push(new THREE.Mesh(geometryList[o], faceColorMaterial));
     }
 
-    
     addMeshes(combinedMesh, "buildings");
   
     
@@ -202,7 +204,6 @@ function _cleanCoordinate(coordinate, roadGeometry) {
 
 
 function createRoadModels(data){
-    
     var roadMeshes = [];
 
 
@@ -234,8 +235,9 @@ function createRoadModels(data){
     });
 
     roadGeometry.computeVertexNormals();
-    var roadLine = new THREE.Line(roadGeometry, material, THREE.LinePieces);
-    
+
+    var roadLine = new THREE.LineSegments(roadGeometry, material);
+
     roadLine.rotation.x += -3.1415*0.5;
     roadLine.updateMatrix();
     roadMeshes.push(roadLine);

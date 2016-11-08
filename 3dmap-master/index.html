@@ -16,14 +16,16 @@
 		<script src='js/d3graphs/infobox.js'></script>
 		<script src='js/renderstats/stats.min.js'></script>
 		<script src='js/tween/tween.js'></script>
+		<script src='js/socketio/socket.io.min.js'></script>
 		<script src='js/WSClient/wsClient.js'></script>
 		<script src='js/models/modelsCreator.js'></script>
 		<script src='js/models/ThreeCSG.js'></script>
 		<script src='js/eventVisualisation/dataVisualisation.js'></script>
-		<script src="js/fonts/helvetiker_regular.typeface.js"></script>
+		
 		<script src="js/weather/atmosphereVisualiser.js"></script>
 		<script src='js/gui/DAT.GUI.js'></script>
 		<script src='js/mapData/dataLoader.js'></script>
+		<script src='js/playground/caseVisualisation.js'></script>
 		<script src='js/interaction/userInteraction.js'></script>
 		<script src='js/animations/metaObjectsAnimation.js'></script>
 
@@ -32,7 +34,31 @@
 	<body>
 
 		<div id="infoBox">
-	        1234
+	        <div id='serverity'>
+	        	<div id='serverityType'>
+	        	
+	        	</div> 
+	        	<span id='severityLevel'></span>
+
+
+	        </div>
+	        <div id='legend'>
+	        	<b>
+	        		Color is definded as:
+	        	</b><br/>
+
+	        	<span id='parking'>Green</span> is public parking usage<br>
+	        	<span id='traffic'>Blue</span> is traffic jams<br>
+	        	<span id='airpollution'>Black</span> is the amount of air pollution<br>
+	        	<span id='noiselevel'>Red</span> is the noise level<br>
+
+	        	<div id='severityHeader'>
+		        	<b>
+		        		Severity is defines as:
+		        	</b><br/>
+		        	The higher the ballon is in the air, the higher the level is
+	        	</div>
+	        </div>
 
 	    </div>
 	    <div class="spinner-holder">
@@ -42,7 +68,7 @@
 
 			</div>
 			<div class="spinner-text" id='loading'>LOADING</div>
-			<div class="spinner-text" id='infoText'>waiting for you to Choose city</div>
+			<div class="spinner-text" id='infoText'>Please choose a city</div>
 		</div>
 
 		<div id='renderStatsHolder'></div>
@@ -56,29 +82,32 @@
 		        <li class="jq-dropdown-divider"></li>
 		        <li><a id='cph' name="Copenhagen City" href="#2">Copenhagen</a></li>
 		        <li class="jq-dropdown-divider"></li>
-		        <li><a id='odense' name="Odense City" href="#3">Odense</a></li>
-			      <li class="jq-dropdown-divider"></li>
-			      <li><a id='ry' name="Ry City" href="#4">Ry</a></li>
+		        <li><a id='Odense' name="Odense City" href="#3">Odense</a></li>
+				<li class="jq-dropdown-divider"></li>
+				<li><a id='Ry' name="Ry City" href="#4">Ry</a></li> 
+				<li class="jq-dropdown-divider"></li>
+				<li><a id='Ringe' name="Ringe City" href="#4">Ringe</a></li> 
 		    </ul>
 		</div>
 
-		<input type="button" value="Toggle Auto cam (a)" id='toggleAutoCam'>
+		
 
 		<input type="button" data-jq-dropdown="#jq-dropdown-2" value="Choose data source" id='dataSourceChooser'>
 		<div id="jq-dropdown-2" class="jq-dropdown jq-dropdown-tip jq-dropdown-anchor-left dropdown-data">
 		    <ul class="jq-dropdown-menu">
-		    	<li><input type="checkbox" name="datasource" value="publicParking">Public Parking</li>
+		    	<li><input type="checkbox" name="datasource" value="PublicParking">Public Parking</li>
 		    	<li class="jq-dropdown-divider"></li>
-		    	<li><input type="checkbox" name="datasource" value="trafficJam">Traffic Jam</li>
+		    	<li><input type="checkbox" name="datasource" value="TrafficJam">Traffic Jam</li>
 		    	<li class="jq-dropdown-divider"></li>
-		    	<li><input type="checkbox" name="datasource" value="aarhusPollution">Pollution</li>
+		    	<li><input type="checkbox" name="datasource" value="AarhusPollution">Pollution</li>
 		    	<li class="jq-dropdown-divider"></li>
-		    	<li><input type="checkbox" name="datasource" value="aarhusNoiseLevel">Noise</li>
+		    	<li><input type="checkbox" name="datasource" value="AarhusNoiseLevel">Noise</li>
 		    	<li class="jq-dropdown-divider"></li>
 		    	<li><input type="checkbox" name="datasource" value="buildingEnergy">Building Energy</li>
 		    </ul>
 		</div>
-
+		<input type="button" value="Toggle Auto cam (a)" id='toggleAutoCam'>
+		
 		<!-- shaders -->
 		<script type="x-shader/x-vertex" id="vertexShader">
 
@@ -121,6 +150,7 @@
 			var debugGridSort = false;
 			//Set this to true to see GUI to control parameters
 			var addGUI = false;
+			
 			var guiParams = null;
 			//Flag for setting is camara should be animated
 			var autoCamAnimation = false;
@@ -197,6 +227,8 @@
 				//adding mouse handling
                 interaction.addMouseHandling();
 
+                //wifiVisualizationClient.setup('Ringe');
+                $(".spinner").css('opacity',0);
 			});
 
 
@@ -225,8 +257,11 @@
                 renderer = new THREE.WebGLRenderer({ antialias: true });
                 renderer.setSize( window.innerWidth, window.innerHeight );
                 renderer.setClearColor(0xdddddd);
-				renderer.shadowMapEnabled = true;
-				renderer.shadowMapType = THREE.PCFSoftShadowMap;
+
+				//renderer.shadowMapEnabled = true;
+				renderer.shadowMap.enabled;
+				//renderer.shadowMapType = THREE.PCFSoftShadowMap;
+				renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
                 $("#renderStatsHolder").append(renderer.domElement);
 
@@ -235,9 +270,9 @@
 
 
                 //setting camera properties - also used to reset camera position
-                camera.position.z = 965;
-                camera.position.x = 1435;
-                camera.position.y = 1415;
+                camera.position.z = 419;
+                camera.position.x = -1773;
+                camera.position.y = 1254;
 
 				if(!initCameraPosition){
 					initCameraPosition = {x:camera.position.x, y:camera.position.y, z:camera.position.z};
@@ -264,13 +299,13 @@
                 spotLight.position.set(-0.75*planeX, 2500, 500);
                 spotLightRadius = Math.sqrt(Math.pow(spotLight.position.x,2)+Math.pow(spotLight.position.y,2)+Math.pow(spotLight.position.z,2));
                 spotLight.castShadow = true;
-				spotLight.shadowCameraVisible = false;
-				spotLight.shadowCameraNear = planeX/2.5;
-				spotLight.shadowCameraFar = 1.5*planeX;
-				spotLight.shadowCameraFov = 50;
-				spotLight.shadowBias = 0.00001;
-				spotLight.shadowMapWidth = SHADOW_MAP_WIDTH/2;
-				spotLight.shadowMapHeight = SHADOW_MAP_HEIGHT/2;
+  				spotLight.shadow.camera.near = planeX/2.5;
+				spotLight.shadow.camera.far = 1.5*planeX;
+				spotLight.shadow.camera.fov = 50;
+				spotLight.shadow.bias = 0.00001;
+				spotLight.shadow.mapSize.width = SHADOW_MAP_WIDTH/2;
+				spotLight.shadow.mapSize.height = SHADOW_MAP_HEIGHT/2;
+
                 scene.add(spotLight);
                 //for debugging light source position
                 if(!initSpotLightPosition){
@@ -280,8 +315,8 @@
 
 				var hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.2);
 				hemiLight.name="hemilight";
-				hemiLight.color.setHSL( 0.6, 1, 0.6 );
-				hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
+				hemiLight.color.setHex(0x3385FF);
+				hemiLight.groundColor.setHex(0xD3D3D3);
 				hemiLight.position.set( 0, 500, 0 );
 				scene.add( hemiLight );
 
@@ -310,43 +345,9 @@
 				objectAnimations.addCameraPath();
 
 				console.log(new Date()+": End setup/start render");
-
-				//add GUI element
-				var gui = new dat.GUI({
-					    height : 3 * 32 - 1,
-					    autoPlace: false
-					});
-
-
-				guiParams = {
-					intensity: 1,
-					hour: 12,
-					color: 0xffffff,
-					xPos:-0.75*planeX,
-					yPos:2500,
-					zPos:500
-
-				};
-				$("#guiHolder").append(gui.domElement);
-				$("#guiHolder").hide();
-
-				gui.add(guiParams, 'intensity',0, 2).onChange(guiChanged);
-				gui.add(guiParams, 'hour',1.0,24.0).step(1).onChange(guiChanged);
-				gui.add(guiParams, 'xPos',-0.75*planeX,0.75*planeX).step(1).listen().onChange(guiChanged);
-				gui.add(guiParams, 'yPos',0,5000).step(1).listen().onChange(guiChanged);
-				gui.add(guiParams, 'zPos',-1000,2000).step(1).listen().onChange(guiChanged);
-				gui.addColor(guiParams, 'color').onChange(guiChanged);
-				//gui.close();
-
-
-				function guiChanged(){
-					spotLight.intensity  = guiParams.intensity;
-					var colorObj = new THREE.Color( guiParams.color );
-					spotLight.color = colorObj;
-					//spotLight.position.set(guiParams.xPos,guiParams.yPos,guiParams.zPos);
-					//sun.set(new THREE.Vector3(guiParams.xPos,guiParams.yPos,guiParams.zPos),20);
-				}
-
+		
+				playground.addGUI();
+							
 		    }
 
 
@@ -488,6 +489,7 @@
 			function showSpinner(showSpinner){
 				if(showSpinner){
 					$("#renderStatsHolder").hide();
+					$(".spinner").css('opacity',1);
 					$(".spinner-holder").show();
 				}else{
 					console.log("show scene");

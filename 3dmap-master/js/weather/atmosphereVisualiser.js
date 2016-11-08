@@ -63,7 +63,7 @@ var weatherVisualiser = (function(){
 		// amount: amount of precipitation: 'drizzle','middle','heavy'
 		///////////////////////////////////////////////////////////////
 		weatherHandler: function(type,amount){
-			console.log("weatherType: "+type);
+			//console.log("weatherType: "+type);
 
 			var weatherGeometry;
 			var typeString;
@@ -80,7 +80,8 @@ var weatherVisualiser = (function(){
 				default:
 					typeString = "images/particle.png";
 			}
-			console.log(typeString);
+			
+			//console.log(typeString);
 			var amountCount;
 			switch(amount){
 				case "light":
@@ -128,7 +129,10 @@ var weatherVisualiser = (function(){
 
 				var color = 0xffffff;
 				var size  = 10;
-				var material = new THREE.PointCloudMaterial( { 
+				console.log("b4 mat");
+
+
+				var material = new THREE.PointsMaterial( { 
 					size: size, 
 					color:color,
 					map: THREE.ImageUtils.loadTexture(
@@ -137,8 +141,8 @@ var weatherVisualiser = (function(){
 						blending: THREE.AdditiveBlending,
 						transparent: true
 				} );
-
-				weatherSystem = new THREE.PointCloud( weatherGeometry, material );
+				console.log("af mat");
+				weatherSystem = new THREE.Points( weatherGeometry, material );
 				
 				weatherSystem.name = "weatherSystem";
 				console.log("weatherSystem added");
