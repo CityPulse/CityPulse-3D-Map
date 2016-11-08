@@ -34,7 +34,31 @@
 	<body>
 
 		<div id="infoBox">
-	        1234
+	        <div id='serverity'>
+	        	<div id='serverityType'>
+	        	
+	        	</div> 
+	        	<span id='severityLevel'></span>
+
+
+	        </div>
+	        <div id='legend'>
+	        	<b>
+	        		Color is definded as:
+	        	</b><br/>
+
+	        	<span id='parking'>Green</span> is public parking usage<br>
+	        	<span id='traffic'>Blue</span> is traffic jams<br>
+	        	<span id='airpollution'>Black</span> is the amount of air pollution<br>
+	        	<span id='noiselevel'>Red</span> is the noise level<br>
+
+	        	<div id='severityHeader'>
+		        	<b>
+		        		Severity is defines as:
+		        	</b><br/>
+		        	The higher the ballon is in the air, the higher the level is
+	        	</div>
+	        </div>
 
 	    </div>
 	    <div class="spinner-holder">
@@ -44,7 +68,7 @@
 		  		
 			</div>
 			<div class="spinner-text" id='loading'>LOADING</div>
-			<div class="spinner-text" id='infoText'>please choose a city</div>
+			<div class="spinner-text" id='infoText'>Please choose a city</div>
 		</div>
 
 		<div id='renderStatsHolder'></div>
@@ -68,22 +92,22 @@
 
 		
 
-		<input type="button" data-jq-dropdown="#jq-dropdown-2" value="Choose data source" id='dataSourceChooser' disabled>
+		<input type="button" data-jq-dropdown="#jq-dropdown-2" value="Choose data source" id='dataSourceChooser'>
 		<div id="jq-dropdown-2" class="jq-dropdown jq-dropdown-tip jq-dropdown-anchor-left dropdown-data">
 		    <ul class="jq-dropdown-menu">
-		    	<li><input type="checkbox" name="datasource" value="publicParking">Public Parking</li>
+		    	<li><input type="checkbox" name="datasource" value="PublicParking">Public Parking</li>
 		    	<li class="jq-dropdown-divider"></li>
-		    	<li><input type="checkbox" name="datasource" value="trafficJam">Traffic Jam</li>
+		    	<li><input type="checkbox" name="datasource" value="TrafficJam">Traffic Jam</li>
 		    	<li class="jq-dropdown-divider"></li>
-		    	<li><input type="checkbox" name="datasource" value="aarhusPollution">Pollution</li>
+		    	<li><input type="checkbox" name="datasource" value="AarhusPollution">Pollution</li>
 		    	<li class="jq-dropdown-divider"></li>
-		    	<li><input type="checkbox" name="datasource" value="aarhusNoiseLevel">Noise</li>
+		    	<li><input type="checkbox" name="datasource" value="AarhusNoiseLevel">Noise</li>
 		    	<li class="jq-dropdown-divider"></li>
 		    	<li><input type="checkbox" name="datasource" value="buildingEnergy">Building Energy</li>
 		    </ul>
 		</div>
 
-		<input type="button" value="Toggle Auto cam (a)" id='toggleAutoCam' disabled>
+		<input type="button" value="Toggle Auto cam (a)" id='toggleAutoCam'>
 	
 		<!-- shaders -->
 		<script type="x-shader/x-vertex" id="vertexShader">
@@ -126,7 +150,7 @@
 			//Set this to true to see coloring of buildings based on their geometry
 			var debugGridSort = false;
 			//Set this to true to see GUI to control parameters
-			var addGUI = true;
+			var addGUI = false;
 			
 			var guiParams = null;
 			//Flag for setting is camara should be animated
@@ -205,7 +229,7 @@
                 interaction.addMouseHandling();
 
                 //wifiVisualizationClient.setup('Ringe');
-                //showSpinner(false); 
+                $(".spinner").css('opacity',0);
 			});
 
 
@@ -465,6 +489,7 @@
 			function showSpinner(showSpinner){
 				if(showSpinner){
 					$("#renderStatsHolder").hide();
+					$(".spinner").css('opacity',1);
 					$(".spinner-holder").show();
 				}else{
 					console.log("show scene");

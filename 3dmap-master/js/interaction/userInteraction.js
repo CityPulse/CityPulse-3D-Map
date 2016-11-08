@@ -8,6 +8,13 @@ var interaction = (function(){
 		maxY = maxX = -100000.0;
 	}
 
+	function handleButtonActivation(isActive){
+		let val = isActive?"inline":"none";
+		$('#dataSourceChooser').css('display', val);
+		$('#toggleAutoCam').css('display', val);
+		
+	}
+
 
 	return{
 		addMenuHandler: function(){
@@ -18,7 +25,8 @@ var interaction = (function(){
 			
 			//handler for city select
 			$(".dropdown-city > ul > li > a").on('click', function(e){
-
+				//make sure that ppl are not confused when data is laoding
+				handleButtonActivation(false);
 				//do nothing if same city is selected again
 				if(chosenCityId!==null & chosenCityId===this.id){
 					return;
@@ -74,7 +82,7 @@ var interaction = (function(){
 		addKeyboardHandling:function(){
 			//add key handler to reset camera view
 			$(document).keydown(function(e) {
-				console.log(e.keyCode);
+				
 				if(e.keyCode===82){//'r' pressed
 					if(camera){
 						camera.position.x=initCameraPosition.x;
@@ -87,9 +95,6 @@ var interaction = (function(){
 						spotLight.position.x=initSpotLightPosition.x;
 						spotLight.position.y=initSpotLightPosition.y;
 						spotLight.position.z=initSpotLightPosition.z;
-						guiParams.xPos=initSpotLightPosition.x;
-						guiParams.yPos = initSpotLightPosition.y;
-						guiParams.zPos = initSpotLightPosition.z;
 						spotLightRadius = Math.sqrt(Math.pow(spotLight.position.x,2)+Math.pow(spotLight.position.y,2)+Math.pow(spotLight.position.z,2));
 
 					}
@@ -126,9 +131,13 @@ var interaction = (function(){
 
 				
 				if($("#infoBox").is(':visible')){
-					$("#infoBox").css('visibility', 'hidden');
+					//$("#infoBox").css('display', 'none');
+					$("#infoBox").fadeOut(function(){
+						$("#serverityType").text("");
+						$("#severityLevel").text("");
+					});
 				}
-				dataVisualisation.removeEventTexts();
+				//dataVisualisation.removeEventTexts();
 
 				
 				raycaster.setFromCamera( mouse, camera );
@@ -137,7 +146,7 @@ var interaction = (function(){
 		    	var intersects = raycaster.intersectObjects( scene.children );
 				for ( var i = 0; i < intersects.length; i++ ) 
 				{
-					//console.log(intersects[i].object);
+					
 					if(intersects[i].object.name.startsWith("buildings") && intersects[i].face.readingId !== selectedObject){
 						selectedObject = intersects[i].face.readingId; // Assign new selected object
 						//console.log(intersects[i]);
@@ -145,6 +154,7 @@ var interaction = (function(){
 						console.log(selectedObject);							
 						break;
 					}else if(intersects[i].object.name.startsWith("event")){
+						console.log("event click");
 		        		var eventId = intersects[i].object.eventId;
 		        		var serverity = Math.floor(Math.random() * 3);
 		        		//updateEvent(eventId, serverity);
@@ -161,7 +171,14 @@ var interaction = (function(){
 
 			});
 			
+		},
+		///////////////////////////////////////////////////////////////
+		// Activate buttons when loading is done
+		///////////////////////////////////////////////////////////////
+		activateButtons: function(){
+			handleButtonActivation(true);
 		}
+
 
 	}
 

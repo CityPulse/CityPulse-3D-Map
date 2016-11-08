@@ -165,20 +165,38 @@ var dataVisualisation = (function(){
 	function _getTextFromEventType(type){
 		var ret = "Kom Så De Hviie";
 		switch(type){
-			case "publicParking":
-				ret = "Public Parking";
+			case "PublicParking":
+				ret = "Public parking";
 				break;
-			case "trafficJam":
-				ret = "Traffic Jam";
+			case "TrafficJam":
+				ret = "Traffic jam";
 				break;
-			case "aarhusPollution":
+			case "AarhusPollution":
 				ret = "Pollution";
 				break;
-			case "aarhusNoiseLevel":
+			case "AarhusNoiseLevel":
 				ret = "Noise";
 				break;
 		}
 		return ret;
+	}
+
+
+	function _getTextFromServerity(severity){
+		var text = "Levels are good"
+		switch(severity){
+			case 0:
+				text = "levels are good (0)"
+				break;
+			case 1:
+				text = "levels are high (1)"
+				break;
+			case 2:
+				text = "levels are harsh (2)"
+				break;
+		}
+
+		return text;
 	}
 
 
@@ -273,20 +291,17 @@ var dataVisualisation = (function(){
 			console.log("SHOW EVENT-> coordX: "+coordinates.x+" coordY: "+coordinates.y+"  id: "+id+" type: "+type+" severity: "+severity);
 			var color = 0xffff00;
 			switch(type){
-				case "publicParking":
+				case "PublicParking":
 					color = 0x267326;
 					break;
-				case "trafficJam":
+				case "TrafficJam":
 					color = 0x0059b3;
 					break;
-				case "aarhusPollution":
+				case "AarhusPollution":
 					color = 0x1a1a00;
 					break;
-				case "aarhusNoise":
+				case "AarhusNoise":
 					color = 0xcc0000;
-					break;
-				case 4:
-					color = 0x000000;
 					break;
 			}
 
@@ -388,6 +403,21 @@ var dataVisualisation = (function(){
 		///////////////////////////////////////////////////////////////
 
 		showEventText:function(eventId){
+			var event = eventList[eventId];
+			
+			if(eventId===undefined || event ===undefined)
+				return;
+			console.log(event.type);
+
+			var header = _getTextFromEventType(event.type);
+			var level = _getTextFromServerity(event.severity);	
+			console.log("header: "+header+"  level: "+level)
+
+			//$("#infoBox").css('display','inline');
+			$("#infoBox").fadeIn("slow",function(){
+				$("#serverityType").text(header);
+				$("#severityLevel").text(level);
+			});
 			//TODO: Determine if we should use this again
 			return;
 			var event = eventList[eventId];

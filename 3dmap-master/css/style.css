@@ -35,7 +35,8 @@ canvas {
 	font-size: 20px;
 	min-width:100px;
 	color: #333333;
-	font-family: verdana, arial;	
+	font-family: verdana, arial;
+	display:none;	
 }
 
 #toggleAutoCam{
@@ -47,7 +48,8 @@ canvas {
 	font-size: 20px;
 	min-width:100px;
 	color: #333333;
-	font-family: verdana, arial;	
+	font-family: verdana, arial;
+	display: none;	
 }
 
 .dropdown-city{
@@ -73,18 +75,52 @@ canvas {
 
 
 #infoBox{
-	visibility: hidden;
+	display: none;
 	position: absolute;
 	z-index: 1;
-	right: 1%;
-	top: 10%;
+	right: 5px;
+	top: 5px;
 	width:200px;
-	height:80%;
-	background-color: grey;
-	border-style: groove;
-	border-color: #00CCFF;
-	border-width: 15px;
+	height:60%;
+	background-color: #cac4ce;
+	padding:10px;
+	opacity: 0.7;
+	font-family: verdana, arial;
+	border-radius: 2px;
 }
+
+#infoBox > #serverity > #serverityType {
+	margin-bottom: 5px;
+}
+
+#infoBox > #legend {
+	position: absolute;
+	bottom:10px;
+	
+	font-size:10px;
+}
+
+#infoBox > #legend > #parking {
+	color: #267326;
+}
+
+#infoBox > #legend > #traffic {
+	color: #0059b3;
+}
+
+#infoBox > #legend > #airpollution {
+	color: #1a1a00;
+}
+
+#infoBox > #legend > #noiselevel {
+	color: #cc0000;
+}
+
+
+#infoBox > #legend > #severityHeader {
+	margin-top:10px;
+}
+
 
 #guiHolder{
 	position: absolute;

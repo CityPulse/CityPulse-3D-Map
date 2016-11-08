@@ -112,7 +112,8 @@ function sendToClients(eventId, eventType, severityLevel, lat, long, date) {
 				count += 1;
 			} else {
 				if(client.subscriptions.indexOf(eventType) < 0) {
-					console.log("Message not sent to client because client is not subscribing to that type of event.");
+					console.log("Message not sent to client because client is not subscribing to that type of event: "+eventType );
+					console.log(client.subscriptions);
 				}
 				if(!testForLocation(client, lat, long)) {
 					console.log("Message not sent to client because event is out of area.");	
