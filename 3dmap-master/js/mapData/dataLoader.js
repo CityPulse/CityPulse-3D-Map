@@ -11,13 +11,10 @@ var mapData = (function(){
 	// Setting plane size based on building positions
 	///////////////////////////////////////////////////////////////
 
-	function setPlane(){
+	function setPlane(city){
     	var planeGeo =  new THREE.PlaneBufferGeometry(planeX, planeY,32, 32 );// new THREE.PlaneGeometry(2000,2000);
-    	
-        var planeMat = new THREE.MeshLambertMaterial({color:0xffffff});
-        
-        plane = new THREE.Mesh(planeGeo, planeMat);
-		
+    	plane = new THREE.Mesh(planeGeo);
+				
         // rotate it to correct position
         plane.rotation.x = -Math.PI/2;
 		plane.castShadow = false;
@@ -33,6 +30,30 @@ var mapData = (function(){
         scene.add(plane);
         //toggleWeather("rain","middle",true);
 		render();
+
+
+
+    	var loader = new THREE.TextureLoader();
+
+    	loader.load(
+
+    		'data/goundImages/'+city+'.png',
+    		function(texture){
+    			var meshMaterial = new THREE.MeshBasicMaterial({ transparent: false, map: texture });
+				meshMaterial.side = THREE.DoubleSide;
+		        plane.material = meshMaterial;
+		        
+    		},
+    		function ( xhr ) {
+				var meshMaterial = new THREE.MeshLambertMaterial({color:0xccffcc});
+				plane.material= meshMaterial;
+		    }
+
+    	);
+
+    	
+        //var planeMat = new THREE.MeshLambertMaterial({color:0xffffff});
+        
     }
 
 	///////////////////////////////////////////////////////////////
@@ -58,7 +79,7 @@ var mapData = (function(){
 			var data = toGeoJSON.kml(kml).features;
 			
 			calculatePlaneBounds(data);
-			setPlane();
+			setPlane(chosenCityId);
 
 			noOfBuildings = data.length;
 			

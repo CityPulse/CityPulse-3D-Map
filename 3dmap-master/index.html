@@ -58,6 +58,10 @@
 		        	</b><br/>
 		        	The higher the ballon is in the air, the higher the level is
 	        	</div>
+
+	        	<div id='interaction'>
+	        		Double click anywhere on map to remove this information box
+	        	</div>
 	        </div>
 
 	    </div>
@@ -78,14 +82,19 @@
 		<input type="button" data-jq-dropdown="#jq-dropdown-1" value="Choose city" id='cityChooser'>
 		<div id="jq-dropdown-1" class="jq-dropdown jq-dropdown-tip dropdown-city">
 		    <ul class="jq-dropdown-menu">
-		        <li><a id='8k' name="Aarhus City" href="#1">Aarhus</a></li>
-		        <li class="jq-dropdown-divider"></li>
+		    	
+	        	<li><a id='8k' name="Aarhus City" href="#1">Aarhus</a></li>
+	        	<li class="jq-dropdown-divider"></li>
+
 		        <li><a id='cph' name="Copenhagen City" href="#2">Copenhagen</a></li>
 		        <li class="jq-dropdown-divider"></li>
+
 		        <li><a id='Odense' name="Odense City" href="#3">Odense</a></li>
 				<li class="jq-dropdown-divider"></li>
+
 				<li><a id='Ry' name="Ry City" href="#4">Ry</a></li> 
 				<li class="jq-dropdown-divider"></li>
+
 				<li><a id='Ringe' name="Ringe City" href="#4">Ringe</a></li> 
 		    </ul>
 		</div>
@@ -95,15 +104,19 @@
 		<input type="button" data-jq-dropdown="#jq-dropdown-2" value="Choose data source" id='dataSourceChooser'>
 		<div id="jq-dropdown-2" class="jq-dropdown jq-dropdown-tip jq-dropdown-anchor-left dropdown-data">
 		    <ul class="jq-dropdown-menu">
-		    	<li><input type="checkbox" name="datasource" value="PublicParking">Public Parking</li>
-		    	<li class="jq-dropdown-divider"></li>
-		    	<li><input type="checkbox" name="datasource" value="TrafficJam">Traffic Jam</li>
-		    	<li class="jq-dropdown-divider"></li>
-		    	<li><input type="checkbox" name="datasource" value="AarhusPollution">Pollution</li>
-		    	<li class="jq-dropdown-divider"></li>
-		    	<li><input type="checkbox" name="datasource" value="AarhusNoiseLevel">Noise</li>
-		    	<li class="jq-dropdown-divider"></li>
-		    	<li><input type="checkbox" name="datasource" value="buildingEnergy">Building Energy</li>
+		    	<div class='8k'>
+			    	<li ><input type="checkbox" name="datasource" value="PublicParking">Public Parking</li>
+			    	<li class="jq-dropdown-divider"></li>
+			    	<li><input type="checkbox" name="datasource" value="TrafficJam">Traffic Jam</li>
+			    	<li class="jq-dropdown-divider"></li>
+			    	<li><input type="checkbox" name="datasource" value="AarhusPollution">Pollution</li>
+			    	<li class="jq-dropdown-divider"></li>
+			    	<li><input type="checkbox" name="datasource" value="AarhusNoiseLevel">Noise</li>
+			    	<li class="jq-dropdown-divider"></li>
+		    	</div>
+		    	<div class='demo'>
+		    		<li><input type="checkbox" name="datasource" value="buildingEnergy">Building Energy</li>
+		    	</div>
 		    </ul>
 		</div>
 		<input type="button" value="Toggle Auto cam (a)" id='toggleAutoCam'>

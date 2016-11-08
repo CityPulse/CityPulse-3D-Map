@@ -15,9 +15,18 @@ function calculatePlaneBounds(data){
         }
         
     });
+    maxX+=375;
+    maxY+=375;
+    minX-=375;
+    minY-=375;
 
-    planeX = maxX-minX+750;
-    planeY = maxY-minY+750;
+
+    console.log(Math.round(minX)+','+Math.round(minY)+','+Math.round(maxX)+','+Math.round(maxY));
+    //planeX = maxX-minX+750;
+    //planeY = maxY-minY+750;
+    planeX = maxX-minX;
+    planeY = maxY-minY;
+    console.log("relation:"+planeX/planeY);
     fCenterX = minX + (maxX-minX)*0.5;
     fCenterY = minY + (maxY-minY)*0.5;
     

@@ -10,16 +10,21 @@ var eventQueue = new Array();
 $(function(){
     //close any websocket connections before user leaves page
     $(window).on('beforeunload', function(){
-      if(connection){
+      closeWebsockets();
+    });
+});
+
+
+
+function closeWebsockets(){
+    console.log("cws")
+    if(connection){
         connection.send(JSON.stringify({type:"close", id: clientId}));
         connection.close();
 
       }
       weatherClient.close();
-    });
-});
-
-
+}
 
 ///////////////////////////////////////////////////////////////
 // Meta methods for WEBSOCKET

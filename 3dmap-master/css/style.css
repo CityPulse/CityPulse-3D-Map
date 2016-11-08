@@ -71,6 +71,9 @@ canvas {
 	margin-top:10px;
 }
 
+.dropdown-data > ul > div{
+	display: none;
+}
 
 
 
@@ -119,6 +122,11 @@ canvas {
 
 #infoBox > #legend > #severityHeader {
 	margin-top:10px;
+}
+
+#infoBox > #legend > #interaction {
+	margin-top:5px;
+	font-size:8px;
 }
 
 

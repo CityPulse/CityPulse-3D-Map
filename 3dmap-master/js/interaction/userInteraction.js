@@ -2,17 +2,52 @@
 var interaction = (function(){
 
 	var selectedObject=null;
+	var numberOfElementsInDataList = 0;
 
 	function resetPlaneSize(){
 		minY = minX = 10000000;
 		maxY = maxX = -100000.0;
 	}
 
+
+	function resetDatasources(){
+		$(".dropdown-data > ul").find("input").each(function(i){
+			$(this).prop("checked",false);
+		});
+		closeWebsockets();
+	}
+
 	function handleButtonActivation(isActive){
 		let val = isActive?"inline":"none";
-		$('#dataSourceChooser').css('display', val);
 		$('#toggleAutoCam').css('display', val);
+		$('#dataSourceChooser').css('display', val);
 		
+		
+		if(numberOfElementsInDataList>0){
+			$('#dataSourceChooser').attr('value',"Choose data source");
+			$('#dataSourceChooser').prop('disabled',false);
+		}else{
+			$('#dataSourceChooser').attr('value',"No data sources available for this city");
+			$('#dataSourceChooser').prop('disabled',true);
+		}
+		
+	}
+
+	function showRelevantButtons(city){
+
+		$(".dropdown-data > ul >div").css('display','none');
+		$(".dropdown-data > ul >div."+city).css('display','inline');
+		var number = $(".dropdown-data > ul >div."+city).length;
+		return number;
+	}
+
+	function resetCamera(){
+		if(camera){
+			camera.position.x=initCameraPosition.x;
+			camera.position.y=initCameraPosition.y;
+			camera.position.z=initCameraPosition.z;
+			camera.lookAt(new THREE.Vector3(0,0,0));
+		}
 	}
 
 
@@ -25,14 +60,29 @@ var interaction = (function(){
 			
 			//handler for city select
 			$(".dropdown-city > ul > li > a").on('click', function(e){
-				//make sure that ppl are not confused when data is laoding
-				handleButtonActivation(false);
+
 				//do nothing if same city is selected again
 				if(chosenCityId!==null & chosenCityId===this.id){
 					return;
 				}
+				resetCamera();
 
+				//reset the data sources
+				if(chosenCityId!==null){
+					//only reset if it is not first run
+					resetDatasources();	
+				}
+				
+
+				//make sure that ppl are not confused when data is laoding
+				handleButtonActivation(false);
 				chosenCityId = this.id;
+
+				//show the relevant buttons for a city
+				//if no data sources are available for a city, 0 is returned, which is used in handleButtonActivation function
+				numberOfElementsInDataList = showRelevantButtons(chosenCityId);
+
+				
 				showSpinner(true);
 				//show 'Loading Text'
 				$("#loading").css('opacity','1.0');
@@ -74,7 +124,8 @@ var interaction = (function(){
 
 
 			//handler for data source select
-			$(".dropdown-data > ul > li > input").on('click',function(e){
+			$(".dropdown-data > ul > div > li > input").on('click',function(e){
+				console.log("data source chosen")
 				updateDatasources(this.value, wgsMinX, wgsMinY, wgsMaxX, wgsMaxY);
 			});
 		},
@@ -84,12 +135,7 @@ var interaction = (function(){
 			$(document).keydown(function(e) {
 				
 				if(e.keyCode===82){//'r' pressed
-					if(camera){
-						camera.position.x=initCameraPosition.x;
-						camera.position.y=initCameraPosition.y;
-						camera.position.z=initCameraPosition.z;
-						camera.lookAt(new THREE.Vector3(0,0,0));
-					}
+					resetCamera();
 				}else if(e.keyCode==67){
 					if(spotLight){
 						spotLight.position.x=initSpotLightPosition.x;
@@ -146,7 +192,7 @@ var interaction = (function(){
 		    	var intersects = raycaster.intersectObjects( scene.children );
 				for ( var i = 0; i < intersects.length; i++ ) 
 				{
-					
+					console.log(intersects[i].object.name);
 					if(intersects[i].object.name.startsWith("buildings") && intersects[i].face.readingId !== selectedObject){
 						selectedObject = intersects[i].face.readingId; // Assign new selected object
 						//console.log(intersects[i]);
