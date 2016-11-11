@@ -277,6 +277,7 @@ var wifiVisualizationClient = (function(){
 
      return {
         setup: function(city){
+            /*
             socket = io.connect(url);
             console.log(city);
             addEventHandlers();
@@ -284,10 +285,11 @@ var wifiVisualizationClient = (function(){
             if(socket!=null){
                 socket.emit('join',{room:city});
             }
+            */
         },
 
         end: function(){
-            if(socket!=null){
+            if(socket!=undefined){
                 socket.emit('leave',{room:city});
                 io.disconnect();
             }
