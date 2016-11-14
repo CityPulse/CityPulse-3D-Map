@@ -1,517 +1,517 @@
 <html>
-	<head>
-		<title>City Visualizer</title>
-		<link type="text/css" rel="stylesheet" href="css/jquery.dropdown.css" />
-		<link rel="stylesheet" type="text/css" href="css/style.css">
+<head>
+	<title>City Visualizer</title>
+	<link type="text/css" rel="stylesheet" href="css/jquery.dropdown.css" />
+	<link rel="stylesheet" type="text/css" href="css/style.css">
 
 
 
-		<script src='js/d3graphs/d3.min.js'></script>
-		<script src="js/jquery/jquery.js"></script>
-		<script src="js/jquery/jquery.dropdown.js"></script>
-		<script src="js/kmlTojson/togeojson.js"></script>
-		<script src="js/three.js"></script>
-		<script src="js/controls/OrbitControls.js"></script>
-		<script src="js/utm-converter/src/converter.js"></script>
-		<script src='js/d3graphs/infobox.js'></script>
-		<script src='js/renderstats/stats.min.js'></script>
-		<script src='js/tween/tween.js'></script>
-		<script src='js/socketio/socket.io.min.js'></script>
-		<script src='js/WSClient/wsClient.js'></script>
-		<script src='js/models/modelsCreator.js'></script>
-		<script src='js/models/ThreeCSG.js'></script>
-		<script src='js/eventVisualisation/dataVisualisation.js'></script>
-		
-		<script src="js/weather/atmosphereVisualiser.js"></script>
-		<script src='js/gui/DAT.GUI.js'></script>
-		<script src='js/mapData/dataLoader.js'></script>
-		<script src='js/playground/caseVisualisation.js'></script>
-		<script src='js/interaction/userInteraction.js'></script>
-		<script src='js/animations/metaObjectsAnimation.js'></script>
+	<script src='js/d3graphs/d3.min.js'></script>
+	<script src="js/jquery/jquery.js"></script>
+	<script src="js/jquery/jquery.dropdown.js"></script>
+	<script src="js/kmlTojson/togeojson.js"></script>
+	<script src="js/three.js"></script>
+	<script src="js/controls/OrbitControls.js"></script>
+	<script src="js/utm-converter/src/converter.js"></script>
+	<script src='js/d3graphs/infobox.js'></script>
+	<script src='js/renderstats/stats.min.js'></script>
+	<script src='js/tween/tween.js'></script>
+	<script src='js/socketio/socket.io.min.js'></script>
+	<script src='js/WSClient/wsClient.js'></script>
+	<script src='js/models/modelsCreator.js'></script>
+	<script src='js/models/ThreeCSG.js'></script>
+	<script src='js/eventVisualisation/dataVisualisation.js'></script>
+
+	<script src="js/weather/atmosphereVisualiser.js"></script>
+	<script src='js/gui/DAT.GUI.js'></script>
+	<script src='js/mapData/dataLoader.js'></script>
+	<script src='js/playground/caseVisualisation.js'></script>
+	<script src='js/interaction/userInteraction.js'></script>
+	<script src='js/animations/metaObjectsAnimation.js'></script>
 
 
-	</head>
-	<body>
+</head>
+<body>
 
-		<div id="infoBox">
-	        <div id='serverity'>
-	        	<div id='serverityType'>
-	        	
-	        	</div> 
-	        	<span id='severityLevel'></span>
-
-
-	        </div>
-	        <div id='legend'>
-	        	<b>
-	        		Color is definded as:
-	        	</b><br/>
-
-	        	<span id='parking'>Green</span> is public parking usage<br>
-	        	<span id='traffic'>Blue</span> is traffic jams<br>
-	        	<span id='airpollution'>Black</span> is the amount of air pollution<br>
-	        	<span id='noiselevel'>Red</span> is the noise level<br>
-
-	        	<div id='severityHeader'>
-		        	<b>
-		        		Severity is defines as:
-		        	</b><br/>
-		        	The higher the ballon is in the air, the higher the level is
-	        	</div>
-
-	        	<div id='interaction'>
-	        		Double click anywhere on map to remove this information box
-	        	</div>
-	        </div>
-
-	    </div>
-	    <div class="spinner-holder">
-		    <div class="spinner">
-		  		<div class="double-bounce1"></div>
-		  		<div class="double-bounce2"></div>
+	<div id="infoBox">
+		<div id='serverity'>
+			<div id='serverityType'>
 
 			</div>
-			<div class="spinner-text" id='loading'>LOADING</div>
-			<div class="spinner-text" id='infoText'>Please choose a city</div>
+			<span id='severityLevel'></span>
+
+
+		</div>
+		<div id='legend'>
+			<b>
+				Color is definded as:
+			</b><br/>
+
+			<span id='parking'>Green</span> is public parking usage<br>
+			<span id='traffic'>Blue</span> is traffic jams<br>
+			<span id='airpollution'>Black</span> is the amount of air pollution<br>
+			<span id='noiselevel'>Red</span> is the noise level<br>
+
+			<div id='severityHeader'>
+				<b>
+					Severity is defines as:
+				</b><br/>
+				The higher the ballon is in the air, the higher the level is
+			</div>
+
+			<div id='interaction'>
+				Double click anywhere on map to remove this information box
+			</div>
 		</div>
 
-		<div id='renderStatsHolder'></div>
+	</div>
+	<div class="spinner-holder">
+		<div class="spinner">
+			<div class="double-bounce1"></div>
+			<div class="double-bounce2"></div>
 
-		<div id='guiHolder'></div>
-		<!-- Buttons for user interaction -->
-		<input type="button" data-jq-dropdown="#jq-dropdown-1" value="Choose city" id='cityChooser'>
-		<div id="jq-dropdown-1" class="jq-dropdown jq-dropdown-tip dropdown-city">
-		    <ul class="jq-dropdown-menu">
-		    	
-	        	<li><a id='8k' name="Aarhus City" href="#1">Aarhus</a></li>
-	        	<li class="jq-dropdown-divider"></li>
+		</div>
+		<div class="spinner-text" id='loading'>LOADING</div>
+		<div class="spinner-text" id='infoText'>Please choose a city</div>
+	</div>
 
-		        <li><a id='cph' name="Copenhagen City" href="#2">Copenhagen</a></li>
-		        <li class="jq-dropdown-divider"></li>
+	<div id='renderStatsHolder'></div>
 
-		        <li><a id='Odense' name="Odense City" href="#3">Odense</a></li>
+	<div id='guiHolder'></div>
+	<!-- Buttons for user interaction -->
+	<input type="button" data-jq-dropdown="#jq-dropdown-1" value="Choose city" id='cityChooser'>
+	<div id="jq-dropdown-1" class="jq-dropdown jq-dropdown-tip dropdown-city">
+		<ul class="jq-dropdown-menu">
+
+			<li><a id='8k' name="Aarhus City" href="#1">Aarhus</a></li>
+			<li class="jq-dropdown-divider"></li>
+
+			<li><a id='cph' name="Copenhagen City" href="#2">Copenhagen</a></li>
+			<li class="jq-dropdown-divider"></li>
+
+			<li><a id='odense' name="Odense City" href="#3">Odense</a></li>
+			<li class="jq-dropdown-divider"></li>
+
+			<li><a id='ry' name="Ry City" href="#4">Ry</a></li>
+			<li class="jq-dropdown-divider"></li>
+
+			<li><a id='ringe' name="Ringe City" href="#4">Ringe</a></li> 
+		</ul>
+	</div>
+
+
+
+	<input type="button" data-jq-dropdown="#jq-dropdown-2" value="Choose data source" id='dataSourceChooser'>
+	<div id="jq-dropdown-2" class="jq-dropdown jq-dropdown-tip jq-dropdown-anchor-left dropdown-data">
+		<ul class="jq-dropdown-menu">
+			<div class='8k'>
+				<li ><input type="checkbox" name="datasource" value="PublicParking">Public Parking</li>
 				<li class="jq-dropdown-divider"></li>
-
-				<li><a id='Ry' name="Ry City" href="#4">Ry</a></li> 
+				<li><input type="checkbox" name="datasource" value="TrafficJam">Traffic Jam</li>
 				<li class="jq-dropdown-divider"></li>
+				<li><input type="checkbox" name="datasource" value="AarhusPollution">Pollution</li>
+				<li class="jq-dropdown-divider"></li>
+				<li><input type="checkbox" name="datasource" value="AarhusNoiseLevel">Noise</li>
+				<li class="jq-dropdown-divider"></li>
+			</div>
+			<div class='demo'>
+				<li><input type="checkbox" name="datasource" value="buildingEnergy">Building Energy</li>
+			</div>
+		</ul>
+	</div>
+	<input type="button" value="Toggle Auto cam (a)" id='toggleAutoCam'>
+
+	<!-- shaders -->
+	<script type="x-shader/x-vertex" id="vertexShader">
+
+	varying vec3 vWorldPosition;
+
+	void main() {
+
+		vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+		vWorldPosition = worldPosition.xyz;
 
-				<li><a id='Ringe' name="Ringe City" href="#4">Ringe</a></li> 
-		    </ul>
-		</div>
-
-		
-
-		<input type="button" data-jq-dropdown="#jq-dropdown-2" value="Choose data source" id='dataSourceChooser'>
-		<div id="jq-dropdown-2" class="jq-dropdown jq-dropdown-tip jq-dropdown-anchor-left dropdown-data">
-		    <ul class="jq-dropdown-menu">
-		    	<div class='8k'>
-			    	<li ><input type="checkbox" name="datasource" value="PublicParking">Public Parking</li>
-			    	<li class="jq-dropdown-divider"></li>
-			    	<li><input type="checkbox" name="datasource" value="TrafficJam">Traffic Jam</li>
-			    	<li class="jq-dropdown-divider"></li>
-			    	<li><input type="checkbox" name="datasource" value="AarhusPollution">Pollution</li>
-			    	<li class="jq-dropdown-divider"></li>
-			    	<li><input type="checkbox" name="datasource" value="AarhusNoiseLevel">Noise</li>
-			    	<li class="jq-dropdown-divider"></li>
-		    	</div>
-		    	<div class='demo'>
-		    		<li><input type="checkbox" name="datasource" value="buildingEnergy">Building Energy</li>
-		    	</div>
-		    </ul>
-		</div>
-		<input type="button" value="Toggle Auto cam (a)" id='toggleAutoCam'>
-		
-		<!-- shaders -->
-		<script type="x-shader/x-vertex" id="vertexShader">
-
-			varying vec3 vWorldPosition;
-
-			void main() {
-
-				vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
-				vWorldPosition = worldPosition.xyz;
-
-				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-
-			}
-
-		</script>
-
-
-		<script type="x-shader/x-fragment" id="fragmentShader">
-
-			uniform vec3 topColor;
-			uniform vec3 bottomColor;
-			uniform float offset;
-			uniform float exponent;
-
-			varying vec3 vWorldPosition;
-
-			void main() {
-
-				float h = normalize( vWorldPosition + offset ).y;
-				gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
-
-			}
-		</script>
-
-
-		<!-- main script -->
-		<script>
-			"use strict";
-			//Set this to true to see coloring of buildings based on their geometry
-			var debugGridSort = false;
-			//Set this to true to see GUI to control parameters
-			var addGUI = false;
-			
-			var guiParams = null;
-			//Flag for setting is camara should be animated
-			var autoCamAnimation = false;
-			//URLs used to load the KML files for each city. Is set in the populateMap function
-			var buildingUrl = "";
-			var roadUrl = "";
-			var treeUrl = "";
-			var waterUrl = "";
-
-			//Object used as associative array for holding the building meshes needed for resizing according to energy consumption
-		    var buildingObjects={};
-
-		    //three.js specific variables
-		    var renderer=null;
-		    var renderAnimationId = null;
-		    var scene = new THREE.Scene();
-		    var camera=null;
-
-		    var spotLight = null;
-		    var spotLightRadius = null;
-			var controls= null;
-			var raycaster = null;
-            var mouse =  null;
-			var plane = null;
-			var SHADOW_MAP_WIDTH = 1024;
-			var SHADOW_MAP_HEIGHT = 1024;
-
-			//the path that the camera follows if set to auto
-			var pathCamera = null;
-			//sphere for simulating sun/moon
-		    var sun = null;
-		    //the initial camera position for resetting camera
-		    var initCameraPosition = null;
-		    //used for debugging of light source position and movement
-		    var initSpotLightPosition = null;
-			//default values for the plane size. Will be set according to the postions of buildings in each KML file
-			var planeX = 10000;
-			var planeY = 10000;
+		gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
 
-			var minX = 10000000;
-			var minY = 10000000;
-			var maxX = -100000.0;
-			var maxY = -100000.0;
-			//used for calculating position of buildings in the 3d model.
-			var fCenterX, fCenterY;
-			var wgsMinX, wgsMinY, wgsMaxX, wgsMaxY;
+	}
+
+	</script>
+
+
+	<script type="x-shader/x-fragment" id="fragmentShader">
+
+	uniform vec3 topColor;
+	uniform vec3 bottomColor;
+	uniform float offset;
+	uniform float exponent;
+
+	varying vec3 vWorldPosition;
 
+	void main() {
 
-			var cityName = "";
-			var chosenCityId = null;
-			//the total number of buildings in a given city. Used for resizing of buildings
-			var noOfBuildings = null;
-			//the number of buildings in each mesh. Used for optimization when resizing a single building
-			var noOfBuildingGeoSlice = 30;
-
-			var originalBuildingColor = 0x00ffff;
-
-
-			var rendererStats = new Stats();
-
-			Number.prototype.map = function (in_min, in_max, out_min, out_max) {
- 				 return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-			}
-
-
-
-			$(function(){
-				//start setting up the basics before a anything else happens
-				setup();
-				//add the menu handlers for user interaction
-				interaction.addMenuHandler();
-				//add keyboard handlers
-				interaction.addKeyboardHandling();
-				//adding mouse handling
-                interaction.addMouseHandling();
-
-                //wifiVisualizationClient.setup('Ringe');
-                $(".spinner").css('opacity',0);
-			});
-
-
-
-
-
-		    function setup()
-			{
-
-			    //set renderbox for development information - remove all this for production
-				rendererStats.setMode( 0 ); // 0: fps, 1: ms, 2: mb
-			    rendererStats.domElement.style.position   = 'absolute'
-				rendererStats.domElement.style.left  = '0px'
-				rendererStats.domElement.style.bottom    = '0px'
-				//document.body.appendChild( rendererStats.domElement );
-				$("#renderStatsHolder").append(rendererStats.domElement);
-				//end stats
-		        //adding camera
-                camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 5, 10000 );
-				raycaster = new THREE.Raycaster();
-				mouse = new THREE.Vector2();
-				mouse.x = -1;
-				mouse.y = 1;
+		float h = normalize( vWorldPosition + offset ).y;
+		gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
 
-				//setting up render
-                renderer = new THREE.WebGLRenderer({ antialias: true });
-                renderer.setSize( window.innerWidth, window.innerHeight );
-                renderer.setClearColor(0xdddddd);
+	}
+	</script>
 
-				//renderer.shadowMapEnabled = true;
-				renderer.shadowMap.enabled;
-				//renderer.shadowMapType = THREE.PCFSoftShadowMap;
-				renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-                $("#renderStatsHolder").append(renderer.domElement);
-
-
-
-
-
-                //setting camera properties - also used to reset camera position
-                camera.position.z = 419;
-                camera.position.x = -1773;
-                camera.position.y = 1254;
 
-				if(!initCameraPosition){
-					initCameraPosition = {x:camera.position.x, y:camera.position.y, z:camera.position.z};
-				}
-				controls = new THREE.OrbitControls( camera, renderer.domElement );
+	<!-- main script -->
+	<script>
+	"use strict";
+	//Set this to true to see coloring of buildings based on their geometry
+	var debugGridSort = false;
+	//Set this to true to see GUI to control parameters
+	var addGUI = false;
+
+	var guiParams = null;
+	//Flag for setting is camara should be animated
+	var autoCamAnimation = false;
+	//URLs used to load the KML files for each city. Is set in the populateMap function
+	var buildingUrl = "";
+	var roadUrl = "";
+	var treeUrl = "";
+	var waterUrl = "";
+
+	//Object used as associative array for holding the building meshes needed for resizing according to energy consumption
+	var buildingObjects={};
+
+	//three.js specific variables
+	var renderer=null;
+	var renderAnimationId = null;
+	var scene = new THREE.Scene();
+	var camera=null;
 
-				controls.enableDamping = true;
-				controls.dampingFactor = 0.25;
-				controls.enableZoom = true;
+	var spotLight = null;
+	var spotLightRadius = null;
+	var controls= null;
+	var raycaster = null;
+	var mouse =  null;
+	var plane = null;
+	var SHADOW_MAP_WIDTH = 1024;
+	var SHADOW_MAP_HEIGHT = 1024;
 
-				//adding sun/moon object
-            	var sunGeometry = new THREE.SphereGeometry( 400, 32, 32 );
-				var sunMaterial = new THREE.MeshBasicMaterial( {color: 0xffff00} );
-				sun = new THREE.Mesh( sunGeometry, sunMaterial );
-				sun.name = "SUN";
-				sun.position.set(-0.75*planeX, 2500, 500);
-				scene.add( sun );
+	//the path that the camera follows if set to auto
+	var pathCamera = null;
+	//sphere for simulating sun/moon
+	var sun = null;
+	//the initial camera position for resetting camera
+	var initCameraPosition = null;
+	//used for debugging of light source position and movement
+	var initSpotLightPosition = null;
+	//default values for the plane size. Will be set according to the postions of buildings in each KML file
+	var planeX = 10000;
+	var planeY = 10000;
 
+	var minX = 10000000;
+	var minY = 10000000;
+	var maxX = -100000.0;
+	var maxY = -100000.0;
+	//used for calculating position of buildings in the 3d model.
+	var fCenterX, fCenterY;
+	var wgsMinX, wgsMinY, wgsMaxX, wgsMaxY;
 
-                // add spotlight for the shadows
-                spotLight = new THREE.SpotLight(0xffffff);
-                spotLight.name = "spotlight";
-                //var spotLight = new THREE.SpotLight(0xffffff, 0.9, 100000, Math.PI/2, 10, 1);
-                spotLight.position.set(-0.75*planeX, 2500, 500);
-                spotLightRadius = Math.sqrt(Math.pow(spotLight.position.x,2)+Math.pow(spotLight.position.y,2)+Math.pow(spotLight.position.z,2));
-                spotLight.castShadow = true;
-  				spotLight.shadow.camera.near = planeX/2.5;
-				spotLight.shadow.camera.far = 1.5*planeX;
-				spotLight.shadow.camera.fov = 50;
-				spotLight.shadow.bias = 0.00001;
-				spotLight.shadow.mapSize.width = SHADOW_MAP_WIDTH/2;
-				spotLight.shadow.mapSize.height = SHADOW_MAP_HEIGHT/2;
 
-                scene.add(spotLight);
-                //for debugging light source position
-                if(!initSpotLightPosition){
-                	initSpotLightPosition = {x:spotLight.position.x, y:spotLight.position.y, z:spotLight.position.z};
-                }
+	var cityName = "";
+	var chosenCityId = null;
+	//the total number of buildings in a given city. Used for resizing of buildings
+	var noOfBuildings = null;
+	//the number of buildings in each mesh. Used for optimization when resizing a single building
+	var noOfBuildingGeoSlice = 30;
 
+	var originalBuildingColor = 0x00ffff;
 
-				var hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.2);
-				hemiLight.name="hemilight";
-				hemiLight.color.setHex(0x3385FF);
-				hemiLight.groundColor.setHex(0xD3D3D3);
-				hemiLight.position.set( 0, 500, 0 );
-				scene.add( hemiLight );
 
+	var rendererStats = new Stats();
 
-				// SKYDOME
-				var vertexShader = document.getElementById( 'vertexShader' ).textContent;
-				var fragmentShader = document.getElementById( 'fragmentShader' ).textContent;
-				var uniforms = {
-					topColor: 	 { type: "c", value: new THREE.Color( 0x0077ff ) },
-					bottomColor: { type: "c", value: new THREE.Color( 0xffffff ) },
-					offset:		 { type: "f", value: 33 },
-					exponent:	 { type: "f", value: 0.6 }
-				};
-				uniforms.topColor.value.copy( hemiLight.color );
+	Number.prototype.map = function (in_min, in_max, out_min, out_max) {
+		return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+	}
 
-				var skyGeo = new THREE.SphereGeometry( 4000, 32, 15 );
-				var skyMat = new THREE.ShaderMaterial( { vertexShader: vertexShader, fragmentShader: fragmentShader, uniforms: uniforms, side: THREE.BackSide } );
-				var sky = new THREE.Mesh( skyGeo, skyMat );
-				sky.name = "sky";
 
-				sky.matrixAutoUpdate = false;
-				sky.updateMatrix();
 
-				scene.add( sky );
+	$(function(){
+		//start setting up the basics before a anything else happens
+		setup();
+		//add the menu handlers for user interaction
+		interaction.addMenuHandler();
+		//add keyboard handlers
+		interaction.addKeyboardHandling();
+		//adding mouse handling
+		interaction.addMouseHandling();
 
-				objectAnimations.addCameraPath();
+		//wifiVisualizationClient.setup('Ringe');
+		$(".spinner").css('opacity',0);
+	});
 
-				console.log(new Date()+": End setup/start render");
-		
-				playground.addGUI();
-							
-		    }
 
 
 
-		    function addMeshes(meshes, prefix){
-		    	prefix += "-";
-		    	var shadowBool = false;
-		    	if(prefix.indexOf("buildings")>-1){
 
-		    		shadowBool = true;
-		    	}
+	function setup()
+	{
 
-		    	//console.log("adding "+ prefix.substring(0,prefix.length-1)+" to scene: "+meshes.length)
-                for(var k=0; k<meshes.length;k++){
-                	var mesh = meshes[k];
-                	mesh.name = prefix+k;
-                	mesh.castShadow = shadowBool;
-					mesh.receiveShadow = shadowBool;
-                	scene.add(mesh);
-                }
-		    }
+		//set renderbox for development information - remove all this for production
+		rendererStats.setMode( 0 ); // 0: fps, 1: ms, 2: mb
+		rendererStats.domElement.style.position   = 'absolute'
+		rendererStats.domElement.style.left  = '0px'
+		rendererStats.domElement.style.bottom    = '0px'
+		//document.body.appendChild( rendererStats.domElement );
+		$("#renderStatsHolder").append(rendererStats.domElement);
+		//end stats
+		//adding camera
+		camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 5, 10000 );
+		raycaster = new THREE.Raycaster();
+		mouse = new THREE.Vector2();
+		mouse.x = -1;
+		mouse.y = 1;
 
+		//setting up render
+		renderer = new THREE.WebGLRenderer({ antialias: true });
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		renderer.setClearColor(0xdddddd);
 
+		//renderer.shadowMapEnabled = true;
+		renderer.shadowMap.enabled;
+		//renderer.shadowMapType = THREE.PCFSoftShadowMap;
+		renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
+		$("#renderStatsHolder").append(renderer.domElement);
 
-		    ///////////////////////////////////////////////////////////////
-			// Helper methods for testing the height of the buildings
-			///////////////////////////////////////////////////////////////
 
-		    function setLevels(){
 
-		    	var level = Math.random()*10+0.1;
-		    	var index = Math.round(Math.random()*Object.keys(buildingObjects).length);
 
-		    	changeBuilding(level, index, false);
 
-		    }
+		//setting camera properties - also used to reset camera position
+		camera.position.z = 419;
+		camera.position.x = -1773;
+		camera.position.y = 1254;
 
+		if(!initCameraPosition){
+			initCameraPosition = {x:camera.position.x, y:camera.position.y, z:camera.position.z};
+		}
+		controls = new THREE.OrbitControls( camera, renderer.domElement );
 
+		controls.enableDamping = true;
+		controls.dampingFactor = 0.25;
+		controls.enableZoom = true;
 
+		//adding sun/moon object
+		var sunGeometry = new THREE.SphereGeometry( 400, 32, 32 );
+		var sunMaterial = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+		sun = new THREE.Mesh( sunGeometry, sunMaterial );
+		sun.name = "SUN";
+		sun.position.set(-0.75*planeX, 2500, 500);
+		scene.add( sun );
 
 
+		// add spotlight for the shadows
+		spotLight = new THREE.SpotLight(0xffffff);
+		spotLight.name = "spotlight";
+		//var spotLight = new THREE.SpotLight(0xffffff, 0.9, 100000, Math.PI/2, 10, 1);
+		spotLight.position.set(-0.75*planeX, 2500, 500);
+		spotLightRadius = Math.sqrt(Math.pow(spotLight.position.x,2)+Math.pow(spotLight.position.y,2)+Math.pow(spotLight.position.z,2));
+		spotLight.castShadow = true;
+		spotLight.shadow.camera.near = planeX/2.5;
+		spotLight.shadow.camera.far = 1.5*planeX;
+		spotLight.shadow.camera.fov = 50;
+		spotLight.shadow.bias = 0.00001;
+		spotLight.shadow.mapSize.width = SHADOW_MAP_WIDTH/2;
+		spotLight.shadow.mapSize.height = SHADOW_MAP_HEIGHT/2;
 
-			///////////////////////////////////////////////////////////////
-			// Rendering function for three.js
-			///////////////////////////////////////////////////////////////
+		scene.add(spotLight);
+		//for debugging light source position
+		if(!initSpotLightPosition){
+			initSpotLightPosition = {x:spotLight.position.x, y:spotLight.position.y, z:spotLight.position.z};
+		}
 
-		    var cs = 0;
-			function render()
-			{
 
+		var hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.2);
+		hemiLight.name="hemilight";
+		hemiLight.color.setHex(0x3385FF);
+		hemiLight.groundColor.setHex(0xD3D3D3);
+		hemiLight.position.set( 0, 500, 0 );
+		scene.add( hemiLight );
 
-				renderAnimationId = requestAnimationFrame( render );
-				TWEEN.update();
 
-				if(cs%100==0){
+		// SKYDOME
+		var vertexShader = document.getElementById( 'vertexShader' ).textContent;
+		var fragmentShader = document.getElementById( 'fragmentShader' ).textContent;
+		var uniforms = {
+			topColor: 	 { type: "c", value: new THREE.Color( 0x0077ff ) },
+			bottomColor: { type: "c", value: new THREE.Color( 0xffffff ) },
+			offset:		 { type: "f", value: 33 },
+			exponent:	 { type: "f", value: 0.6 }
+		};
+		uniforms.topColor.value.copy( hemiLight.color );
 
-					//console.log(camera.position);
-					//console.log(scene.children);
-					cs=0;
-				}
-				cs++;
+		var skyGeo = new THREE.SphereGeometry( 4000, 32, 15 );
+		var skyMat = new THREE.ShaderMaterial( { vertexShader: vertexShader, fragmentShader: fragmentShader, uniforms: uniforms, side: THREE.BackSide } );
+		var sky = new THREE.Mesh( skyGeo, skyMat );
+		sky.name = "sky";
 
-				if(weatherAdded)
-					weatherVisualiser.renderWeather();
+		sky.matrixAutoUpdate = false;
+		sky.updateMatrix();
 
+		scene.add( sky );
 
-				//animate camera
-				if(pathCamera && autoCamAnimation){
-					let time = Date.now()
-					let loopTime = 20* 1000;
-					let t = (time%loopTime)/loopTime;
+		objectAnimations.addCameraPath();
 
-					let camPosition = pathCamera.getPointAt(t);
-					camera.position.copy(camPosition);
-					camera.lookAt(new THREE.Vector3(0,0,0));
+		console.log(new Date()+": End setup/start render");
 
-				}
+		playground.addGUI();
 
-				/*
-				//makes sure camera does not go beyond x-axis of plane
-				if(camera.position.x<plane.geometry.boundingBox.min.x){
-					camera.position.x=plane.geometry.boundingBox.min.x;
-				}else if(camera.position.x>plane.geometry.boundingBox.max.x){
-					camera.position.x=plane.geometry.boundingBox.max.x;
-				}
+	}
 
-				//makes sure camera does not go beyond y-axis of plane
-				if(camera.position.z<plane.geometry.boundingBox.min.y){
-					camera.position.z=plane.geometry.boundingBox.min.y;
-				}else if(camera.position.z>plane.geometry.boundingBox.max.y){
-					camera.position.z=plane.geometry.boundingBox.max.y;
-				}
 
 
-				//makes sure that camera can not go below z=0
-				if(camera.position.y<0.5){
-					camera.position.y=0.5;
-					var pov = new THREE.Vector3(0-camera.position.x, 0-camera.position.y,0-camera.position.z);
-					camera.lookAt(pov);
+	function addMeshes(meshes, prefix){
+		prefix += "-";
+		var shadowBool = false;
+		if(prefix.indexOf("buildings")>-1){
 
-				}else if(camera.position.y>2200){
-					camera.position.y=2200;
-					var pov = new THREE.Vector3(0-camera.position.x, 0-camera.position.y,0-camera.position.z);
-					camera.lookAt(pov);
-				}
-				*/
-				/*
-				scene.updateMatrixWorld();
-				scene.traverse(function(obj){
-					if(obj instanceof THREE.LOD){
-						obj.update(camera);
-					}
-				});
-				*/
-				renderer.render(scene, camera);
-				rendererStats.update(renderer);
-			};
+			shadowBool = true;
+		}
 
+		//console.log("adding "+ prefix.substring(0,prefix.length-1)+" to scene: "+meshes.length)
+		for(var k=0; k<meshes.length;k++){
+			var mesh = meshes[k];
+			mesh.name = prefix+k;
+			mesh.castShadow = shadowBool;
+			mesh.receiveShadow = shadowBool;
+			scene.add(mesh);
+		}
+	}
 
 
-			///////////////////////////////////////////////////////////////
-			// Show overlay text when loading scenes
-			///////////////////////////////////////////////////////////////
 
-			function showText(text){
-				$("#infoText").text(text);
-				/*
-				$("#infoText").val(function(index, value){
-					return value+"test"+index;
-				});
-				*/
-			}
 
-			///////////////////////////////////////////////////////////////
-			// Show spinner or scene
-			///////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////
+	// Helper methods for testing the height of the buildings
+	///////////////////////////////////////////////////////////////
 
-			function showSpinner(showSpinner){
-				if(showSpinner){
-					$("#renderStatsHolder").hide();
-					$(".spinner").css('opacity',1);
-					$(".spinner-holder").show();
-				}else{
-					console.log("show scene");
-					$("#renderStatsHolder").show();
-					$(".spinner-holder").hide();
-				}
-			}
+	function setLevels(){
 
+		var level = Math.random()*10+0.1;
+		var index = Math.round(Math.random()*Object.keys(buildingObjects).length);
 
-		</script>
-	</body>
+		changeBuilding(level, index, false);
+
+	}
+
+
+
+
+
+
+	///////////////////////////////////////////////////////////////
+	// Rendering function for three.js
+	///////////////////////////////////////////////////////////////
+
+	var cs = 0;
+	function render()
+	{
+
+
+		renderAnimationId = requestAnimationFrame( render );
+		TWEEN.update();
+
+		if(cs%100==0){
+
+			//console.log(camera.position);
+			//console.log(scene.children);
+			cs=0;
+		}
+		cs++;
+
+		if(weatherAdded)
+		weatherVisualiser.renderWeather();
+
+
+		//animate camera
+		if(pathCamera && autoCamAnimation){
+			let time = Date.now()
+			let loopTime = 20* 1000;
+			let t = (time%loopTime)/loopTime;
+
+			let camPosition = pathCamera.getPointAt(t);
+			camera.position.copy(camPosition);
+			camera.lookAt(new THREE.Vector3(0,0,0));
+
+		}
+
+		/*
+		//makes sure camera does not go beyond x-axis of plane
+		if(camera.position.x<plane.geometry.boundingBox.min.x){
+		camera.position.x=plane.geometry.boundingBox.min.x;
+	}else if(camera.position.x>plane.geometry.boundingBox.max.x){
+	camera.position.x=plane.geometry.boundingBox.max.x;
+}
+
+//makes sure camera does not go beyond y-axis of plane
+if(camera.position.z<plane.geometry.boundingBox.min.y){
+camera.position.z=plane.geometry.boundingBox.min.y;
+}else if(camera.position.z>plane.geometry.boundingBox.max.y){
+camera.position.z=plane.geometry.boundingBox.max.y;
+}
+
+
+//makes sure that camera can not go below z=0
+if(camera.position.y<0.5){
+camera.position.y=0.5;
+var pov = new THREE.Vector3(0-camera.position.x, 0-camera.position.y,0-camera.position.z);
+camera.lookAt(pov);
+
+}else if(camera.position.y>2200){
+camera.position.y=2200;
+var pov = new THREE.Vector3(0-camera.position.x, 0-camera.position.y,0-camera.position.z);
+camera.lookAt(pov);
+}
+*/
+/*
+scene.updateMatrixWorld();
+scene.traverse(function(obj){
+if(obj instanceof THREE.LOD){
+obj.update(camera);
+}
+});
+*/
+renderer.render(scene, camera);
+rendererStats.update(renderer);
+};
+
+
+
+///////////////////////////////////////////////////////////////
+// Show overlay text when loading scenes
+///////////////////////////////////////////////////////////////
+
+function showText(text){
+	$("#infoText").text(text);
+	/*
+	$("#infoText").val(function(index, value){
+	return value+"test"+index;
+});
+*/
+}
+
+///////////////////////////////////////////////////////////////
+// Show spinner or scene
+///////////////////////////////////////////////////////////////
+
+function showSpinner(showSpinner){
+	if(showSpinner){
+		$("#renderStatsHolder").hide();
+		$(".spinner").css('opacity',1);
+		$(".spinner-holder").show();
+	}else{
+		console.log("show scene");
+		$("#renderStatsHolder").show();
+		$(".spinner-holder").hide();
+	}
+}
+
+
+</script>
+</body>
 </html>
