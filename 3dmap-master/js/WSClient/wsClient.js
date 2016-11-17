@@ -11,19 +11,19 @@ $(function(){
     //close any websocket connections before user leaves page
     $(window).on('beforeunload', function(){
       closeWebsockets();
+      weatherClient.close();
     });
 });
 
 
 
 function closeWebsockets(){
-    console.log("cws")
     if(connection){
         connection.send(JSON.stringify({type:"close", id: clientId}));
         connection.close();
 
       }
-      weatherClient.close();
+      
 }
 
 ///////////////////////////////////////////////////////////////
@@ -202,6 +202,7 @@ var weatherClient = (function(){
 
     return {
         setup: function(city, weatherCallback, timeCallback){
+            console.log(connection);
             if(connection && connection.readyState==1){
                 weatherCallbackFunc = weatherCallback;
                 timeCallbackFunc = timeCallback;

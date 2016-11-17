@@ -7,9 +7,10 @@ var clients = new Array();
 
 var cities = {};
 cities['8k']     = {}, cities['8k'].id = 2624652;
-cities['Cph']    = {}, cities['Cph'].id = 2618425;
-cities['Ry']     = {}, cities['Ry'].id = 2614387;
-cities['Odense'] = {}, cities['Odense'].id = 2615876;
+cities['cph']    = {}, cities['cph'].id = 2618425;
+cities['ry']     = {}, cities['ry'].id = 2614387;
+cities['odense'] = {}, cities['odense'].id = 2615876;
+cities['ringe'] = {}, cities['ringe'].id = 2614790;
 
 var lightType = ['drizzle','light'];
 var heavyType = ['heavy','shower','extreme','freezing','ragged'];
@@ -214,7 +215,9 @@ function extrapolateTimeInfo(data){
 }
 
 function sendWeatherDataToClient(client){
-	
+	console.log(client.city);
+	console.log(cities);
+	console.log("-------");
 	var weatherType = cities[client.city].weatherType;
 	var weatherSeverity = cities[client.city].weatherSeverity;
 
