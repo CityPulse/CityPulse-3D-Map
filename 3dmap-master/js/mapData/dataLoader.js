@@ -1,7 +1,7 @@
 
 /*****************************/
 /*                           */
-/*         Geo data          */	
+/*         Geo data          */
 /*                           */
 /*****************************/
 
@@ -14,7 +14,7 @@ var mapData = (function(){
 	function setPlane(city){
     	var planeGeo =  new THREE.PlaneBufferGeometry(planeX, planeY,32, 32 );// new THREE.PlaneGeometry(2000,2000);
     	plane = new THREE.Mesh(planeGeo);
-				
+
         // rotate it to correct position
         plane.rotation.x = -Math.PI/2;
 		plane.castShadow = false;
@@ -37,12 +37,12 @@ var mapData = (function(){
 
     	loader.load(
 
-    		'data/goundImages/'+city+'.png',
+    		'data/groundimages/'+city+'.png',
     		function(texture){
     			var meshMaterial = new THREE.MeshBasicMaterial({ transparent: false, map: texture });
 				meshMaterial.side = THREE.DoubleSide;
 		        plane.material = meshMaterial;
-		        
+
     		},
     		function ( xhr ) {
 				var meshMaterial = new THREE.MeshLambertMaterial({color:0xccffcc});
@@ -51,9 +51,9 @@ var mapData = (function(){
 
     	);
 
-    	
+
         //var planeMat = new THREE.MeshLambertMaterial({color:0xffffff});
-        
+
     }
 
 	///////////////////////////////////////////////////////////////
@@ -67,28 +67,28 @@ var mapData = (function(){
 		///////////////////////////////////////////////////////////////
 		var usingServer = true;
 
-		
+
 		showText("retrieving building data from server for "+cityName);
-		
+
 		$.get(buildingUrl, function(kml)
 		{
 			showText("Building data loaded from server..");
-			
+
 			console.log(new Date()+":got building kml");
-			
+
 			var data = toGeoJSON.kml(kml).features;
-			
+
 			calculatePlaneBounds(data);
 			setPlane(chosenCityId);
 
 			noOfBuildings = data.length;
-			
+
 			setTimeout(function(){
 				showText("Creating building models");
 				setTimeout(function(){
 					createBuildingModels(data);
 					showText("Building models created");
-					setTimeout(function(){	
+					setTimeout(function(){
 						console.log(new Date()+": buildings loaded");
 						//hide spinner as system is ready
 						showSpinner(false);
@@ -109,7 +109,7 @@ var mapData = (function(){
 			setupVanillaSocket();
 			//for testing events - can be removed when done
 			//addTestEvent();
-			
+
 			/*
 			//test for showing building height change;
 			if(!usingServer)
@@ -134,7 +134,7 @@ var mapData = (function(){
 			console.log(new Date()+": got road kml");
 			showText("Road data loaded from server");
 			var data = toGeoJSON.kml(kml);
-			
+
 			createRoadModels(data.features);
 			console.log(new Date()+": roads loaded");
 		});
@@ -203,8 +203,8 @@ var mapData = (function(){
 				console.log("no tree models available - continue with just buildings and roads");
 			}
 		});
-		
-		
+
+
 	}
 
 
@@ -217,7 +217,7 @@ var mapData = (function(){
 
 	function addTestEvents(){
 		for(var i=0; i<300;i++){
-			addTestEvent();	
+			addTestEvent();
 		}
 	}
 
@@ -241,7 +241,7 @@ var mapData = (function(){
 
 		var serverity = Math.floor(Math.random() * 3);
 		showEvent(planePos, testId, type, serverity);
-		
+
 
 		// type: PublicParking(0), TrafficJam(1), AarhusPollution(2), AarhusNoise(3)
 		// serverity: {0,1,2}
@@ -257,7 +257,7 @@ var mapData = (function(){
 		populateMap: function(city){
 			console.log(new Date()+": start");
 			//sortedbuildings.kml means that the original kml have been sorted according to location by sort.py
-			buildingUrl = "data/kml/"+city+"/sortedBuildings.kml";
+			buildingUrl = "data/kml/"+city+"/sortedbuildings.kml";
 			//buildingUrl = "data/kml/"+city+"/test.kml";
 			roadUrl = "data/kml/"+city+"/roads.kml";
 			treeUrl = "data/kml/"+city+"/trees.kml";
@@ -273,34 +273,34 @@ var mapData = (function(){
 
 			$.get(buildingUrl, function(kml)
 			{
-				
+
 				console.log(new Date()+":got building kml");
-				
+
 				var data = toGeoJSON.kml(kml).features;
-				
+
 				calculatePlaneBounds(data);
 				setPlane();
 
-				
+
 				//showSpinner(false);
 				//addTestEvents();
 				//return;
-				
+
 				//getTrees();
-				
+
 				//addTestEvents();
 				//return;
-				
+
 				//getTrees();
 				getWater();
 				//getRoads();
-				
-				
+
+
 				noOfBuildings = data.length;
 
 				//createBuildingModels(data);
 				showSpinner(false);
-				
+
 			});
 		}
 	}
