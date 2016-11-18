@@ -28,6 +28,8 @@ var timeOfDayVisualiser = (function(){
 
 var weatherVisualiser = (function(){
 
+	var renderWeather = true;
+
 	function changeAmount(){
 		var particleCount = weatherSystem.geometry.vertices.length;
 		var newAmount = weatherSystem.amountCount;
@@ -100,6 +102,10 @@ var weatherVisualiser = (function(){
 
 			if(weatherAdded){
 
+				if(type!=="clear"){
+					renderWeather=true;
+				}
+
 				if(weatherSystem.typeString!==typeString){
 					weatherTypeChanged = true;
 				}
@@ -110,9 +116,10 @@ var weatherVisualiser = (function(){
 
 			}else{
 				//if type is clear, dont add particle system
-				if(typeString==='clear')
+				if(typeString==='clear'){
 					return;
-
+				}
+				console.log("X "+planeX+"  Y: "+planeY);
 				weatherGeometry = new THREE.Geometry();
 				for (var i = 0; i < amountCount; i ++ ) {
 					var vertex = new THREE.Vector3();
@@ -138,10 +145,9 @@ var weatherVisualiser = (function(){
 					map: THREE.ImageUtils.loadTexture(
 						typeString
 						),
-						blending: THREE.AdditiveBlending,
-						transparent: true
+					blending: THREE.AdditiveBlending,
+					transparent: true
 				} );
-				console.log("af mat");
 				weatherSystem = new THREE.Points( weatherGeometry, material );
 				
 				weatherSystem.name = "weatherSystem";
@@ -159,7 +165,9 @@ var weatherVisualiser = (function(){
 
 
 		renderWeather: function (){
-
+				if(!renderWeather){
+					return;
+				}
 				var particleAccerleration = .1;
 				if(weatherSystem.weatherType==='snow'){
 					particleAccerleration = .05;
@@ -172,6 +180,7 @@ var weatherVisualiser = (function(){
 
 				    // get the particle
 				    var particle = weatherSystem.geometry.vertices[particleCount];
+
 				    // check if we need to reset
 				    if (particle.y < 0) {
 				    	if(!weatherAmountChanged && !weatherTypeChanged){
@@ -188,6 +197,8 @@ var weatherVisualiser = (function(){
 				    			}
 				    			if(weatherSystem.weatherType!=="clear"){
 				    				weatherAmountChanged=weatherTypeChanged=false;	
+				    			}else{
+				    				renderWeather=false;
 				    			}
 				    			
 				    			return;
