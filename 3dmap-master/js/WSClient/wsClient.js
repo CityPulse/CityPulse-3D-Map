@@ -88,7 +88,7 @@ function setupVanillaSocket() {
 
     // open connection
     var hostname = window.location.hostname;
-    hostname = hostname.replace('3dmap.','3dmap-server.');
+    //hostname = hostname.replace('3dmap.','3dmap-server.');
     var url = 'ws://'+ hostname + ':8001';
     connection = new WebSocket(url);
 
@@ -168,7 +168,7 @@ function handleMessage(msg) {
 
 var weatherClient = (function(){
     var hostname = window.location.hostname;
-    hostname = hostname.replace('3dmap.','3dmap-server.');
+    //hostname = hostname.replace('3dmap.','3dmap-server.');
     var url = 'ws://'+ hostname + ':8002';
     //var connection;
     var clientId = -1;
