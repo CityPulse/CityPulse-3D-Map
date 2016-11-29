@@ -108,7 +108,7 @@ function getCurrentWeatherForCity(city){
 	    	const weather = fbResponse.weather;
 	    	if(weather == undefined)
 	    		return;
-	    	console.log(new Date()+": Got weather for "+city+":");
+	    	console.log(new Date()+": Got weather for "+city+"!");
 	    	//console.log(weather);
 	    	let newWeatherType = extrapolateWeatherType(weather);
 	    	let newWeatherSeverity = extrapolateWeatherSeverity(weather);

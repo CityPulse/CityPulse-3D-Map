@@ -5,6 +5,7 @@ var weatherAmountChanged = false;
 var sunrise = null;
 var sunset = null;
 var timeFromServer = null;
+var cs=0;
 
 var timeOfDayVisualiser = (function(){
 
@@ -66,7 +67,7 @@ var weatherVisualiser = (function(){
 		///////////////////////////////////////////////////////////////
 		weatherHandler: function(type,amount){
 			//console.log("weatherType: "+type);
-
+			console.log("WC: "+type+" "+amount);
 			var weatherGeometry;
 			var typeString;
 			switch(type){
@@ -124,7 +125,7 @@ var weatherVisualiser = (function(){
 				for (var i = 0; i < amountCount; i ++ ) {
 					var vertex = new THREE.Vector3();
 					vertex.x = Math.random() * planeX-planeX/2;
-					vertex.y = Math.random() * 2200;
+					vertex.y = Math.random() * 9000;
 					vertex.z = Math.random() * planeY-planeY/2;
 					vertex.velocity = new THREE.Vector3(
 					  0,              // x
@@ -136,7 +137,6 @@ var weatherVisualiser = (function(){
 
 				var color = 0xffffff;
 				var size  = 10;
-				console.log("b4 mat");
 
 
 				var material = new THREE.PointsMaterial( { 
@@ -159,6 +159,7 @@ var weatherVisualiser = (function(){
 
 			weatherSystem.typeString= typeString;
 			weatherSystem.amountCount = amountCount;
+			weatherSystem.weatherType = type;
 
 			//console.log(weatherSystem);
 		},
@@ -168,6 +169,12 @@ var weatherVisualiser = (function(){
 				if(!renderWeather){
 					return;
 				}
+				
+				if(cs%500==0){
+					console.log(renderWeather);
+					cs=0;
+				}
+				cs++;
 				var particleAccerleration = .1;
 				if(weatherSystem.weatherType==='snow'){
 					particleAccerleration = .05;
@@ -195,6 +202,7 @@ var weatherVisualiser = (function(){
 				    			if(particleCount!==weatherSystem.amountCount){
 				    				changeAmount();
 				    			}
+				    			console.log("type: "+weatherSystem.weatherType);
 				    			if(weatherSystem.weatherType!=="clear"){
 				    				weatherAmountChanged=weatherTypeChanged=false;	
 				    			}else{
