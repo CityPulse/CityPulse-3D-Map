@@ -44,7 +44,7 @@ function setupWSServer() {
 	    var conn = request.accept(null, request.origin);
 
 	    conn.on('message', function(message) {
-	    	obj = JSON.parse(message.utf8Data);
+	    	let obj = JSON.parse(message.utf8Data);
 	    	console.log(obj);
 	        // if (message.type === 'utf8') {
         	if(obj.type == "SETUP") {
