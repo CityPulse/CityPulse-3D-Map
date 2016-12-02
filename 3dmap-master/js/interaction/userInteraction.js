@@ -3,6 +3,7 @@ var interaction = (function(){
 
 	var selectedObject=null;
 	var numberOfElementsInDataList = 0;
+	var connectedToCameraControlServer=false;
 
 	function resetPlaneSize(){
 		minY = minX = 10000000;
@@ -131,9 +132,10 @@ var interaction = (function(){
 		},
 
 		addKeyboardHandling:function(){
+			let toggleWeather = true;
 			//add key handler to reset camera view
 			$(document).keydown(function(e) {
-				
+				console.log(e.keyCode);
 				if(e.keyCode===82){//'r' pressed
 					resetCamera();
 				}else if(e.keyCode==67){
@@ -149,12 +151,20 @@ var interaction = (function(){
 				}else if(e.keyCode===66){//'b' pressed
 					console.log("reset buildings");
 					playground.resetAllBuildings();
-				}else if(e.keyCode===87){//'w' pressed
+				}else if(e.keyCode===86){//'v' pressed
 					let buildingId = Math.floor(Math.random()*10);
 					//buildingId = 8;
 					playground.visualiseBuildingChanges(1, buildingId,false);
-				}else if(e.keyCode===81){
+				}else if(e.keyCode===81){// 'q' pressed
 					playground.resetAllBuildings();
+				}else if(e.keyCode===87){// 'w' pressed
+					if(toggleWeather){
+						weatherVisualiser.weatherHandler("rain","heavy");	
+						toggleWeather = !toggleWeather;
+					}else{
+						weatherVisualiser.weatherHandler("clear","middle");	
+						toggleWeather = !toggleWeather;
+					}
 					
 				}
 				
@@ -192,12 +202,10 @@ var interaction = (function(){
 		    	var intersects = raycaster.intersectObjects( scene.children );
 				for ( var i = 0; i < intersects.length; i++ ) 
 				{
-					console.log(intersects[i].object.name);
 					if(intersects[i].object.name.startsWith("buildings") && intersects[i].face.readingId !== selectedObject){
 						selectedObject = intersects[i].face.readingId; // Assign new selected object
 						//console.log(intersects[i]);
-						dataVisualisation.changeBuild(3,selectedObject);
-						console.log(selectedObject);							
+						//dataVisualisation.changeBuild(3,selectedObject);
 						break;
 					}else if(intersects[i].object.name.startsWith("event")){
 						
@@ -223,8 +231,41 @@ var interaction = (function(){
 		///////////////////////////////////////////////////////////////
 		activateButtons: function(){
 			handleButtonActivation(true);
-		}
+		},
 
+		///////////////////////////////////////////////////////////////
+		// add WS controls 
+		///////////////////////////////////////////////////////////////
+		addWebSocketCameraControls: function(){
+			//listener to be used for controlling camera over WS
+			let lookAt = null;
+    		let position = new THREE.Vector3();
+			controls.addEventListener('change',function(e){
+				if(connectedToCameraControlServer){
+					//let matrix = e.target.object.matrix;
+					position = e.target.object.position;
+					e.target.object.getWorldDirection(lookAt);
+					lookAt = new THREE.Vector3(0,0, -1);
+					lookAt.applyMatrix4( camera.matrixWorld );
+					controlClient.sendControls(position, lookAt);
+				}
+		    });
+
+			controlClient.setup(false, function(position, lookAt){
+				if(!connectedToCameraControlServer){
+			        connectedToCameraControlServer=true;
+				}
+
+				if(position && lookAt && camera){
+					camera.matrixWorldNeedsUpdate = true;
+					camera.position.x = position.x;
+					camera.position.y = position.y;
+					camera.position.z = position.z;
+					camera.lookAt(lookAt);
+				}
+
+		    });
+		}
 
 	}
 

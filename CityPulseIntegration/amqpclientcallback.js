@@ -13,7 +13,8 @@ var WebSocketServer = require('websocket').server;
 var webSocketsServerPort = 8001;
 var clients = new Array();
 
-var secondsToRemoveEvents = 60;
+//show event for five minutes before removing
+var secondsToRemoveEvents = 300;
 
 // Test Variables
 var testing = true;
@@ -100,7 +101,6 @@ function sendToClients(eventId, eventType, severityLevel, lat, long, date) {
 		if(client.conn != undefined && client.conn.connected) {
 			console.log(client.subscriptions);
 			if(client.subscriptions.indexOf(eventType) >= 0 && testForLocation(client, lat, long)) {
-				console.log("before send");
 				client.conn.sendUTF(JSON.stringify({
 					eventId:eventId, 
 					eventType:eventType,
@@ -109,7 +109,6 @@ function sendToClients(eventId, eventType, severityLevel, lat, long, date) {
 					long: long,
 					date: date
 				}));
-				console.log("after send");
 				count += 1;
 			} else {
 				if(client.subscriptions.indexOf(eventType) < 0) {

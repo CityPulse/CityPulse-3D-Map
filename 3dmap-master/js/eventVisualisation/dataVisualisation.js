@@ -183,19 +183,29 @@ var dataVisualisation = (function(){
 
 
 	function _getTextFromServerity(severity){
+		console.log(severity);
 		var text = "Levels are good"
-		switch(severity){
+		switch(parseInt(severity)){
 			case 0:
 				text = "levels are good (0)"
 				break;
 			case 1:
-				text = "levels are high (1)"
+				text = "levels are medium (1)"
 				break;
 			case 2:
-				text = "levels are harsh (2)"
+				text = "levels are elevated (2)"
+				break;
+			case 3:
+				text = "levels are high (3)"
+				break;
+			case 4:
+				text = "levels are harsh (4)"
+				break;
+			case 5:
+				text = "levels are extreme (5)"
 				break;
 		}
-
+		console.log("with severity: "+severity+" return: "+text);
 		return text;
 	}
 
@@ -208,7 +218,7 @@ var dataVisualisation = (function(){
 
 	function _visualizeSeverity(severity){
 		var top = 300;
-		switch(severity){
+		switch(parseInt(severity)){
 			case 0:
 				top = 100;
 				break;
@@ -216,9 +226,18 @@ var dataVisualisation = (function(){
 				top = 250;
 				break;
 			case 2:
+				top = 300;
+				break;
+			case 3: 
+				top = 350;
+				break;
+			case 4: 
 				top = 400;
 				break;
-			default: 
+			case 5: 
+				top = 500;
+				break;
+			default:
 				top = 300;
 		}
 
@@ -304,7 +323,7 @@ var dataVisualisation = (function(){
 					color = 0xcc0000;
 					break;
 			}
-
+			severity = severity;
 			var top = _visualizeSeverity(severity);
 
 			var radius = 20;
@@ -529,7 +548,7 @@ var dataVisualisation = (function(){
 				scene.remove(string);
 				delete eventList[id];
 				TWEEN.remove(removeTween);
-			},2050);
+			},10000);
 
 			
 		},

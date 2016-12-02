@@ -228,6 +228,18 @@
 		return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 	}
 
+	window.addEventListener( 'resize', onWindowResize, false );
+
+
+	function onWindowResize() {
+
+	  camera.aspect = window.innerWidth / window.innerHeight;
+	  camera.updateProjectionMatrix();
+
+	  renderer.setSize( window.innerWidth, window.innerHeight );
+	   render();
+
+	}
 
 
 	$(function(){
@@ -239,6 +251,8 @@
 		interaction.addKeyboardHandling();
 		//adding mouse handling
 		interaction.addMouseHandling();
+		//adding Websocket handling
+		interaction.addWebSocketCameraControls();
 
 		//wifiVisualizationClient.setup('Ringe');
 		$(".spinner").css('opacity',0);
@@ -443,44 +457,44 @@
 		}
 
 		/*
-		//makes sure camera does not go beyond x-axis of plane
-		if(camera.position.x<plane.geometry.boundingBox.min.x){
-		camera.position.x=plane.geometry.boundingBox.min.x;
-	}else if(camera.position.x>plane.geometry.boundingBox.max.x){
-	camera.position.x=plane.geometry.boundingBox.max.x;
-}
+				//makes sure camera does not go beyond x-axis of plane
+				if(camera.position.x<plane.geometry.boundingBox.min.x){
+				camera.position.x=plane.geometry.boundingBox.min.x;
+			}else if(camera.position.x>plane.geometry.boundingBox.max.x){
+			camera.position.x=plane.geometry.boundingBox.max.x;
+		}
 
-//makes sure camera does not go beyond y-axis of plane
-if(camera.position.z<plane.geometry.boundingBox.min.y){
-camera.position.z=plane.geometry.boundingBox.min.y;
-}else if(camera.position.z>plane.geometry.boundingBox.max.y){
-camera.position.z=plane.geometry.boundingBox.max.y;
-}
+		//makes sure camera does not go beyond y-axis of plane
+		if(camera.position.z<plane.geometry.boundingBox.min.y){
+		camera.position.z=plane.geometry.boundingBox.min.y;
+		}else if(camera.position.z>plane.geometry.boundingBox.max.y){
+		camera.position.z=plane.geometry.boundingBox.max.y;
+		}
 
 
-//makes sure that camera can not go below z=0
-if(camera.position.y<0.5){
-camera.position.y=0.5;
-var pov = new THREE.Vector3(0-camera.position.x, 0-camera.position.y,0-camera.position.z);
-camera.lookAt(pov);
+		//makes sure that camera can not go below z=0
+		if(camera.position.y<0.5){
+		camera.position.y=0.5;
+		var pov = new THREE.Vector3(0-camera.position.x, 0-camera.position.y,0-camera.position.z);
+		camera.lookAt(pov);
 
-}else if(camera.position.y>2200){
-camera.position.y=2200;
-var pov = new THREE.Vector3(0-camera.position.x, 0-camera.position.y,0-camera.position.z);
-camera.lookAt(pov);
-}
-*/
-/*
-scene.updateMatrixWorld();
-scene.traverse(function(obj){
-if(obj instanceof THREE.LOD){
-obj.update(camera);
-}
-});
-*/
-renderer.render(scene, camera);
-rendererStats.update(renderer);
-};
+		}else if(camera.position.y>2200){
+		camera.position.y=2200;
+		var pov = new THREE.Vector3(0-camera.position.x, 0-camera.position.y,0-camera.position.z);
+		camera.lookAt(pov);
+		}
+		*/
+		/*
+		scene.updateMatrixWorld();
+		scene.traverse(function(obj){
+		if(obj instanceof THREE.LOD){
+		obj.update(camera);
+		}
+		});
+		*/
+		renderer.render(scene, camera);
+		rendererStats.update(renderer);
+	};
 
 
 

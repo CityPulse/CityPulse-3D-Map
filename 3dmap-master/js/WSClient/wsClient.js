@@ -8,21 +8,27 @@ var eventQueue = new Array();
 
 
 $(function(){
-    //close any websocket connections before user leaves page
-    $(window).on('beforeunload', function(){
-      closeWebsockets();
-      weatherClient.close();
-    });
+
+    console.log("window handlers");
+
+    window.onbeforeunload = function(){
+        closeWebsockets();
+        
+    };
+
 });
 
 
 
 function closeWebsockets(){
+    controlClient.close();
+    weatherClient.close();
+    
     if(connection){
         connection.send(JSON.stringify({type:"close", id: clientId}));
         connection.close();
+    }
 
-      }
       
 }
 
@@ -158,10 +164,10 @@ function handleMessage(msg) {
             //dataVisualisation.changeBuild(1,msg.targetBuildingId);
             playground.resetABuilding(msg.targetBuildingId);
         }else{
-            console.log(msg.eventType);
             dataVisualisation.removeEvent(msg.eventId);
         }
-
+        //remove the event from the id list
+        eventIds.splice(eventIds.indexOf(msg.eventId),1);
     }
 }
 
@@ -300,3 +306,64 @@ var wifiVisualizationClient = (function(){
 
 })();
 
+
+
+
+var controlClient = (function(){
+    var hostname = window.location.hostname;
+    //hostname = hostname.replace('3dmap.','3dmap-server.');
+    var url = 'ws://'+ hostname + ':8003';
+    connection = new WebSocket(url);
+    let controlCallback = null;
+    let clientId = null;
+    let position = null;
+    let lookAt = null;
+    let msg = null;
+    let outMessage = null;
+
+     connection.onmessage = function(message) {
+        msg = JSON.parse(message.data);
+        console.log(msg);
+        if(msg.type === "setup"){
+            console.log("setup type")
+            clientId = msg.id;
+            if(controlCallback){
+                controlCallback(null);
+            } 
+        }else if(msg.type==='controls'){
+            position = msg.data.position;
+            lookAt = msg.data.lookAt;
+            if(controlCallback){
+                controlCallback(position,lookAt);
+            }    
+        }
+        
+    };
+
+    return {
+        setup: function(isClient, callback){
+            console.log("cc setup");
+            controlCallback = callback;
+            if(connection && connection.readyState==1){
+                connection.send(JSON.stringify({type: "SETUP", data: {isClient : isClient}}));
+            }
+        },
+
+        close: function(){
+
+            if(connection){
+                connection.send(JSON.stringify({type:"close", id: clientId}));
+                connection.close();
+            }
+        },
+
+        sendControls: function(position, lookAt){
+            
+             if(connection && connection.readyState==1){
+                let message = JSON.stringify({type: "controls", id:clientId, data: {position : position, lookAt:lookAt}});
+                connection.send(message);
+            }
+        }
+    }
+
+})();

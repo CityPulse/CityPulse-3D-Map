@@ -1,0 +1,208 @@
+<html>
+<head>
+  <title>City Visualizer controller</title>
+  <link type="text/css" rel="stylesheet" href="css/jquery.dropdown.css" />
+  <link rel="stylesheet" type="text/css" href="css/control.css">
+
+  <script src="js/jquery/jquery.js"></script>
+  <script src="js/three.js"></script>
+  <script src="js/controls/OrbitControls.js"></script>
+
+  <script src='js/WSClient/wsClient.js'></script>
+
+</head>
+<body>
+
+  <div id='infobox'>Not connected to server</div>
+
+  <div id="container"></div>
+  <!-- shaders -->
+  <script type="x-shader/x-vertex" id="vertexShader">
+
+    varying vec3 vWorldPosition;
+
+    void main() {
+
+      vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+      vWorldPosition = worldPosition.xyz;
+
+      gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+    }
+
+    </script>
+
+
+    <script type="x-shader/x-fragment" id="fragmentShader">
+
+    uniform vec3 topColor;
+    uniform vec3 bottomColor;
+    uniform float offset;
+    uniform float exponent;
+
+    varying vec3 vWorldPosition;
+
+    void main() {
+
+      float h = normalize( vWorldPosition + offset ).y;
+      gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
+
+    }
+  </script>
+
+  <!-- main script -->
+  <script>
+  "use strict";
+
+  var camera = null;
+  var raycaster = null;
+  var controls = null;
+  var renderer = null;
+  var spotLight = null;
+  var planeX = null;
+  var planeY = null;
+  var connectedToServer = false;
+
+  var scene = new THREE.Scene();
+
+  var SHADOW_MAP_WIDTH = 1024;
+  var SHADOW_MAP_HEIGHT = 1024;
+
+  $(function(){
+    //start setting up the basics before a anything else happens
+    setup();
+  });
+
+  function setup()
+  {
+    //adding camera
+    camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 5, 10000 );
+    raycaster = new THREE.Raycaster();
+    
+    //setting up render
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.setClearColor(0xdddddd);
+
+    //renderer.shadowMapEnabled = true;
+    renderer.shadowMap.enabled;
+    //renderer.shadowMapType = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+
+    //setting camera properties - also used to reset camera position
+    camera.position.z = 419;
+    camera.position.x = -1773;
+    camera.position.y = 1254;
+
+    controls = new THREE.OrbitControls( camera, renderer.domElement );
+    let lookAt = null;
+    let position = new THREE.Vector3();
+    controls.addEventListener('change',function(e){
+      if(connectedToServer){
+        //let matrix = e.target.object.matrix;
+        position = e.target.object.position;
+        e.target.object.getWorldDirection(lookAt);
+        
+        
+        lookAt = new THREE.Vector3(0,0, -1);
+        lookAt.applyMatrix4( camera.matrixWorld );
+        controlClient.sendControls(position, lookAt);
+      }
+      //console.log(e.target.object.matrix.elements);
+    });
+
+    controlClient.setup(false, function(position, lookAt){
+      if(!connectedToServer){
+        $("#infobox").css('color','green');
+        $("#infobox").text("Connected");
+        connectedToServer=true;
+      }
+
+      if(position && lookAt && camera){
+        camera.matrixWorldNeedsUpdate = true;
+        camera.position.x = position.x;
+        camera.position.y = position.y;
+        camera.position.z = position.z;
+        camera.lookAt(lookAt);
+      }
+
+    });
+
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.25;
+    controls.enableZoom = true;
+    
+    var hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.2);
+    hemiLight.name="hemilight";
+    hemiLight.color.setHex(0x3385FF);
+    hemiLight.groundColor.setHex(0xD3D3D3);
+    hemiLight.position.set( 0, 500, 0 );
+    scene.add( hemiLight );
+
+
+    // SKYDOME
+    var vertexShader = document.getElementById( 'vertexShader' ).textContent;
+    var fragmentShader = document.getElementById( 'fragmentShader' ).textContent;
+    var uniforms = {
+      topColor:    { type: "c", value: new THREE.Color( 0x0077ff ) },
+      bottomColor: { type: "c", value: new THREE.Color( 0xffffff ) },
+      offset:    { type: "f", value: 33 },
+      exponent:  { type: "f", value: 0.6 }
+    };
+    uniforms.topColor.value.copy( hemiLight.color );
+
+    var skyGeo = new THREE.SphereGeometry( 4000, 32, 15 );
+    var skyMat = new THREE.ShaderMaterial( { vertexShader: vertexShader, fragmentShader: fragmentShader, uniforms: uniforms, side: THREE.BackSide } );
+    var sky = new THREE.Mesh( skyGeo, skyMat );
+    sky.name = "sky";
+
+    sky.matrixAutoUpdate = false;
+    sky.updateMatrix();
+
+    scene.add( sky );
+
+    let planeGeo =  new THREE.PlaneBufferGeometry(1000, 1000,32, 32 );// new THREE.PlaneGeometry(2000,2000);
+    let plane = new THREE.Mesh(planeGeo);
+
+    // rotate it to correct position
+    plane.rotation.x = -Math.PI/2;
+    plane.castShadow = false;
+    plane.receiveShadow = true;
+    plane.name = "ground";
+
+    plane.matrixAutoUpdate = false;
+    plane.updateMatrix();
+
+    //calculate bounding box for limiting camera position
+    plane.geometry.computeBoundingBox();
+
+    scene.add(plane);
+
+    console.log(new Date()+": End setup/start render");
+
+    renderer.render(scene, camera);
+
+    const container = document.querySelector('#container');
+
+    container.appendChild(renderer.domElement);
+    render();
+
+    
+  }
+
+
+  function render()
+  {
+    let renderAnimationId = requestAnimationFrame( render );
+    renderer.render(scene, camera);
+  }
+
+
+
+
+  </script>
+
+
+</body>
+</html>

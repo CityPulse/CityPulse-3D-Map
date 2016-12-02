@@ -68,7 +68,7 @@ var mapData = (function(){
 		var usingServer = true;
 
 
-		showText("retrieving building data from server for "+cityName);
+		showText("Retrieving building data from server for "+cityName);
 
 		$.get(buildingUrl, function(kml)
 		{
