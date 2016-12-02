@@ -1,3 +1,5 @@
+'use strict'
+
 // WebSocket Variables
 var http = require('http');
 const request = require('request');
@@ -20,7 +22,7 @@ function setupWSServer() {
 	});
 
 	// create the server
-	wsServer = new WebSocketServer({
+	let wsServer = new WebSocketServer({
 	    httpServer: server
 	});
 
