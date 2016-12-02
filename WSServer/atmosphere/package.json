@@ -1,7 +1,7 @@
 {
-  "name": "3dmapservice",
+  "name": "atmosphereService",
   "version": "1.0.2",
-  "description": "Service behind the 3dmap",
+  "description": "atmosphere service behind the 3dmap",
   "main": "atmosphereService.js",
   "scripts": {
     "start": "node ./atmosphereService.js",

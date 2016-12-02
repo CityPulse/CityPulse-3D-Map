@@ -1,0 +1,15 @@
+{
+  "name": "controlService",
+  "version": "1.0.2",
+  "description": "control service behind the 3dmap",
+  "main": "controlService.js",
+  "scripts": {
+    "start": "node ./controlService.js",
+    "test": "node -v"
+  },
+  "author": "Morten Skov",
+  "license": "ISC",
+  "dependencies": {
+    
+  }
+}
