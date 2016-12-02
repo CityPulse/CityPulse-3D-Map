@@ -10,6 +10,9 @@
   "author": "Morten Skov",
   "license": "ISC",
   "dependencies": {
-    
+    "bail": "^1.0.1",
+    "n3": "^0.7.0",
+    "request": "^2.75.0",
+    "websocket": "^1.0.23"
   }
 }
