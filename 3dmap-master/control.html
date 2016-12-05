@@ -96,6 +96,10 @@
     camera.position.y = 1254;
 
     controls = new THREE.OrbitControls( camera, renderer.domElement );
+
+    controls.dampingFactor = 1.75;
+    controls.maxPolarAngle = Math.PI/2;
+
     let lookAt = null;
     let position = new THREE.Vector3();
     controls.addEventListener('change',function(e){

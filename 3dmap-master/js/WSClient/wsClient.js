@@ -323,9 +323,7 @@ var controlClient = (function(){
 
      connection.onmessage = function(message) {
         msg = JSON.parse(message.data);
-        console.log(msg);
         if(msg.type === "setup"){
-            console.log("setup type")
             clientId = msg.id;
             if(controlCallback){
                 controlCallback(null);
@@ -342,7 +340,6 @@ var controlClient = (function(){
 
     return {
         setup: function(isClient, callback){
-            console.log("cc setup");
             controlCallback = callback;
             if(connection && connection.readyState==1){
                 connection.send(JSON.stringify({type: "SETUP", data: {isClient : isClient}}));

@@ -241,18 +241,23 @@ var interaction = (function(){
 			let lookAt = null;
     		let position = new THREE.Vector3();
 			controls.addEventListener('change',function(e){
+				
 				if(connectedToCameraControlServer){
 					//let matrix = e.target.object.matrix;
+					/*
 					position = e.target.object.position;
 					e.target.object.getWorldDirection(lookAt);
 					lookAt = new THREE.Vector3(0,0, -1);
 					lookAt.applyMatrix4( camera.matrixWorld );
 					controlClient.sendControls(position, lookAt);
+					*/
 				}
 		    });
 
 			controlClient.setup(false, function(position, lookAt){
+
 				if(!connectedToCameraControlServer){
+
 			        connectedToCameraControlServer=true;
 				}
 

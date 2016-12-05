@@ -101,11 +101,7 @@ var mapData = (function(){
 			},50);
 			getRoads();
 			//setting up a websocket to event server
-			if(cityName=="ringe"){
-				console.log('ringe');
-			}else{
-				console.log('der');
-			}
+			
 			setupVanillaSocket();
 			//for testing events - can be removed when done
 			//addTestEvent();

@@ -46,9 +46,6 @@ function setupWSServer() {
 	        	clients.splice(index, 1);
 
 	        }else if(obj.type == 'controls'){
-	        	console.log("gotten");
-	        	console.log(obj.data.position);
-	        	console.log(obj.data.lookAt);
 	        	clients.forEach(function(client){
 	        		if(client.id !== obj.id ){
 	        			sendCameraToClient(client, obj.data.position, obj.data.lookAt);

@@ -307,8 +307,9 @@
 		controls = new THREE.OrbitControls( camera, renderer.domElement );
 
 		controls.enableDamping = true;
-		controls.dampingFactor = 0.25;
+		controls.dampingFactor = 0.5;
 		controls.enableZoom = true;
+		controls.maxPolarAngle = Math.PI/2;
 
 		//adding sun/moon object
 		var sunGeometry = new THREE.SphereGeometry( 400, 32, 32 );
@@ -443,7 +444,7 @@
 		}
 		
 
-
+		controls.update();
 		//animate camera
 		if(pathCamera && autoCamAnimation){
 			let time = Date.now()
