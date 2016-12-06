@@ -253,7 +253,7 @@ var interaction = (function(){
 					*/
 				}
 		    });
-
+ 
 			controlClient.setup(false, function(position, lookAt){
 
 				if(!connectedToCameraControlServer){
