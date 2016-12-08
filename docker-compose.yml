@@ -24,10 +24,20 @@ services:
       options:
          max-size: "1g"
          max-file: "5"
-  3dmapservice:
-    image: docker.alexandra.dk/3dmapservice:latest
+  3dmapatmosphereservice:
+    image: docker.alexandra.dk/3dmapatmosphereservice:latest
     ports:
      - "8002:8002"
+    restart: always
+    logging:
+      driver: json-file
+      options:
+         max-size: "1g"
+         max-file: "5"
+  3dmapcontrolservice:
+    image: docker.alexandra.dk/3dmapcontrolservice:latest
+    ports:
+     - "8003:8003"
     restart: always
     logging:
       driver: json-file
