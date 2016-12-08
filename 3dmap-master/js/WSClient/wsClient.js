@@ -90,7 +90,7 @@ window.onfocus = function() {
 function setupVanillaSocket() {
 
     // if user is running mozilla then use it's built-in WebSocket
-	window.WebSocket = window.WebSocket || window.MozWebSocket;
+    window.WebSocket = window.WebSocket || window.MozWebSocket;
 
     // open connection
     var hostname = window.location.hostname;
@@ -100,7 +100,7 @@ function setupVanillaSocket() {
 
     connection.onopen = function () {
         // Send flagged subscribtions
-    	//connection.send(JSON.stringify({type: "SETUP", data: {value : maxBuildings}}));
+        //connection.send(JSON.stringify({type: "SETUP", data: {value : maxBuildings}}));
     };
 
     // most important part - incoming messages
@@ -119,7 +119,7 @@ function setupVanillaSocket() {
             if(window.blurred) {
                 eventQueue.push(msg);
             } else {
-		//console.log("will handle message!");
+        //console.log("will handle message!");
                 handleMessage(msg);
             }
         }
@@ -134,7 +134,7 @@ function handleMessage(msg) {
     if($.inArray(msg.eventId, eventIds) == -1 && msg.severityLevel != -1) { // If event is new and not to be deleted
         eventIds.push(msg.eventId);
 
-    	console.log("handleMessage -> lat: "+msg.lat+" long: "+msg.long+" eventId: "+msg.eventId+" eventType: "+msg.eventType+" severity: "+msg.severityLevel);
+        console.log("handleMessage -> lat: "+msg.lat+" long: "+msg.long+" eventId: "+msg.eventId+" eventType: "+msg.eventType+" severity: "+msg.severityLevel);
 
 
         if(msg.eventType==='buildingEnergy'){

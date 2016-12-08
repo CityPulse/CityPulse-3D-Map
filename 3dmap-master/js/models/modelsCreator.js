@@ -26,7 +26,7 @@ function calculatePlaneBounds(data){
     //planeY = maxY-minY+750;
     planeX = maxX-minX;
     planeY = maxY-minY;
-    console.log("relation:"+planeX/planeY);
+    
     fCenterX = minX + (maxX-minX)*0.5;
     fCenterY = minY + (maxY-minY)*0.5;
     
