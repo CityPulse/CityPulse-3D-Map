@@ -360,7 +360,7 @@ var dataVisualisation = (function(){
 			//setup the tweens
 			var easing = TWEEN.Easing.Quartic.InOut;
 			
-			var movement = 1;
+			var movement = 0.5;
 			var lowerTarget = {y:-(movement/2)};
 			var topTarget = {y:movement/2};
 			
@@ -391,7 +391,7 @@ var dataVisualisation = (function(){
 			}
 
 			var bounceTween = new TWEEN.Tween(topTarget)
-				.to(lowerTarget, 1000)
+				.to(lowerTarget, 1500)
 				.repeat( Infinity )
 				.delay( 50 )
 				.yoyo( true )
